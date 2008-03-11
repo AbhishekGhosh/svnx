@@ -1,16 +1,16 @@
 /* WorkingCopies */
 
 #import <Cocoa/Cocoa.h>
+#import "EditListResponder.h"
 
 @class MyDragSupportArrayController;
 
 /* "Implements BOTH the model and the controller of the favorite working copies panel. "*/
-@interface FavoriteWorkingCopies : NSObject
+@interface FavoriteWorkingCopies : EditListResponder
 {
 	NSMutableArray *favoriteWorkingCopies;
 	IBOutlet MyDragSupportArrayController *favoriteWorkingCopiesAC;
 
-	IBOutlet id window;
 	IBOutlet id nameTextField;
 	IBOutlet id pathTextField;
 	IBOutlet id workingCopiesTableView;

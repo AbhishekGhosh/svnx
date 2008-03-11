@@ -37,6 +37,11 @@
 
 int filterMode;
 
++ (void) presetDocumentName: name;
+- (void) setup: (NSString*) title
+		 user:  (NSString*) username
+		 pass:  (NSString*) password
+		 path:  (NSString*) fullPath;
 
 //- (void)fetchSvnStatus;
 //- (void)fetchSvnStatusReceiveData:(NSArray*)shellOutput;

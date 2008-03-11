@@ -15,6 +15,17 @@
 
 @implementation MyWorkingCopy
 
+
+//----------------------------------------------------------------------------------------
+
++ (void) presetDocumentName: name
+{
+//	[MyWorkingCopyController presetDocumentName: name];
+}
+
+
+//----------------------------------------------------------------------------------------
+
 - (id)init
 {
     self = [super init];
@@ -50,6 +61,21 @@
 	}
     
 	return self;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) setup: (NSString*) title
+		 user:  (NSString*) username
+		 pass:  (NSString*) password
+		 path:  (NSString*) fullPath
+{
+	[self setWindowTitle:     title];
+	[self setUser:            username];
+	[self setPass:            password];
+	[self setWorkingCopyPath: fullPath];
+//	[controller setup];
 }
 
 

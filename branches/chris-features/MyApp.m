@@ -2,9 +2,11 @@
 #import "GetEthernetAddrSample.h"
 #import "RepositoriesController.h"
 
+
 @implementation MyApp
 
-@class SvnFileStatusToColourTransformer, SvnDateTransformer, ArrayCountTransformer, SvnFilePathTransformer, FilePathCleanUpTransformer, TrimNewLinesTransformer, TaskStatusToColorTransformer;
+@class SvnFileStatusToColourTransformer, SvnDateTransformer, ArrayCountTransformer, SvnFilePathTransformer,
+	   FilePathCleanUpTransformer, TrimNewLinesTransformer, TaskStatusToColorTransformer;
 
 + (MyApp *)myApp
 {
@@ -55,14 +57,16 @@
 	NSString* svnFilePath = [svnPath stringByAppendingPathComponent:@"svn"];
 	bool exists = [fm fileExistsAtPath:svnFilePath];
 
-	if(!exists && warn) {
-		NSString* err = [NSString stringWithFormat:@"Make sure svn binary is present at path :\n%@.\nIs Subversion client installed ? If so, make sure the path is properly set in the preferences.", svnPath];
-		
+	if (!exists && warn)
+	{
 		NSAlert *alert = [NSAlert alertWithMessageText:@"Error: Unable to locate svn binary."
 										 defaultButton:@"Open Preferences"
 									   alternateButton:nil
 										   otherButton:nil
-							 informativeTextWithFormat:err];
+							 informativeTextWithFormat:@"Make sure the svn binary is present at path:\n%C%@%C.\n\n"
+														"Is a Subversion client installed?"
+														" If so, make sure the path is correctly set in the preferences.",
+														0x201C, svnPath, 0x201D];
 		
 		[alert setAlertStyle:NSCriticalAlertStyle];
 		[alert runModal];							 
@@ -71,16 +75,24 @@
 	return exists;
 }
 
+
+- (void) initUI: (NSNotification*) note
+{
+	[repositoriesController showWindow];
+	[favoriteWorkingCopies showWindow];
+}
+
+
 - (void)awakeFromNib
 {
 	[self checkSVNExistence:true];
-	[favoriteWorkingCopiesWindow makeKeyAndOrderFront:self];	
+
+	// Show the Repositories & Working Copies windows after ALL awakeFromNib calls
+	[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(initUI:) name: @"initUI" object: self];
+	[[NSNotificationQueue defaultQueue] enqueueNotification: [NSNotification notificationWithName: @"initUI" object: self]
+										postingStyle:        NSPostWhenIdle]; 
 }
 
-- (IBAction)openFavorite:(id)sender
-{
-	[favoriteWorkingCopiesWindow makeKeyAndOrderFront:self];
-}
 
 - (IBAction)test:(id)sender
 {
@@ -115,6 +127,7 @@
 }
 
 
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Tasks management
 
@@ -124,6 +137,8 @@
 	[tasksManager newTaskWithDictionary:taskObj];
 }
 
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Sparkle Plus delegate methods
 
@@ -166,4 +181,6 @@
 	
 	return @"";
 }
+
 @end
+

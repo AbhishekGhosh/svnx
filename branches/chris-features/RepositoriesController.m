@@ -5,11 +5,26 @@
 
 #define preferences [NSUserDefaults standardUserDefaults]
 
+
+//----------------------------------------------------------------------------------------
+
+static NSURL*
+StringToURL (NSString* urlString)
+{
+	if ([urlString characterAtIndex: [urlString length] - 1] != '/')
+		urlString = [urlString stringByAppendingString: @"/"];
+
+	return [NSURL URLWithString: [urlString stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
+}
+
+
+//----------------------------------------------------------------------------------------
+
 @implementation RepositoriesController
 
 - (id)init
 {
-    self = [super init];
+    self = [super init: @"rep"];
     if (self)
 	{
 		NSData *dataPrefs = [preferences objectForKey:@"repositories"];
@@ -35,7 +50,8 @@
     return self;
 }
 
-- (void)dealloc {
+- (void)dealloc
+{
 //	[self removeObserver:self forKeyPath:@"repositories"];
     [self setRepositories: nil];
 
@@ -43,16 +59,27 @@
 }
 
 
+- (void) savePreferences
+{
+	[self saveRepositoriesPrefs];
+}
+
+
+- (NSArray*) dataArray
+{
+	return repositories;
+}
+
+
 - (void)awakeFromNib
 {
     [repositoriesAC bind:@"contentArray" toObject:self  withKeyPath:@"repositories" options:nil];
 
-	[tableView setDoubleAction:@selector(onDoubleClick:)];
-	[tableView setTarget:self];
-
     [tableView registerForDraggedTypes:	[NSArray arrayWithObjects:@"COPIED_ROWS_TYPE", @"MOVED_ROWS_TYPE", NSURLPboardType, nil]];
 
 //	[self addObserver:self forKeyPath:@"repositories" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
+
+	[super awakeFromNib];
 }
 
 //- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -63,25 +90,55 @@
 
 - (IBAction)newRepositoryItem:(id)sender
 {
-	[repositoriesAC addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:@"My Repository", @"name",
-																									@"svn://", @"url",
-																									@"", @"user",
-																									@"", @"pass",
-																									nil]];
+	[repositoriesAC addObject:
+		[NSMutableDictionary dictionaryWithObjectsAndKeys: @"My Repository", @"name",
+														   @"svn://", @"url",
+														   @"", @"user",
+														   @"", @"pass",
+														   nil]];
 	[repositoriesAC setSelectionIndex:([[repositoriesAC arrangedObjects] count]-1)];
 	
 	[window makeFirstResponder:nameTextField];	
 }
 
+
+- (BOOL) showExtantWindow: (NSString*) name
+		 url:              (NSString*) urlString
+{
+	NSURL* url = StringToURL(urlString);
+
+	NSEnumerator* enumerator = [[[NSDocumentController sharedDocumentController] documents] objectEnumerator];
+	id obj;
+	while (obj = [enumerator nextObject])
+	{
+		if ([[obj fileType] isEqualToString: @"repository"] &&
+			[[obj windowTitle] isEqualToString: name] &&
+			[[obj url] isEqual: url])
+		{
+			[[[[obj windowControllers] objectAtIndex: 0] window] makeKeyAndOrderFront: self];
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+
 - (void)onDoubleClick:(id)sender
 {
 	if ( [[repositoriesAC selectedObjects] count] != 0 )
 	{
-		[self openRepositoryBrowser:[repositoriesAC valueForKeyPath:@"selection.url"] 
-				title:[repositoriesAC valueForKeyPath:@"selection.name"]
-				user:[repositoriesAC valueForKeyPath:@"selection.user"]
-				pass:[repositoriesAC valueForKeyPath:@"selection.pass"]
-				];
+		NSString* const name = [repositoriesAC valueForKeyPath: @"selection.name"];
+		NSString* const url  = [repositoriesAC valueForKeyPath: @"selection.url"];
+
+		// If no option-key then look for & try to activate extant Repository window.
+		if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) ||
+			![self showExtantWindow: name url: url])
+		{
+			[self openRepositoryBrowser: url title: name
+					user: [repositoriesAC valueForKeyPath: @"selection.user"]
+					pass: [repositoriesAC valueForKeyPath: @"selection.pass"]];
+		}
 	}
 }
 
@@ -92,7 +149,7 @@
 	[newDoc setUser:user];
 	[newDoc setPass:pass];
 
-	[newDoc setUrl:[NSURL URLWithString:[NSString stringByAddingPercentEscape:[NSString stringWithFormat:@"%@/", [url stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]]]]]];
+	[newDoc setUrl: StringToURL(url)];
 	[newDoc makeWindowControllers];
 
 	[[NSDocumentController sharedDocumentController] addDocument:newDoc];
@@ -298,7 +355,6 @@
 
 
 
-
 #pragma mark -
 #pragma mark Prefs saving
 
@@ -307,10 +363,14 @@
 {
 	[self saveRepositoriesPrefs];
 }
+
 - (void)saveRepositoriesPrefs
 {
-	[preferences setObject:[NSArchiver archivedDataWithRootObject:[self repositories]] forKey:@"repositories"];
-	[preferences synchronize];
+	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+	[prefs setObject:[NSArchiver archivedDataWithRootObject:[self repositories]] forKey:@"repositories"];
+	CFBooleanRef editShown = [[self disclosureView] state] ? kCFBooleanTrue : kCFBooleanFalse;
+	[prefs setObject: (id) editShown forKey: @"repEditShown"];
+	[prefs synchronize];
 }
 
 #pragma mark -

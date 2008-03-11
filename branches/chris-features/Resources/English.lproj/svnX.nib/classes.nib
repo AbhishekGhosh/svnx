@@ -1,11 +1,18 @@
 {
     IBClasses = (
         {
-            ACTIONS = {newWorkingCopyItem = id; onValidate = id; openPath = id; }; 
+            ACTIONS = {
+                newWorkingCopyItem = id; 
+                onValidate = id; 
+                openPath = id; 
+                showEdit = id; 
+                toggleEdit = id; 
+            }; 
             CLASS = FavoriteWorkingCopies; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 application = id; 
+                editBox = NSBox; 
                 favoriteWorkingCopiesAC = id; 
                 nameTextField = id; 
                 pathTextField = id; 
@@ -14,7 +21,12 @@
             }; 
             SUPERCLASS = NSObject; 
         }, 
-        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {"" = id; }; 
+            CLASS = FirstResponder; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
         {
             ACTIONS = {openFavorite = id; openPreferences = id; stopSvnOperation = id; test = id; }; 
             CLASS = MyApp; 
@@ -38,10 +50,11 @@
         {CLASS = NSDatePicker; LANGUAGE = ObjC; SUPERCLASS = NSControl; }, 
         {CLASS = NSObject; LANGUAGE = ObjC; }, 
         {
-            ACTIONS = {newRepositoryItem = id; onValidate = id; openPath = id; }; 
+            ACTIONS = {newRepositoryItem = id; onValidate = id; openPath = id; toggleEdit = id; }; 
             CLASS = RepositoriesController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
+                editBox = NSBox; 
                 nameTextField = id; 
                 repositoriesAC = NSArrayController; 
                 tableView = NSTableView; 

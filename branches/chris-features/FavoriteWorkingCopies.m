@@ -1,20 +1,25 @@
 #import "FavoriteWorkingCopies.h"
+#import "EditListResponder.h"
 #import "MyDragSupportArrayController.h"
 #import "MyRepository.h"
 #import "MyWorkingCopy.h"
 
 #define preferences [NSUserDefaults standardUserDefaults]
 
+static NSString* const kDocType = @"workingCopy";
+
+
+//----------------------------------------------------------------------------------------
 
 @implementation FavoriteWorkingCopies
 
 - (id)init
 {
-    self = [super init];
-    if (self)
+	self = [super init: @"wc"];
+	if (self)
 	{
 		NSData *dataPrefs = [preferences objectForKey:@"favoriteWorkingCopies"];
-				
+
 		if ( dataPrefs != nil )
 		{
 			id favoriteWorkingCopiesPrefs = [NSUnarchiver unarchiveObjectWithData:dataPrefs];
@@ -32,35 +37,48 @@
 		{
 			[self setFavoriteWorkingCopies:[NSMutableArray array]];
 		}
-    }
-    return self;
+	}
+	return self;
 }
 
-- (void)dealloc {
+- (void)dealloc
+{
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
 	[self setFavoriteWorkingCopies:nil];
-    [super dealloc];
+	[super dealloc];
+}
+
+
+- (void) savePreferences
+{
+	[self saveFavoriteWorkingCopiesPrefs];
+}
+
+
+- (NSArray*) dataArray
+{
+	return favoriteWorkingCopies;
 }
 
 
 - (void)awakeFromNib
 {
-	// Took me some time to found this one !!!
+	tableView = workingCopiesTableView;
+
+	// Took me some time to find this one !!!
 	// There is no possibility to bind an ArrayController to an arbitrary object in Interface Builder... in Panther.
 	
     [favoriteWorkingCopiesAC bind:@"contentArray" toObject:self  withKeyPath:@"favoriteWorkingCopies" options:nil];
 
-	[workingCopiesTableView setDoubleAction:@selector(onDoubleClick:)];
-
-    [workingCopiesTableView registerForDraggedTypes:[NSArray arrayWithObjects:@"COPIED_ROWS_TYPE", @"MOVED_ROWS_TYPE", NSFilenamesPboardType, nil]];
-
-	[workingCopiesTableView setTarget:self];
+    [tableView registerForDraggedTypes:[NSArray arrayWithObjects:@"COPIED_ROWS_TYPE", @"MOVED_ROWS_TYPE", NSFilenamesPboardType, nil]];
 	
 //	[self addObserver:self forKeyPath:@"favoriteWorkingCopies" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
 
 	// Notification for user creating a new working copy - now add item into favorites list.
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newWorkingCopyNotificationHandler:) name:@"newWorkingCopy" object:nil];
+
+	[super awakeFromNib];
 }
 
 //
@@ -86,14 +104,53 @@
 // Adds a new working copy with the given path.
 - (void)newWorkingCopyItemWithPath:(NSString *)workingCopyPath
 {
-	[favoriteWorkingCopiesAC addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:@"My Project", @"name",
-																									workingCopyPath, @"fullPath",
-																									@"", @"user",
-																									@"", @"pass",
-																									nil]];
+	[favoriteWorkingCopiesAC addObject:
+		[NSMutableDictionary dictionaryWithObjectsAndKeys: @"My Project", @"name",
+														   workingCopyPath, @"fullPath",
+														   @"", @"user",
+														   @"", @"pass",
+														   nil]];
 	[favoriteWorkingCopiesAC setSelectionIndex:([[favoriteWorkingCopiesAC arrangedObjects] count]-1)];
 	
 	[window makeFirstResponder:nameTextField];	
+}
+
+
+- (BOOL) showExtantWindow: (NSString*) name
+		 fullPath:         (NSString*) fullPath
+{
+	NSArray* docs = [[NSDocumentController sharedDocumentController] documents];
+	NSEnumerator* enumerator = [docs objectEnumerator];
+	id obj;
+	while (obj = [enumerator nextObject])
+	{
+		if ([[obj fileType] isEqualToString: kDocType] &&
+			[[obj windowTitle] isEqualToString: name] &&
+			[[obj workingCopyPath] isEqualToString: fullPath])
+		{
+			[[[[obj windowControllers] objectAtIndex: 0] window] makeKeyAndOrderFront: self];
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+
+- (MyWorkingCopy*) openNewDocument: (id) workingCopy
+{
+	NSString* const name = [workingCopy valueForKey: @"name"];
+	// The controller needs the name in awakeFromNib, but the document doesn't know it until later.
+	[MyWorkingCopy presetDocumentName: name];
+	MyWorkingCopy* const newDoc = [[NSDocumentController sharedDocumentController]
+										openUntitledDocumentOfType: kDocType display: YES];
+
+	[newDoc setup: name
+			user:  [workingCopy valueForKey: @"user"]
+			pass:  [workingCopy valueForKey: @"pass"]
+			path:  [workingCopy valueForKey: @"fullPath"]];
+
+	return newDoc;
 }
 
 
@@ -101,14 +158,18 @@
 {
 	if ( [[favoriteWorkingCopiesAC selectedObjects] count] != 0 )
 	{
-		id newDoc = [[NSDocumentController sharedDocumentController ] openUntitledDocumentOfType:@"workingCopy" display:YES ];	
-		
-		[newDoc setWindowTitle:[favoriteWorkingCopiesAC valueForKeyPath:@"selection.name"]];
-		[newDoc setUser:[favoriteWorkingCopiesAC valueForKeyPath:@"selection.user"]];
-		[newDoc setPass:[favoriteWorkingCopiesAC valueForKeyPath:@"selection.pass"]];
-		[newDoc setWorkingCopyPath:[favoriteWorkingCopiesAC valueForKeyPath:@"selection.fullPath"]];
+		const id selection = [favoriteWorkingCopiesAC valueForKey: @"selection"];
+
+		// If no option-key then look for & try to activate extant Working Copy window.
+		if (([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) ||
+			![self showExtantWindow: [selection valueForKey: @"name"]
+				   fullPath:         [selection valueForKey: @"fullPath"]])
+		{
+			[self openNewDocument: selection];
+		}
 	}
 }
+
 
 - (IBAction)openPath:(id)sender
 {
@@ -135,10 +196,14 @@
 {
 	[self saveFavoriteWorkingCopiesPrefs];
 }
+
 - (void)saveFavoriteWorkingCopiesPrefs
 {
-	[preferences setObject:[NSArchiver archivedDataWithRootObject:[self favoriteWorkingCopies]] forKey:@"favoriteWorkingCopies"];
-	[preferences synchronize];
+	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+	[prefs setObject: [NSArchiver archivedDataWithRootObject: [self favoriteWorkingCopies]] forKey: @"favoriteWorkingCopies"];
+	CFBooleanRef editShown = [[self disclosureView] state] ? kCFBooleanTrue : kCFBooleanFalse;
+	[prefs setObject: (id) editShown forKey: @"wcEditShown"];
+	[prefs synchronize];
 }
 
 
@@ -157,78 +222,67 @@
 
 - (void)fileHistoryOpenSheetForItem:(NSString *)aPath
 {
-	
-	id wc = nil;	
-	id bestMatchWc;
+	id bestMatchWc = nil;
 	int bestMatchScore = 0;
-	MyWorkingCopy* matchingOpenWorkingCopyDocument = nil;
+	MyWorkingCopy* wcDocument = nil;
+	NSArray* const documents = [[NSDocumentController sharedDocumentController] documents];
 
 	// Find among the known working copies one that has a matching path
-	
 	NSEnumerator *e = [[favoriteWorkingCopiesAC arrangedObjects] objectEnumerator];
-	
-	while ( wc = [e nextObject] )
+	id wc;
+	while ((wcDocument == nil) && (wc = [e nextObject]))
 	{
-		NSRange r = [aPath rangeOfString:[wc valueForKey:@"fullPath"] options:NSLiteralSearch];
-	
-	
-		if ( r.location == 0 && r.length > 0 )
+		NSString* const fullPath = [wc valueForKey: @"fullPath"];
+		NSRange r = [aPath rangeOfString: fullPath options: NSLiteralSearch | NSAnchoredSearch];
+
+		if (r.location == 0 && r.length > bestMatchScore)
 		{
-			if ( r.length > bestMatchScore )
+			bestMatchWc = wc;
+			bestMatchScore = r.length;
+
+			NSEnumerator* openDocumentsEnumerator = [documents objectEnumerator];
+			id anOpenDocument;
+
+			// if the working copy is currently open in svnx we stop there and use it
+			while ( anOpenDocument = [openDocumentsEnumerator nextObject] )
 			{
-				bestMatchWc = wc;
-				bestMatchScore = r.length;
-				
-				NSEnumerator *openDocumentsEnumerator = [[[NSDocumentController sharedDocumentController] documents] objectEnumerator];
-				
-				id anOpenDocument;
-				
-				// if the working copy is currently open in svnx we stop there and use it
-				
-				while ( anOpenDocument = [openDocumentsEnumerator nextObject] )
+				if ([[anOpenDocument fileType] isEqualToString: kDocType] &&
+					[[anOpenDocument workingCopyPath] isEqualToString: fullPath])
 				{
-					if ( [anOpenDocument respondsToSelector:@selector(workingCopyPath)] )
-					{
-						if ( [[anOpenDocument workingCopyPath] isEqualToString:[wc valueForKey:@"fullPath"]] )
-						{
-							matchingOpenWorkingCopyDocument = anOpenDocument;
-							break;
-						}
-					}
-				
-					if ( matchingOpenWorkingCopyDocument != nil ) break;
+					// we found a matching working copy that is currently open in svnX
+					wcDocument = anOpenDocument;
+					break;
 				}
 			}
 		}
 	}
 
-	if ( matchingOpenWorkingCopyDocument != nil )
+	// if we found a matching working copy that is not currently open, then let's open it
+	if (wcDocument == nil && bestMatchWc != nil)
+		wcDocument = [self openNewDocument: bestMatchWc];
+
+	if (wcDocument != nil)
 	{
-		// we found a matching working copy that is currently open in svnX
-		[[matchingOpenWorkingCopyDocument controller] fileHistoryOpenSheetForItem:[NSDictionary dictionaryWithObject:aPath forKey:@"fullPath"]];	
-	}
-	else
-	if ( bestMatchScore > 0 )
-	{
-		// we found a matching working copy that is not currently open, so let's open it
-		id newDoc = [[NSDocumentController sharedDocumentController ] openUntitledDocumentOfType:@"workingCopy" display:YES ];	
-		
-		[newDoc setWindowTitle:[bestMatchWc valueForKey:@"name"]];
-		[newDoc setUser:[bestMatchWc valueForKey:@"user"]];
-		[newDoc setPass:[bestMatchWc valueForKey:@"pass"]];
-		[newDoc setWorkingCopyPath:[bestMatchWc valueForKey:@"fullPath"]];
-	
-		[[newDoc controller] fileHistoryOpenSheetForItem:[NSDictionary dictionaryWithObject:aPath forKey:@"fullPath"]];
+		[[wcDocument controller]
+			fileHistoryOpenSheetForItem: [NSDictionary dictionaryWithObject: aPath forKey: @"fullPath"]];
 	}
 	else
 	{
-		NSRunAlertPanel(@"No working copy found", [NSString stringWithFormat:@"svnX cannot find a working copy corresponding to file \n%@.\n\nPlease make sure the working copy the file belongs to is defined in svnX's Working Copies Window.", aPath], @"Dismiss", nil, nil);
+		NSRunAlertPanel(@"No working copy found.",
+						[NSString stringWithFormat:
+								@"svnX cannot find a working copy for the file %C%@%C.\n\n"
+								 "Please make sure that the working copy that owns the file"
+								 " is defined in svnX's Working Copies window.",
+								 0x201C, aPath, 0x201D],
+						@"Cancel", nil, nil);
 	}
 }
 
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Drag & drop
-
+//----------------------------------------------------------------------------------------
 
 - (BOOL)tableView:(NSTableView *)tv
 		writeRows:(NSArray*)rows
@@ -309,7 +363,6 @@
 }
 
 
-
 - (BOOL)tableView:(NSTableView*)tv
 	   acceptDrop:(id <NSDraggingInfo>)info
 			  row:(int)row
@@ -356,10 +409,8 @@
 		
 		return YES;
     }
-	
 
 	NSArray *files = [[info draggingPasteboard] propertyListForType:NSFilenamesPboardType];
-
 	if (files)
 	{
 		id newObject = [favoriteWorkingCopiesAC newObject];	
@@ -380,8 +431,10 @@
 }
 
 
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Accessors
+//----------------------------------------------------------------------------------------
 
 ///////  favoriteWorkingCopies  ///////
 
@@ -420,6 +473,5 @@
 }
 
 
-
-
 @end
+

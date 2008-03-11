@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		83D175550D870D280054C7BA /* EditListResponder.h in Headers */ = {isa = PBXBuildFile; fileRef = 83D175530D870D280054C7BA /* EditListResponder.h */; };
+		83D175560D870D280054C7BA /* EditListResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = 83D175540D870D280054C7BA /* EditListResponder.m */; };
 		8D15AC290486D014006FF6A4 /* svnX_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32DBCF750370BD2300C91783 /* svnX_Prefix.pch */; settings = {ATTRIBUTES = (Public, ); }; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
@@ -181,8 +183,10 @@
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32DBCF750370BD2300C91783 /* svnX_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = svnX_Prefix.pch; sourceTree = "<group>"; };
+		83D175530D870D280054C7BA /* EditListResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditListResponder.h; sourceTree = "<group>"; };
+		83D175540D870D280054C7BA /* EditListResponder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditListResponder.m; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Info.plist; path = ../Info.plist; sourceTree = "<group>"; };
-		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F203D9E309C2E78100857915 /* Finder.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Finder.icns; sourceTree = "<group>"; };
 		F20521BE0A5D2159003F966A /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = ../../build/Release/Sparkle.framework; sourceTree = "<group>"; };
 		F20524020A5D3945003F966A /* SUUpdater.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SUUpdater.h; path = ../../build/Release/Sparkle.framework/Versions/A/Headers/SUUpdater.h; sourceTree = SOURCE_ROOT; };
@@ -398,6 +402,8 @@
 			isa = PBXGroup;
 			children = (
 				F21DC4EB069FBBC4007CB4C0 /* Headers */,
+				83D175530D870D280054C7BA /* EditListResponder.h */,
+				83D175540D870D280054C7BA /* EditListResponder.m */,
 				F2B2112105F4F3500046FF94 /* MyApp.m */,
 				F23B407806AAFE210021E613 /* NSString+MyAdditions.m */,
 				F2830193082BEE22008E002A /* NSTextView+MyAdditions.m */,
@@ -685,6 +691,7 @@
 				F2695D960832637600B47C96 /* MySvnFilesArrayController.h in Headers */,
 				F22C6BC2096D51E500BAC56B /* SvnListParser.h in Headers */,
 				F20524330A5D3C9A003F966A /* GetEthernetAddrSample.h in Headers */,
+				83D175550D870D280054C7BA /* EditListResponder.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -865,6 +872,7 @@
 				F2695D980832638300B47C96 /* MySvnFilesArrayController.m in Sources */,
 				F22C6BC3096D51E500BAC56B /* SvnListParser.m in Sources */,
 				F20524320A5D3C9A003F966A /* GetEthernetAddrSample.c in Sources */,
+				83D175560D870D280054C7BA /* EditListResponder.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

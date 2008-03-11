@@ -1,15 +1,14 @@
 /* RepositoriesController */
 
 #import <Cocoa/Cocoa.h>
+#import "EditListResponder.h"
 
 @class MyRepository, MyDragSupportArrayController;
 
-@interface RepositoriesController : NSObject
+@interface RepositoriesController : EditListResponder
 {
 	IBOutlet MyDragSupportArrayController *repositoriesAC;
     IBOutlet id nameTextField;
-    IBOutlet id window;
-    IBOutlet NSTableView* tableView;
 
 	NSMutableArray *repositories;
 }
