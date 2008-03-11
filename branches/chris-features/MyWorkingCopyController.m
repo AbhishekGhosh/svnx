@@ -1,11 +1,15 @@
 #import "MyWorkingCopyController.h"
+#import "MyWorkingCopy.h"
+#import "MyApp.h"
+#import "MyFileMergeController.h"
+#import "DrawerLogView.h"
 
 @implementation MyWorkingCopyController
 
 - (void)dealloc
 {
 	[document removeObserver:self forKeyPath:@"flatMode"];
-    [super dealloc];
+	[super dealloc];
 }
 
 
@@ -341,7 +345,7 @@
 {
 	// close the sheet if it is already open
 	if ( [fileMergeController window] )
-	[NSApp endSheet:[fileMergeController window]];	
+		[NSApp endSheet:[fileMergeController window]];
 	
 	if ( [NSBundle loadNibNamed:@"svnFileMerge" owner:fileMergeController] )
 	{
@@ -441,14 +445,14 @@
 	[sheet orderOut:nil];
 	NSMutableDictionary *action = contextInfo;
 	
-	[action setObject:[[contextInfo objectForKey:@"destination"] stringByAppendingPathComponent:[renamePanelTextField stringValue]] forKey:@"destination"];
+	[action setObject:[[(id) contextInfo objectForKey:@"destination"] stringByAppendingPathComponent:[renamePanelTextField stringValue]] forKey:@"destination"];
 	
 	if ( returnCode == 1 )
 	{
 		[self runAlertBeforePerformingAction:action];
 	}
 	
-	[contextInfo release];																					
+	[action release];																					
 }
 
 - (IBAction)renamePanelValidate:(id)sender;
@@ -493,25 +497,25 @@
 		if ( [switchPanelRelocateButton intValue] == 1 )//  --relocate
 		{
 			[[self document] svnCommand:@"switch" options:[NSArray arrayWithObjects:@"-r",
-															[contextInfo objectForKey:@"revision"],
+															[action objectForKey:@"revision"],
 															@"--relocate",
 															[[[self document] repositoryUrl] absoluteString],
-															[contextInfo objectForKey:@"destination"],
+															[action objectForKey:@"destination"],
 															[document workingCopyPath],
 															nil] info:nil];
-		
-		} else
+		}
+		else
 		{
 			[[self document] svnCommand:@"switch" options:[NSArray arrayWithObjects:@"-r",
-															[contextInfo objectForKey:@"revision"],
-															[contextInfo objectForKey:@"destination"],
+															[action objectForKey:@"revision"],
+															[action objectForKey:@"destination"],
 															[document workingCopyPath],
-															//[contextInfo objectForKey:@"source"],
+														//	[action objectForKey:@"source"],
 															nil] info:nil];
 		}
 	}
 	
-	[contextInfo release];																					
+	[action release];																					
 }
 
 
@@ -523,11 +527,11 @@
 	if ( [[command objectForKey:@"command"] isEqualToString:@"commit"] )
 	{
 		[self startCommitMessage:@"selected"];
-
-	} else
+	}
+	else
 	{
-
-		[[NSAlert alertWithMessageText:[NSString stringWithFormat:@"Are you sure you want to %@ selected items ?", [command objectForKey:@"verb"]]
+		[[NSAlert alertWithMessageText:[NSString stringWithFormat: @"Are you sure you want to %@ selected items?",
+																   [command objectForKey:@"verb"]]
 			defaultButton:@"Yes"
 			alternateButton:@"No"
 			otherButton:nil
@@ -544,46 +548,42 @@
 
 - (void)commandPanelDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void  *)contextInfo
 {
-	NSString *command = [contextInfo objectForKey:@"command"];
+	id action = contextInfo;
+	NSString *command = [action objectForKey:@"command"];
 
 	if ( returnCode == 0 )
 	{
 		[svnFilesAC discardEditing]; // cancel editing, useful to revert a row being renamed (see TableViewDelegate).
-		[contextInfo release];
+		[action release];
 		return;
 	}
 	
 	if ( [command isEqualToString:@"rename"] )
 	{
-		[[self document] svnCommand:@"rename" options:[contextInfo objectForKey:@"options"] info:contextInfo];
-	
-	} else
-	if ( [command isEqualToString:@"move"] )
+		[[self document] svnCommand:@"rename" options:[action objectForKey:@"options"] info:contextInfo];
+	}
+	else if ( [command isEqualToString:@"move"] )
 	{
-		[[self document] svnCommand:@"move" options:[contextInfo objectForKey:@"options"] info:contextInfo];
-	
-	} else
-	if ( [command isEqualToString:@"copy"] )
+		[[self document] svnCommand:@"move" options:[action objectForKey:@"options"] info:contextInfo];
+	}
+	else if ( [command isEqualToString:@"copy"] )
 	{
-		[[self document] svnCommand:@"copy" options:[contextInfo objectForKey:@"options"] info:contextInfo];
-	
-	} else
-	if ( [command isEqualToString:@"remove"] )
+		[[self document] svnCommand:@"copy" options:[action objectForKey:@"options"] info:contextInfo];
+	}
+	else if ( [command isEqualToString:@"remove"] )
 	{
 		[[self document] svnCommand:@"remove" options:[NSArray arrayWithObject:@"--force"] info:nil];
-		
-	} else
-	if ( [command isEqualToString:@"commit"] )
+	}
+	else if ( [command isEqualToString:@"commit"] )
 	{
 		[self startCommitMessage:@"selected"];
-	
-	} else
+	}
+	else
 	{
 		[[self document] svnCommand:command options:nil info:nil];
 	}
 
-	[contextInfo release];
-
+	[action release];
 }
 
 - (void)startCommitMessage:(NSString *)selectedOrAll
@@ -593,13 +593,14 @@
 									didEndSelector:@selector(commitPanelDidEnd:returnCode:contextInfo:)
 									contextInfo:[selectedOrAll retain]];
 }
+
 - (void)commitPanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo;
 {
 	if ( returnCode == 1 )
 	{
 		[[self document] svnCommand:@"commit" options:[NSArray arrayWithObjects:@"-m", [commitPanelText string], nil] info:nil];
 	}
-	[contextInfo release];	
+	[(id) contextInfo release];	
 	[sheet close];
 }
 
@@ -630,6 +631,7 @@
 						     contextInfo:nil];
 	}
 }
+
 - (void)svnErrorSheetEnded:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	isDisplayingErrorSheet = NO;

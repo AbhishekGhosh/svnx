@@ -1,4 +1,5 @@
 #import "MySVN.h"
+#import "MyApp.h"
 
 @implementation MySvn
 

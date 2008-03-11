@@ -1,4 +1,6 @@
 #import "TableViewDelegate.h"
+#import "MyWorkingCopy.h"
+#import "MyWorkingCopyController.h"
 
 @implementation TableViewDelegate
 

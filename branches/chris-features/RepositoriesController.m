@@ -1,4 +1,7 @@
 #import "RepositoriesController.h"
+#import "MyDragSupportArrayController.h"
+#import "MyRepository.h"
+#import "NSString+MyAdditions.h"
 
 #define preferences [NSUserDefaults standardUserDefaults]
 

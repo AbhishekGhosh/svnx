@@ -82,7 +82,7 @@
 	}
 }
 
-- (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName;
+- (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName
 {
 	if ( [elementName isEqualToString:@"paths"] )
 	{  
@@ -149,5 +149,9 @@
     [old release];
 }
 
+- (NSMutableArray*) pathsArray	// subclass to implement
+{
+	return nil;
+}
 
 @end

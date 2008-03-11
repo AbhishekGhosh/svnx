@@ -1,4 +1,7 @@
 #import "FavoriteWorkingCopies.h"
+#import "MyDragSupportArrayController.h"
+#import "MyRepository.h"
+#import "MyWorkingCopy.h"
 
 #define preferences [NSUserDefaults standardUserDefaults]
 
@@ -158,7 +161,7 @@
 	id wc = nil;	
 	id bestMatchWc;
 	int bestMatchScore = 0;
-	id matchingOpenWorkingCopyDocument = nil;
+	MyWorkingCopy* matchingOpenWorkingCopyDocument = nil;
 
 	// Find among the known working copies one that has a matching path
 	

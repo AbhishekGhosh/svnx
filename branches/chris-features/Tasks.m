@@ -1,4 +1,6 @@
+#import "MySVN.h"
 #import "Tasks.h"
+#import "NSString+MyAdditions.h"
 
 // This file was patched by Yuichi Fujishige to provide better support for  UTF-16 filenames. (0.9.6)
 

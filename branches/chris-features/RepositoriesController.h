@@ -2,11 +2,11 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class MyRepository;
+@class MyRepository, MyDragSupportArrayController;
 
 @interface RepositoriesController : NSObject
 {
-	IBOutlet NSArrayController *repositoriesAC;
+	IBOutlet MyDragSupportArrayController *repositoriesAC;
     IBOutlet id nameTextField;
     IBOutlet id window;
     IBOutlet NSTableView* tableView;
@@ -19,5 +19,8 @@
 
 - (NSMutableArray *)repositories;
 - (void)setRepositories:(NSMutableArray *)aRepositories;
+- (void)saveRepositoriesPrefs;
+- (void)openRepositoryBrowser:(NSString *)url title:(NSString *)title
+		user:(NSString *)user pass:(NSString *)pass;
 
 @end

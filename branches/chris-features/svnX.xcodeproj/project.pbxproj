@@ -181,11 +181,11 @@
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32DBCF750370BD2300C91783 /* svnX_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = svnX_Prefix.pch; sourceTree = "<group>"; };
-		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Info.plist; path = ../Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F203D9E309C2E78100857915 /* Finder.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Finder.icns; sourceTree = "<group>"; };
-		F20521BE0A5D2159003F966A /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = sparkle/build/Release/Sparkle.framework; sourceTree = "<group>"; };
-		F20524020A5D3945003F966A /* SUUpdater.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SUUpdater.h; path = sparkle/build/Release/Sparkle.framework/Versions/A/Headers/SUUpdater.h; sourceTree = "<group>"; };
+		F20521BE0A5D2159003F966A /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = ../../build/Release/Sparkle.framework; sourceTree = "<group>"; };
+		F20524020A5D3945003F966A /* SUUpdater.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SUUpdater.h; path = ../../build/Release/Sparkle.framework/Versions/A/Headers/SUUpdater.h; sourceTree = SOURCE_ROOT; };
 		F20524300A5D3C9A003F966A /* GetEthernetAddrSample.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = GetEthernetAddrSample.c; sourceTree = "<group>"; };
 		F20524310A5D3C9A003F966A /* GetEthernetAddrSample.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = GetEthernetAddrSample.h; sourceTree = "<group>"; };
 		F205246A0A5D3D7E003F966A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
@@ -367,6 +367,7 @@
 		1058C7A8FEA54F5311CA2CBB /* Other Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F2E9371E06B5C8B500F45019 /* ApplicationServices.framework */,
 				2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */,
 				2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */,
 			);
@@ -396,7 +397,6 @@
 		2A37F4ABFDCFA73011CA2CEA /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				F2E9371E06B5C8B500F45019 /* ApplicationServices.framework */,
 				F21DC4EB069FBBC4007CB4C0 /* Headers */,
 				F2B2112105F4F3500046FF94 /* MyApp.m */,
 				F23B407806AAFE210021E613 /* NSString+MyAdditions.m */,
@@ -493,7 +493,7 @@
 				F2830130082BE371008E002A /* DrawerLogView.nib */,
 				F203D9E309C2E78100857915 /* Finder.icns */,
 			);
-			name = Resources;
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		2A37F4C3FDCFA73011CA2CEA /* Frameworks */ = {
@@ -718,7 +718,6 @@
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = F2FD1A1E0855F03C00550248 /* Build configuration list for PBXProject "svnX" */;
-			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,
@@ -731,7 +730,6 @@
 			);
 			mainGroup = 2A37F4AAFDCFA73011CA2CEA /* svnX */;
 			projectDirPath = "";
-			projectRoot = "";
 			targets = (
 				8D15AC270486D014006FF6A4 /* svnX */,
 			);
@@ -908,31 +906,26 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		F2EF3C3B0CD296C6000FBD9D /* Default */ = {
+		F2EF3C3B0CD296C6000FBD9D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
-			name = Default;
+			name = Debug;
 		};
-		F2EF3C3C0CD296C6000FBD9D /* Default */ = {
+		F2EF3C3C0CD296C6000FBD9D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(FRAMEWORK_SEARCH_PATHS)",
 					"$(SRCROOT)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
 				);
-				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/sparkle/build/Release\"";
+				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Release\"";
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = svnX_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
@@ -942,12 +935,11 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
 				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/sparkle/build/Sparkle.build/Release/Sparkle.build/Objects-normal/i386\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/sparkle/build/Sparkle.build/Release/Sparkle.build/Objects-normal/ppc\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/i386\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/ppc\"";
 				PRODUCT_NAME = svnX;
-				WRAPPER_EXTENSION = app;
 			};
-			name = Default;
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
@@ -955,18 +947,18 @@
 		F2FD1A1A0855F03C00550248 /* Build configuration list for PBXNativeTarget "svnX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F2EF3C3C0CD296C6000FBD9D /* Default */,
+				F2EF3C3C0CD296C6000FBD9D /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
+			defaultConfigurationName = Debug;
 		};
 		F2FD1A1E0855F03C00550248 /* Build configuration list for PBXProject "svnX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F2EF3C3B0CD296C6000FBD9D /* Default */,
+				F2EF3C3B0CD296C6000FBD9D /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

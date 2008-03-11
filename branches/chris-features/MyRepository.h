@@ -4,7 +4,8 @@
 #import "MySVN.h";
 
 @class MySvnLogView, MySvnLogView2, MySvnRepositoryBrowserView, DrawerLogView;
-@class MySvnOperationController, MySvnMkdirController, MySvnMoveController, MySvnCopyController, MySvnDeleteController, MyFileMergeController;
+@class MySvnOperationController, MySvnMkdirController, MySvnMoveController,
+	   MySvnCopyController, MySvnDeleteController, MyFileMergeController;
 
 /* Manages the repository inspector. */
 @interface MyRepository : NSDocument
@@ -44,6 +45,7 @@
 
 - (NSURL *)url;
 - (void)setUrl:(NSURL *)anUrl;
+- (void) changeRepositoryUrl: (NSURL*) anUrl;
 
 - (NSString *)revision;
 - (void)setRevision:(NSString *)aRevision;
@@ -58,6 +60,12 @@
 - (NSString *)windowTitle;
 - (void) setWindowTitle: (NSString *) aWindowTitle;
 
+- (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj;
+- (void) exportFiles: (NSDictionary*) args;
+- (void) extractFiles:     (NSArray*) validatedFiles
+		 toDestinationURL: (NSURL*)   destinationURL
+		 checkout:         (BOOL)     checkoutOrExport;
+
 - (NSURL *)url;
 - (void)setUrl:(NSURL *)anUrl;
 
@@ -66,5 +74,17 @@
 
 - (NSString *)logViewKind;
 - (void)setLogViewKind:(NSString *)aLogViewKind;
+
+- (void) fetchSvnInfo;
+- (void) fetchSvnInfoReceiveDataFinished: (NSString*) result;
+
+- (void) svnError: (NSString*) errorString;
+- (NSArray*) userValidatedFiles: (NSArray*) files forDestination: (NSURL*) destinationURL;
+- (void) dragOutFilesFromRepository: (NSArray*) filesDicts toURL: (NSURL*) destinationURL;
+- (void) dragExternalFiles: (NSArray*) files ToRepositoryAt: (NSDictionary*) representedObject;
+
+- (NSInvocation*) makeSvnOptionInvocation;
+- (NSInvocation*) makeCallbackInvocationOfKind: (int) callbackKind;
+- (NSInvocation*) svnOptionsInvocation;
 
 @end

@@ -42,10 +42,27 @@ int filterMode;
 //- (void)fetchSvnStatusReceiveData:(NSArray*)shellOutput;
 //- (void)fetchSvnStatusReceiveDataFinished: (NSString *)result;
 
-- (void)svnCommand:(NSString *)command options:(NSDictionary *)options;
+- (void) fetchSvnInfo;
+- (void) svnUpdate;
+- (void) fetchSvnStatusVerbose;
+- (void) fetchSvnStatusVerboseReceiveDataFinished: (NSString*) result;
+- (void) fetchSvnInfoReceiveDataFinished: (NSString*) result;
+- (void) computesVerboseResultArray;
+- (void) computesNewVerboseResultArray;
+- (void) computesOldVerboseResultArray;
+
+//- (void)svnCommand:(NSString *)command options:(NSDictionary *)options;
+- (void) svnCommand: (NSString*)     command
+		 options:    (NSArray*)      options
+		 info:       (NSDictionary*) info;
+
+- (NSInvocation*) svnOptionsInvocation;
+- (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj;
+- (NSInvocation*) makeCallbackInvocationOfKind: (int) callbackKind;
+- (void) fileMergeItems: (NSArray*) items;
 
 
-- (void)computesResultArray;
+//- (void)computesResultArray;
 
 - (int) filterMode;
 - (void) setFilterMode: (int) aFilterMode;
@@ -61,6 +78,8 @@ int filterMode;
 - (void) setUser: (NSString *) aUser;
 - (NSString *) pass;
 - (void) setPass: (NSString *) aPass;
+- (NSString*) revision;
+- (void) setRevision: (NSString*) aRevision;
 
 - (NSArray *)svnFiles;
 - (void)setSvnFiles:(NSMutableArray *)aSvnFiles;
@@ -77,6 +96,10 @@ int filterMode;
 - (void) setSmartMode: (BOOL) flag;
 - (BOOL)showUpdates;
 - (void)setShowUpdates:(BOOL)flag;
+
+- (id) controller;
+- (NSURL*) repositoryUrl;
+- (void) setRepositoryUrl: (NSURL*) aRepositoryUrl;
 
 - (NSString *) outlineSelectedPath;
 - (void) setOutlineSelectedPath: (NSString *) anOutlineSelectedPath;

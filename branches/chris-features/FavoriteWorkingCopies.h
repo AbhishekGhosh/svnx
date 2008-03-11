@@ -2,11 +2,13 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class MyDragSupportArrayController;
+
 /* "Implements BOTH the model and the controller of the favorite working copies panel. "*/
 @interface FavoriteWorkingCopies : NSObject
 {
 	NSMutableArray *favoriteWorkingCopies;
-	IBOutlet NSArrayController *favoriteWorkingCopiesAC;
+	IBOutlet MyDragSupportArrayController *favoriteWorkingCopiesAC;
 
 	IBOutlet id window;
 	IBOutlet id nameTextField;
@@ -21,21 +23,16 @@
 - (IBAction)openPath:(id)sender;
 - (IBAction)onValidate:(id)sender;
 
+- (NSArray*) dataArray;
 - (void)saveFavoriteWorkingCopiesPrefs;
 
 - (void)onDoubleClick:(id)sender;
-
-
-
-
 
 
 ///////  favoriteWorkingCopies  ///////
 
 - (NSArray *) favoriteWorkingCopies;
 - (void) setFavoriteWorkingCopies: (NSMutableArray *) aFavoriteWorkingCopies;
-
--(BOOL)validateFavoriteWorkingCopies:(id *)ioValue error:(NSError **)outError;
 
 - (unsigned int) countOfFavoriteWorkingCopies;
 - (id) objectInFavoriteWorkingCopiesAtIndex: (unsigned int)index;

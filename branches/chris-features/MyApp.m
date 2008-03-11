@@ -1,5 +1,6 @@
 #import "MyApp.h"
 #import "GetEthernetAddrSample.h"
+#import "RepositoriesController.h"
 
 @implementation MyApp
 

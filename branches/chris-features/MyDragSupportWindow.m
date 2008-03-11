@@ -1,4 +1,6 @@
 #import "MyDragSupportWindow.h"
+#import "MyWorkingCopy.h"
+#import "MyWorkingCopyController.h"
 
 @implementation MyDragSupportWindow
 

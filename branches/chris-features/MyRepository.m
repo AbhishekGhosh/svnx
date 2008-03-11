@@ -1,6 +1,14 @@
 #import "MyRepository.h"
-#include "MySvn.h";
-#include "Tasks.h";
+#import "MySvn.h"
+#import "Tasks.h"
+#import "DrawerLogView.h"
+#import "MyFileMergeController.h"
+#import "MySvnCopyController.h"
+#import "MySvnRepositoryBrowserView.h"
+#import "MySvnOperationController.h"
+//#import "MySvnMoveController.h"
+#import "MySvnLogView.h"
+#import "NSString+MyAdditions.h"
 
 #define SVNXCallbackExtractedToFileSystem 1
 #define SVNXCallbackCopy 2
@@ -818,7 +826,7 @@
 	return svnOptionsInvocation;
 }
 
-- (NSInvocation *) makeCallbackInvocationOfKind:(int)callbackKind;
+- (NSInvocation *) makeCallbackInvocationOfKind:(int)callbackKind
 {
 	// only one kind of invocation for now, but more complex callbacks will be possible in the future
 	

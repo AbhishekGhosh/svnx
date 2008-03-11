@@ -1,4 +1,5 @@
 #import "MySvnLogView.h"
+#import "MyRepository.h"
 
 @implementation MySvnLogView
 
@@ -154,7 +155,7 @@
 	if ( [[self logArray] count] > 0 ) 	[[self logArray] removeObjectAtIndex:0];
 	
 	if ( logArray != nil )
-	[parsedArray addObjectsFromArray:[self logArray]];
+		[parsedArray addObjectsFromArray:[self logArray]];
 	
 	[self setLogArray:parsedArray];
 	

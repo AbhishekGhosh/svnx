@@ -18,4 +18,17 @@
 	NSMutableArray *pathsArray;
 }
 
+- (NSArray*) parseXmlString: (NSString*) string;
+
+- (NSMutableArray*) logArray;
+- (void) setLogArray: (NSMutableArray*) aLogArray;
+- (NSMutableDictionary*) tmpDict;
+- (void) setTmpDict: (NSMutableDictionary*) atmpDict;
+- (NSMutableDictionary*) tmpDict2;
+- (void) setTmpDict2: (NSMutableDictionary*) aTmpDict2;
+- (NSMutableString*) tmpString;
+- (void) setTmpString: (NSMutableString*) aTmpString;
+- (NSMutableArray*) pathsArray;
+- (void) setPathsArray: (NSMutableArray*) aPathsArray;
+
 @end

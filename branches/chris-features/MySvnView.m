@@ -1,4 +1,5 @@
 #import "MySvnView.h"
+#import "Tasks.h"
 
 @class Tasks;
 
@@ -120,7 +121,7 @@
 #pragma mark -
 #pragma mark Helpers
 
-- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind;
+- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind
 {
 	// only one kind of invocation for now, but more complex callbacks will be possible in the future
 	

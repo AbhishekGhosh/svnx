@@ -22,6 +22,12 @@
 - (IBAction)closePreferences:(id)sender;
 
 - (IBAction)openFavorite:(id)sender;
+- (void) openRepository: (NSURL*)    url
+		 user:           (NSString*) user
+		 pass:           (NSString*) pass;
 
 - (bool)checkSVNExistence:(bool)warn;
+- (void) newTaskWithDictionary: (NSMutableDictionary*) taskObj;
+- (NSString*) getMACAddress;
+
 @end

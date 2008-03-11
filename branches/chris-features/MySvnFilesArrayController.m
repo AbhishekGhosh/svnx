@@ -1,4 +1,5 @@
 #import "MySvnFilesArrayController.h"
+#import "MyWorkingCopy.h"
 
 @implementation MySvnFilesArrayController
 

@@ -9,7 +9,21 @@
 #import <Foundation/Foundation.h>
 
 
+// NSString Additions
 @interface NSString (MyAdditions)
 
++ (NSString*) stringByAddingPercentEscape: (NSString*) url;
+
+- (NSString*) stringByDeletingLastComponent;
 
 @end
+
+
+// NSTextView Additions
+@interface  NSTextView (MyAdditions)
+
+- (void) appendString: (NSString*) string
+		 isErrorStyle: (BOOL)      isErrorStyle;
+
+@end
+

@@ -9,4 +9,10 @@
 
 	NSCell *destinationCell;
 }
+
+
+- (BOOL) isCellSelected: (NSCell*) cell;
+- (NSCell*) destinationCell;
+- (void) setDestinationCell: (NSCell*) aDestinationCell;
+
 @end

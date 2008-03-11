@@ -15,9 +15,26 @@
 	NSString *browserPath;
 }
 
-- (void)fetchSvn;
+- (void)unload;
 
+- (void)fetchSvn;
+- (void)fetchSvnListForUrl:(NSString *)theURL
+		column:(int)column matrix:(NSMatrix *)matrix;
+- (void) displayResultArray:(NSMutableArray *)resultArray
+		column:(int)column matrix:(NSMatrix *)matrix;
+- (NSMutableArray *)parseSvnListResult:(NSString *)resultString;
+
+- (NSMutableArray*) selectedItems;
+- (void) setAllowsEmptySelection: (BOOL) flag;
+- (void) setAllowsMultipleSelection: (BOOL) flag;
+- (void) reset;
+
+- (BOOL)showRoot;
+- (void)setShowRoot:(BOOL)flag;
+- (BOOL)disallowLeaves;
+- (void)setDisallowLeaves:(BOOL)flag;
 - (NSString *)browserPath;
 - (void)setBrowserPath:(NSString *)aBrowserPath;
+- (NSString *)getCachePathForUrl:(NSURL *)theURL;
 
 @end

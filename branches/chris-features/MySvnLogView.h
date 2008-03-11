@@ -19,7 +19,15 @@
 	BOOL isVerbose; // passes -v to svn log to retrieve the changed paths of each revision
 }
 
+- (void)unload;
 
+- (void) resetUrl: (NSURL*) anUrl;
+- (void)fetchSvnLog;
+- (void)fetchSvn;
+- (void)fetchSvnLogForUrl;
+- (void)fetchSvnLogForPath;
+
+- (NSString*) selectedRevision;
 - (NSString *)currentRevision;
 - (void)setCurrentRevision:(NSString *)aCurrentRevision;
 
@@ -29,5 +37,12 @@
 - (BOOL)isVerbose;
 - (void)setIsVerbose:(BOOL)flag;
 
+- (NSMutableArray *)logArray;
+- (void)setLogArray:(NSMutableArray *)aLogArray;
+
+- (int)mostRecentRevision;
+- (void)setMostRecentRevision:(int)aMostRecentRevision;
+
+- (NSString *)getCachePath;
 
 @end

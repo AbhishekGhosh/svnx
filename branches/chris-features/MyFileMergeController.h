@@ -21,4 +21,16 @@
 - (IBAction)compareUrl:(id)sender;
 - (IBAction)validate:(id)sender;
 
+- (void) setup;
+- (void) unload;
+- (void) setUrl: (NSURL*) url;
+- (void) setPath: (NSString*) path;
+- (void) setSourceItem: (NSDictionary*) item;
+
+- (NSInvocation*) makeCallbackInvocationOfKind: (int) callbackKind;
+- (NSWindow*) window;
+- (NSString*) documentName;
+- (NSInvocation*) svnOptionsInvocation;
+- (void) setSvnOptionsInvocation: (NSInvocation*) aSvnOptionsInvocation;
+
 @end

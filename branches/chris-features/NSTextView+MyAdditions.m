@@ -1,10 +1,5 @@
 #import <Cocoa/Cocoa.h>
-
-
-@interface  NSTextView (MyAdditions)
-
-
-@end
+#import "NSString+MyAdditions.h"
 
 
 @implementation NSTextView (MyAdditions)

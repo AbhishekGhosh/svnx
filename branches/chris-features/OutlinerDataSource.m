@@ -1,4 +1,6 @@
 #import "OutlinerDataSource.h"
+#import "MyWorkingCopy.h"
+#import "MyWorkingCopyController.h"
 
 @implementation OutlinerDataSource
 

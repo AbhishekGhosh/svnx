@@ -1,4 +1,6 @@
 #import "MySvnRepositoryBrowserView.h"
+#import "MySvn.h"
+#import "NSString+MyAdditions.h"
 
 @implementation MySvnRepositoryBrowserView
 

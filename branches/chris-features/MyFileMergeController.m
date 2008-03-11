@@ -1,5 +1,6 @@
 #import "MyFileMergeController.h"
-#include "MySvn.h";
+#import "MySvn.h"
+#import "MySvnLogView.h"
 
 #define SVNXCallbackFileMerge 4
 
@@ -132,7 +133,7 @@
 #pragma mark -
 #pragma mark Helpers
 
-- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind;
+- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind
 {
 	
 	SEL callbackSelector;

@@ -1,7 +1,8 @@
 
 #import "DrawerLogView.h"
+#import "MySvn.h"
+#import "NSString+MyAdditions.h"
 
-@class MySvn;
 
 @implementation DrawerLogView
 

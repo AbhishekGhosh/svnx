@@ -19,6 +19,14 @@
 
 - (IBAction)refetch:(id)sender;
 
+- (void)unload;
+
+- (void)fetchSvn;
+- (void)svnCommandComplete:(id)taskObj;
+- (void)svnError:(NSString*)errorString;
+- (void)fetchSvnReceiveDataFinished:(id)taskObj;
+
+- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind;
 - (NSInvocation *) svnOptionsInvocation;
 - (void) setSvnOptionsInvocation: (NSInvocation *) aSvnOptionsInvocation;
 
@@ -27,6 +35,9 @@
 
 - (NSString *)revision;
 - (void)setRevision:(NSString *)aRevision;
+
+- (BOOL)isFetching;
+- (void)setIsFetching:(BOOL)flag;
 
 - (id)pendingTask;
 - (void)setPendingTask:(id)aPendingTask;

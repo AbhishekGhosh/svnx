@@ -66,5 +66,31 @@
 - (IBAction)renamePanelValidate:(id)sender;
 - (IBAction)switchPanelValidate:(id)sender;
 
+- (void) cleanup;
+
+- (void) doubleClickInTableView: (id) sender;
+- (void) adjustOutlineView;
+- (void) openOutlineView;
+- (void) closeOutlineView;
+- (void) fetchSvnStatus;
+- (void) fetchSvnInfo;
+- (void) fetchSvnStatusVerboseReceiveDataFinished;
+
+- (void) svnUpdate: (id) sender;
+- (void) svnFileMerge: (id) sender;
+
+- (void) runAlertBeforePerformingAction: (NSDictionary*) command;
+- (void) startCommitMessage: (NSString*) selectedOrAll;
+- (void) svnError: (NSString*) errorString;
+- (void) startProgressIndicator;
+- (void) stopProgressIndicator;
+
+- (MyWorkingCopy*) document;
+- (NSWindow*) window;
+- (void) revealInFinder: (id) sender;
+- (void) requestSwitchToRepositoryPath: (NSDictionary*) repositoryPathObj;
+- (void) requestSvnRenameSelectedItemTo:           (NSString*) destination;
+- (void) requestSvnMoveSelectedItemsToDestination: (NSString*) destination;
+- (void) requestSvnCopySelectedItemsToDestination: (NSString*) destination;
 
 @end

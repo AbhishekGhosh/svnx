@@ -1,4 +1,7 @@
 #import "MyWorkingCopy.h"
+#import "MyWorkingCopyController.h"
+#import "MySVN.h"
+#import "Tasks.h"
 
 @class MySvn;
 @class SvnFileStatusToColourTransformer;
@@ -185,7 +188,7 @@
 		NSLog(@"Error parsing xml");
     }
 
-	NSArray *newSvnFiles = [NSMutableArray arrayWithCapacity: 100];
+	NSMutableArray *newSvnFiles = [NSMutableArray arrayWithCapacity: 100];
 
 	NSMutableDictionary *outlineDirs = [NSMutableDictionary dictionaryWithObjectsAndKeys:  [NSMutableArray array], @"children",
 																						   [workingCopyPath lastPathComponent], @"name",
@@ -445,17 +448,10 @@
 			column8 = @"P";
 		}
 		
-		NSArray *pathArr;
-
-		NSMutableString *dirPath;
-
 		BOOL renamable=NO, addable=NO, removable=NO, updatable=NO, revertable=NO, committable=NO, copiable=NO, movable=NO, resolvable=NO, lockable=YES, unlockable=NO;
 
-		
-		pathArr = [itemPath componentsSeparatedByString:@"/"];
-
-		dirPath = [NSMutableString stringWithString:@"/"];
-
+		NSArray* pathArr = [itemPath componentsSeparatedByString:@"/"];
+	//	NSMutableString* dirPath = [NSMutableString stringWithString:@"/"];
 
 		if ( [column1 isEqualToString:@" "] )
 		{
@@ -511,10 +507,7 @@
 			unlockable = YES;
 		}
 
-
-
-		dirPath = [itemPath stringByDeletingLastPathComponent];
-		
+		NSString* dirPath = [itemPath stringByDeletingLastPathComponent];
 		BOOL isDir;
 		
 		if ( [[NSFileManager defaultManager] fileExistsAtPath:itemFullPath isDirectory:&isDir] && isDir )
@@ -560,7 +553,6 @@
 					tmp = [child objectForKey:@"children"];
 				}
 
-				
 			}
 		}
 		
@@ -610,7 +602,7 @@
 - (void)computesOldVerboseResultArray
 {
 	NSArray *arr = [[self resultString] componentsSeparatedByString:@"\n"];
-	NSArray *newSvnFiles = [NSMutableArray arrayWithCapacity: 100];
+	NSMutableArray *newSvnFiles = [NSMutableArray arrayWithCapacity: 100];
 
 	NSMutableDictionary *outlineDirs = [NSMutableDictionary dictionaryWithObjectsAndKeys:  [NSMutableArray array], @"children",
 																						   [workingCopyPath lastPathComponent], @"name",
@@ -638,10 +630,6 @@
 		NSString *column4;
 		NSString *column5;
 		NSString *column6;
-
-		NSArray *pathArr;
-
-		NSMutableString *dirPath;
 
 		BOOL renamable=NO, addable=NO, removable=NO, updatable=NO, revertable=NO, committable=NO, copiable=NO, movable=NO, resolvable=NO, lockable=YES, unlockable=NO;
 
@@ -723,10 +711,8 @@
 
 		column6 = [itemString substringWithRange:NSMakeRange(5, 1)]; 
 		
-		pathArr = [itemPath componentsSeparatedByString:@"/"];
-
-		dirPath = [NSMutableString stringWithString:@"/"];
-
+		NSArray* pathArr = [itemPath componentsSeparatedByString:@"/"];
+	//	NSMutableString* dirPath = [NSMutableString stringWithString:@"/"];
 
 		if ( [column1 isEqualToString:@" "] )
 		{
@@ -777,10 +763,7 @@
 			unlockable = YES;
 		}
 
-
-
-		dirPath = [itemPath stringByDeletingLastPathComponent];
-		
+		NSString* dirPath = [itemPath stringByDeletingLastPathComponent];
 		BOOL isDir;
 		
 		if ( [[NSFileManager defaultManager] fileExistsAtPath:itemFullPath isDirectory:&isDir] && isDir )
@@ -825,7 +808,6 @@
 					tmp = [child objectForKey:@"children"];
 				}
 
-				
 			}
 		}
 		
@@ -1096,7 +1078,7 @@
 	return svnOptionsInvocation;
 }
 
-- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind;
+- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind
 {
 	
 	SEL callbackSelector;
@@ -1156,7 +1138,7 @@
 			[controller fetchSvnStatus];
 		}
 	}
-	if ( [keyPath isEqualToString:@"flatMode"] )
+	else if ( [keyPath isEqualToString:@"flatMode"] )
 	{
 		if ( [self flatMode] == FALSE && [self smartMode] == TRUE )
 		{
@@ -1169,17 +1151,16 @@
 		}
 //		[svnFilesAC rearrangeObjects];
 	}
-	
-	if ( [keyPath isEqualToString:@"workingCopyPath"] )
+	else if ( [keyPath isEqualToString:@"workingCopyPath"] )
 	{
 		[controller fetchSvnInfo];
 		[controller fetchSvnStatus];
 	}
-	if ( [keyPath isEqualToString:@"outlineSelectedPath"] )
+	else if ( [keyPath isEqualToString:@"outlineSelectedPath"] )
 	{
 		[svnFilesAC rearrangeObjects];
 	}
-	if ( [keyPath isEqualToString:@"filterMode"] )
+	else if ( [keyPath isEqualToString:@"filterMode"] )
 	{
 		[svnFilesAC rearrangeObjects];
 	}
