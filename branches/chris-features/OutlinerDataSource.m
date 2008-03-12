@@ -27,24 +27,37 @@
 	}
 }
 
-- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item {
+- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
+{
     return (item == nil) ? @"/" : (id)[item objectForKey:@"name"];
 }
 
 // Delegate methods
 
-- (BOOL)outlineView:(NSOutlineView *)outlineView shouldEditTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+- (BOOL)outlineView:(NSOutlineView *)outlineView shouldEditTableColumn:(NSTableColumn *)tableColumn item:(id)item
+{
     return NO;
 }
-- (void)outlineViewSelectionDidChange:(NSNotification *)notification {
+
+
+- (void)outlineViewSelectionDidChange:(NSNotification *)notification
+{
 	NSOutlineView *ov = [notification object];
 	
 //	NSLog(@"Outliner click : %@", [[ov itemAtRow:[ov selectedRow]] objectForKey:@"path"]);
 	[document setOutlineSelectedPath:[[ov itemAtRow:[ov selectedRow]] objectForKey:@"path"]];
 }
+
+
 - (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item
 {
-	[cell setImage:[item objectForKey:@"icon"]];
+	if (!hasSetFont)
+	{
+		hasSetFont = true;
+		[cell setFont: [NSFont systemFontOfSize: [NSFont smallSystemFontSize]]];
+		[cell setWraps: false];
+	}
+	[cell setImage: [item objectForKey: @"icon"]];
 }
 
 

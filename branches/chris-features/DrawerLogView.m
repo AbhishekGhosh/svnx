@@ -6,10 +6,11 @@
 
 @implementation DrawerLogView
 
-- (id)initWithFrame:(NSRect)frame {
+- (id)initWithFrame:(NSRect)frame
+{
     self = [super initWithFrame:frame];
-    if (self) {
-	
+    if (self)
+	{
 		if ([NSBundle loadNibNamed:@"DrawerLogView" owner:self])
 		{
 		  [_view setFrame:[self bounds]];
@@ -19,10 +20,10 @@
     return self;
 }
 
-- (void)dealloc {
+- (void)dealloc
+{
     [self setDocument: nil];
-//	NSLog(@"DrawerLogView dealloc");
-    [super dealloc];
+	[super dealloc];
 }
 
 -(void)setUp
@@ -36,13 +37,18 @@
 	[document removeObserver:self forKeyPath:@"displayedTaskObj.newStdout"];
 	[document removeObserver:self forKeyPath:@"displayedTaskObj.newStderr"];
 
-	// the owner has to release its top level nib objects 
-	[documentProxy release];
-	[_view release];
-	
+	const id docProxy = documentProxy;
+	documentProxy = nil;
+	const id view = _view;
+	_view = nil;
+
 	// objects that are bound to the file owner retain it
 	// we need to unbind them 
-	[documentProxy unbind:@"contentObject"];
+	[docProxy unbind:@"contentObject"];
+
+	// the owner has to release its top level nib objects 
+	[docProxy release];
+	[view release];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -51,7 +57,6 @@
 
 	if ( taskObj != nil )
 	{
-
 		if ( taskObj != currentTaskObj )
 		{
 			[[logTextView textStorage] setAttributedString:[taskObj valueForKey:@"combinedLog"]];
@@ -97,11 +102,14 @@
 
 // - document : A MyRepository or a MyWorkingCopy instance
 - (id)document { return document; }
-- (void)setDocument:(id)aDocument {
-    id old = [self document];
+
+- (void)setDocument:(id)aDocument
+{
+    id old = document;
     document = [aDocument retain];
     [old release];
 }
 
 
 @end
+

@@ -4,44 +4,228 @@
 #import "MyFileMergeController.h"
 #import "DrawerLogView.h"
 
+typedef float GCoord;
+
+enum {
+	vFlatTable	=	2000,
+	vTreeTable	=	2002
+};
+
+enum {
+	kModeTree	=	0,
+	kModeFlat	=	1,
+	kModeSmart	=	2
+};
+
+typedef NSString* const ConstString;
+static ConstString keyWCWidows    = @"wcWindows",
+				   keyWidowFrame  = @"winFrame",
+				   keyViewMode    = @"viewMode",
+				   keyFilterMode  = @"filterMode",
+				   keyShowToolbar = @"showToolbar";
+static NSString* gInitName = nil;
+
+
+//----------------------------------------------------------------------------------------
+
 @implementation MyWorkingCopyController
 
-- (void)dealloc
+
+//----------------------------------------------------------------------------------------
+
++ (void) presetDocumentName: name
 {
-	[document removeObserver:self forKeyPath:@"flatMode"];
-	[super dealloc];
+	gInitName = name;
 }
 
+
+//----------------------------------------------------------------------------------------
 
 - (void)awakeFromNib
 {
 	isDisplayingErrorSheet = NO;
-	
+
 	[document   addObserver:self forKeyPath:@"flatMode"
 				options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
 
-	[self adjustOutlineView];
-	
 	[drawerLogView setDocument:document];
 	[drawerLogView setUp];
+
+	NSTableView* tableView = [[window contentView] viewWithTag: vFlatTable];
+	[[[tableView tableColumnWithIdentifier: @"path"] dataCell] setDrawsBackground: false];
+
+	[self setNextResponder: [tableView nextResponder]];
+	[tableView setNextResponder: self];
+
+	NSUserDefaults* const prefs = [NSUserDefaults standardUserDefaults];
+	NSDictionary* wcWindows = [prefs dictionaryForKey: keyWCWidows];
+	if (wcWindows != nil)
+	{
+		NSDictionary* settings = [wcWindows objectForKey: gInitName];
+		if (settings != nil)
+		{
+			if (![[settings objectForKey: keyShowToolbar] boolValue])
+				[[window toolbar] setVisible: false];
+
+			ConstString widowFrame = [settings objectForKey: keyWidowFrame];
+			if (widowFrame != nil)
+				[window setFrameFromString: widowFrame];
+		}
+	}
+
+	[self adjustOutlineView];
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-{	
+
+//----------------------------------------------------------------------------------------
+// Called after 'document' is setup
+
+- (void) setup
+{
+	int viewMode   = kModeSmart;
+	int filterMode = kFilterAll;
+
+	NSUserDefaults* const prefs = [NSUserDefaults standardUserDefaults];
+	NSDictionary* wcWindows = [prefs dictionaryForKey: keyWCWidows];
+	if (wcWindows != nil)
+	{
+		ConstString nameKey = [document windowTitle];
+		NSDictionary* settings = [wcWindows objectForKey: nameKey];
+		if (settings != nil)
+		{
+			viewMode    = [[settings objectForKey: keyViewMode] intValue];
+			filterMode  = [[settings objectForKey: keyFilterMode] intValue];
+		//	searchStr   = [settings objectForKey: keySearchStr];
+		}
+	}
+
+	[modeView setIntValue: viewMode];
+	[self setCurrentMode: viewMode];
+	if (viewMode != kModeTree)
+		[document svnRefresh];		
+	[filterView selectItemWithTag: filterMode];
+	[document setFilterMode: filterMode];
+
+	[window makeKeyAndOrderFront: self];
+	[self savePrefs];
+
+	[window setDelegate: self];		// for windowDidMove & windowDidResize messages
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) windowDidMove: (NSNotification*) notification
+{
+	[self savePrefs];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) windowDidResize: (NSNotification*) notification
+{
+	[self savePrefs];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) savePrefs
+{
+	NSUserDefaults* const prefs = [NSUserDefaults standardUserDefaults];
+
+	BOOL showToolbar = [[window toolbar] isVisible];
+	NSDictionary* settings = [NSDictionary dictionaryWithObjectsAndKeys:
+								[window stringWithSavedFrame],                   keyWidowFrame,
+								[NSNumber numberWithInt: [self currentMode]],    keyViewMode,
+								[NSNumber numberWithInt: [document filterMode]], keyFilterMode,
+								showToolbar ? kCFBooleanTrue : kCFBooleanFalse,  keyShowToolbar,
+								nil];
+
+	ConstString nameKey = [document windowTitle];
+	NSDictionary* wcWindows = [prefs dictionaryForKey: keyWCWidows];
+	if (wcWindows == nil)
+	{
+		wcWindows = [NSDictionary dictionaryWithObject: settings forKey: nameKey];
+	}
+	else
+	{
+		NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary: wcWindows];
+		[dict setObject: settings forKey: nameKey];
+		wcWindows = dict;
+	}
+
+	[prefs setObject: wcWindows forKey: keyWCWidows];
+//	[prefs synchronize];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) observeValueForKeyPath: (NSString*)     keyPath
+		 ofObject:               (id)            object
+		 change:                 (NSDictionary*) change
+		 context:                (void*)         context
+{
 	if ( [keyPath isEqualToString:@"flatMode"] )
 	{
 		[self adjustOutlineView];
 	}
-
 }
 
-- (void)cleanup
+
+//----------------------------------------------------------------------------------------
+
+- (void) cleanup
 {
-	[drawerLogView unload];
+	[document removeObserver: self forKeyPath: @"flatMode"];
+
+	DrawerLogView* obj = drawerLogView;
+	drawerLogView = nil;
+	[obj unload];
 }
 
+
+//----------------------------------------------------------------------------------------
+
+- (void) keyDown: (NSEvent*) theEvent
+{
+	const unichar ch = [[theEvent charactersIgnoringModifiers] characterAtIndex: 0];
+
+	if (ch == '\r' || ch == 3)
+		[self doubleClickInTableView: nil];
+	else if (ch >= ' ')
+	{
+		NSTableView* const tableView = [[window contentView] viewWithTag: vFlatTable];
+		NSArray* const dataArray = [svnFilesAC arrangedObjects];
+		const int rows = [dataArray count];
+		int i, selRow = [svnFilesAC selectionIndex];
+		if (selRow == NSNotFound)
+			selRow = rows - 1;
+		const unichar ch0 = (ch >= 'a' && ch <= 'z') ? (ch - 32) : ch;
+		for (i = 1; i <= rows; ++i)
+		{
+			int index = (selRow + i) % rows;
+			id wc = [dataArray objectAtIndex: index];
+			NSString* name = [wc objectForKey: @"displayPath"];
+			if ([name length] && ([name characterAtIndex: 0] & ~0x20) == ch0)
+			{
+				[tableView selectRow: index byExtendingSelection: false];
+				[tableView scrollRowToVisible: index];
+				break;
+			}
+		}
+	}
+	else
+		[super keyDown: theEvent];
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark IBActions
+//----------------------------------------------------------------------------------------
 
 - (IBAction)openAWorkingCopy:(id)sender;
 {
@@ -57,17 +241,16 @@
 				contextInfo:nil
 		];
 }
+
 - (void)openPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-    NSString *pathToFile = nil;
+	if (returnCode == NSOKButton)
+	{
+		NSString* pathToFile = [[[sheet filenames] objectAtIndex:0] copy];
 
-    if (returnCode == NSOKButton) {
-
-        pathToFile = [[[sheet filenames] objectAtIndex:0] copy];
-
-		[[self document] setWorkingCopyPath:pathToFile];
-		[workingCopyPath setStringValue:[[self document] workingCopyPath]];
-    }
+		[document setWorkingCopyPath: pathToFile];
+		[document svnRefresh];
+	}
 }
 
 - (IBAction) refresh:(id)sender;
@@ -158,60 +341,78 @@
 
 - (void) adjustOutlineView
 {
-	if ( [[self document] flatMode] )
+	[document setSvnFiles: nil];
+	int tag;
+	if ([document flatMode])
 	{
 		[self closeOutlineView];
-	
-	} else
+		tag = vFlatTable;
+	}
+	else
 	{
 		[self openOutlineView];
+		tag = vTreeTable;
 	}
+	[window makeFirstResponder: [[window contentView] viewWithTag: tag]];
 }
+
 
 - (void) openOutlineView
 {
-	NSView *leftView = [[splitView subviews] objectAtIndex:0];
-	[leftView setFrameSize:NSMakeSize(200, [leftView frame].size.height)];
-	
-	[leftView setHidden:NO];
+	NSView* leftView = [[splitView subviews] objectAtIndex: 0];
+
+	NSRect frame = [splitView frame];
+	frame.origin.x = 0;
+	frame.size.width = [[splitView superview] frame].size.width;
+	[splitView setFrame: frame];
+
+	frame = [leftView frame];
+	frame.size.width = 200;
+	[leftView setFrame: frame];
+	[leftView setHidden: NO];
 
 	[splitView adjustSubviews];
-	[splitView display];
+	[splitView setNeedsDisplay: YES];
 }
+
 
 - (void) closeOutlineView
 {
-	NSView *leftView = [[splitView subviews] objectAtIndex:0];
-	[leftView setFrameSize:NSMakeSize(0, [leftView frame].size.height)];
+	NSView* leftView = [[splitView subviews] objectAtIndex: 0];
+
+	const GCoord kSplitterWidth = [splitView dividerThickness];
+	NSRect frame = [splitView frame];
+	frame.origin.x = -kSplitterWidth;
+	frame.size.width = [[splitView superview] frame].size.width + kSplitterWidth;
+	[splitView setFrame: frame];
+
+	frame = [leftView frame];
+	frame.size.width = 0;
+	[leftView setFrame: frame];
+	[leftView setHidden: YES];
+
 	[splitView adjustSubviews];
-	[splitView display];
+	[splitView setNeedsDisplay: YES];
 }
 
 
-
-- (void)fetchSvnStatus
+- (void) fetchSvnStatus
 {
 	[self startProgressIndicator];
 
-	if ( [[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask )
-	{
-		[[self document] setShowUpdates:YES];
-	
-	} else
-	{
-		[[self document] setShowUpdates:NO];
-	}
-
-	[[self document] fetchSvnStatusVerbose];
+	[document setShowUpdates: ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0];
+	[document fetchSvnStatusVerbose];
 }
 
-- (void)fetchSvnInfo
+
+- (void) fetchSvnInfo
 {
 	[self startProgressIndicator];
 
-	[[self document] fetchSvnInfo];
+	[document fetchSvnInfo];
 }
-//
+
+
 //- (void) fetchSvnStatusReceiveDataFinished
 //{
 //	[self stopProgressIndicator];
@@ -219,10 +420,10 @@
 //	
 //	svnStatusPending = NO;
 //}
-//
+
+
 - (void) fetchSvnStatusVerboseReceiveDataFinished
 {
-	
 	[self stopProgressIndicator];
 //	[textResult setString:[[self document] resultString]];
 //	[tableResult reloadData];
@@ -239,16 +440,30 @@
 	svnStatusPending = NO;
 }
 
+
+//----------------------------------------------------------------------------------------
+// Filter mode
+
+- (void) setFilterMode: (int) mode
+{
+	[document setFilterMode: mode];
+	[self savePrefs];
+}
+
+
 - (IBAction)changeFilter:(id)sender
 {
 	int tag = [[sender selectedItem] tag];																		
 
-	[[self document] setFilterMode:tag];
+	[self setFilterMode: tag];
 }
+
+
+//----------------------------------------------------------------------------------------
 
 - (IBAction)openRepository:(id)sender
 {
-	[[NSApp delegate] openRepository:[[self document] repositoryUrl] user:[[self document] user] pass:[[self document] pass]];
+	[[NSApp delegate] openRepository: [document repositoryUrl] user: [document user] pass: [document pass]];
 }
 
 - (IBAction)toggleSidebar:(id)sender
@@ -257,8 +472,61 @@
 }
 
 
+//----------------------------------------------------------------------------------------
+// View mode
+
+- (IBAction) changeMode: (id) sender
+{
+//	NSLog(@"changeMode: %@ tag=%d", sender, [sender tag]);
+	[self setCurrentMode: [sender tag] % 10];	// kModeTree, kModeFlat or kModeSmart
+}
+
+
+//----------------------------------------------------------------------------------------
+// View mode
+
+- (int) currentMode
+{
+	return [document smartMode] ? kModeSmart : ([document flatMode] ? kModeFlat : kModeTree);
+}
+
+
+//----------------------------------------------------------------------------------------
+// View mode
+
+- (void) setCurrentMode: (int) mode
+{
+//	NSLog(@"setCurrentMode: %d", mode);
+	//if ([self currentMode] != mode)
+	{
+		switch (mode)
+		{
+			case kModeTree:
+				if ([document flatMode])
+					[document setFlatMode: false];
+				break;
+
+			case kModeFlat:
+				if ([document smartMode])
+					[document setSmartMode: false];
+				else if (![document flatMode])
+					[document setFlatMode: true];
+				break;
+
+			case kModeSmart:
+				if (![document smartMode])
+					[document setSmartMode: true];
+				break;
+		}
+		[self savePrefs];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Split View delegate
+//----------------------------------------------------------------------------------------
 
 - (BOOL)splitView:(NSSplitView *)sender canCollapseSubview:(NSView *)subview
 {
@@ -277,7 +545,7 @@
 	}
 }
 
-- (float)splitView:(NSSplitView *)sender constrainMaxCoordinate:(float)proposedMax ofSubviewAt:(int)offset
+- (GCoord)splitView:(NSSplitView *)sender constrainMaxCoordinate:(GCoord)proposedMax ofSubviewAt:(int)offset
 {	
 	if ( offset == 0 )
 	{
@@ -286,12 +554,12 @@
 	return proposedMax;
 }
 
-- (float)splitView:(NSSplitView *)sender constrainMinCoordinate:(float)proposedMin ofSubviewAt:(int)offset
+- (GCoord)splitView:(NSSplitView *)sender constrainMinCoordinate:(GCoord)proposedMin ofSubviewAt:(int)offset
 {
 	//NSView *leftView = [[splitView subviews] objectAtIndex:0];
-	if ( [document flatMode] ) return (float)0;
+	if ( [document flatMode] ) return (GCoord)0;
 	
-	return (float)140;
+	return (GCoord)140;
 }
 
 - (void)splitView:(NSSplitView *)sender resizeSubviewsWithOldSize:(NSSize)oldSize
@@ -299,7 +567,7 @@
     // how to resize a horizontal split view so that the left frame stays a constant size
     NSView *left = [[sender subviews] objectAtIndex:0];      // get the two sub views
     NSView *right = [[sender subviews] objectAtIndex:1];
-    float dividerThickness = [sender dividerThickness];         // and the divider thickness
+    GCoord dividerThickness = [sender dividerThickness];		// and the divider thickness
     NSRect newFrame = [sender frame];                           // get the new size of the whole splitView
     NSRect leftFrame = [left frame];                            // current size of the left subview
     NSRect rightFrame = [right frame];                          // ...and the right
@@ -312,17 +580,20 @@
     [right setFrame:rightFrame];
 }
 
-#pragma mark -
-#pragma mark svn operations requests
-#pragma mark 
 
-#pragma mark svn update
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+#pragma mark	Svn Operation Requests
+//----------------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------
+#pragma mark	svn update
 
 - (void)svnUpdate:(id)sender
 {
-	[[NSAlert alertWithMessageText:[NSString stringWithFormat:@"Are you sure you want to update this working copy to the latest revision ?", @"update"]
-					 defaultButton:@"Yes"
-				   alternateButton:@"No"
+	[[NSAlert alertWithMessageText:[NSString stringWithFormat:@"Update this working copy to the latest revision?", @"update"]
+					 defaultButton:@"OK"
+				   alternateButton:@"Cancel"
 					   otherButton:nil
 		 informativeTextWithFormat:@""]
 		
@@ -339,7 +610,9 @@
 	[document svnUpdate];
 }
 
-#pragma mark FileMerge
+
+//----------------------------------------------------------------------------------------
+#pragma mark	svn merge
 
 - (void)fileHistoryOpenSheetForItem:(id)item;
 {
@@ -394,7 +667,9 @@
 	[fileMergeController unload];
 }
 
-#pragma mark Rename (svn move)
+
+//----------------------------------------------------------------------------------------
+#pragma mark	svn rename
 
 - (void) requestSvnRenameSelectedItemTo:(NSString *)destination
 {
@@ -404,7 +679,9 @@
 																						nil]];
 }
 
-#pragma mark svn move
+
+//----------------------------------------------------------------------------------------
+#pragma mark	svn move
 
 - (void)requestSvnMoveSelectedItemsToDestination:(NSString *)destination
 {
@@ -421,7 +698,9 @@
 	} else [self runAlertBeforePerformingAction:action];
 }
 
-#pragma mark svn copy
+
+//----------------------------------------------------------------------------------------
+#pragma mark	svn copy
 
 - (void) requestSvnCopySelectedItemsToDestination:(NSString *)destination
 {
@@ -439,7 +718,10 @@
 	[self runAlertBeforePerformingAction:action];
 }
 
-#pragma mark svn copy & svn move common 
+
+//----------------------------------------------------------------------------------------
+#pragma mark	svn copy & svn move common 
+
 - (void)renamePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
 	[sheet orderOut:nil];
@@ -460,7 +742,10 @@
 	[NSApp endSheet:renamePanel returnCode:[sender tag]];
 }
 
-#pragma mark svn switch (called from MyDragSupportWindow)
+
+//----------------------------------------------------------------------------------------
+// called from MyDragSupportWindow
+#pragma mark	svn switch
 
 -(void)requestSwitchToRepositoryPath:(NSDictionary *)repositoryPathObj
 {
@@ -519,10 +804,12 @@
 }
 
 
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+#pragma mark	Common Methods
+//----------------------------------------------------------------------------------------
 
-#pragma mark common methods
-
-- (void)runAlertBeforePerformingAction:(NSDictionary *)command;
+- (void)runAlertBeforePerformingAction:(NSDictionary *)command
 {
 	if ( [[command objectForKey:@"command"] isEqualToString:@"commit"] )
 	{
@@ -604,7 +891,9 @@
 	[sheet close];
 }
 
-#pragma Error sheet
+
+//----------------------------------------------------------------------------------------
+// Error Sheet
 
 - (void)svnError:(NSString*)errorString
 {
@@ -637,6 +926,9 @@
 	isDisplayingErrorSheet = NO;
 }
 
+
+//----------------------------------------------------------------------------------------
+
 - (IBAction)commitPanelValidate:(id)sender
 {
 	[NSApp endSheet:commitPanel returnCode:1];
@@ -666,8 +958,12 @@
 //	
 //	return performActionMenusDict;
 //}
-#pragma mark -
-#pragma mark Convenience accessors
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+#pragma mark	Convenience Accessors
+//----------------------------------------------------------------------------------------
 
 -(MyWorkingCopy*)document
 {

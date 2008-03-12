@@ -6,6 +6,7 @@
 {
     IBOutlet id document;
     IBOutlet id controller;
+	BOOL hasSetFont;
 }
 @end
 

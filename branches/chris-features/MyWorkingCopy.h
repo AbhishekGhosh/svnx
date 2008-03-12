@@ -1,9 +1,15 @@
 #import <Cocoa/Cocoa.h>
 
-@class MyWorkingCopyController;
-@class MySvnFilesArrayController;
+enum {
+	kFilterAll		=	0,
+	kFilterModified	=	1,
+	kFilterNew		=	2,
+	kFilterMissing	=	3,
+	kFilterConflict	=	4,
+	kFilterChanged	=	5
+};
 
-@class Tasks;
+@class MyWorkingCopyController, MySvnFilesArrayController;
 
 /*" Model of the working copy browser "*/
 @interface MyWorkingCopy : NSDocument
@@ -26,22 +32,22 @@
 	
     NSMutableArray *svnFiles;
 	NSMutableDictionary *svnDirectories;
-	
-	
+
 	BOOL flatMode, smartMode;
 	BOOL showUpdates; // svn status -u
+	int filterMode;
 	NSString *statusInfo;
 	
 	NSMutableDictionary *displayedTaskObj;
 }
 
-int filterMode;
 
 + (void) presetDocumentName: name;
 - (void) setup: (NSString*) title
 		 user:  (NSString*) username
 		 pass:  (NSString*) password
 		 path:  (NSString*) fullPath;
+- (void) svnRefresh;
 
 //- (void)fetchSvnStatus;
 //- (void)fetchSvnStatusReceiveData:(NSArray*)shellOutput;
@@ -49,12 +55,11 @@ int filterMode;
 
 - (void) fetchSvnInfo;
 - (void) svnUpdate;
+- (void) fileMergeItems: (NSArray*) items;
 - (void) fetchSvnStatusVerbose;
 - (void) fetchSvnStatusVerboseReceiveDataFinished: (NSString*) result;
 - (void) fetchSvnInfoReceiveDataFinished: (NSString*) result;
 - (void) computesVerboseResultArray;
-- (void) computesNewVerboseResultArray;
-- (void) computesOldVerboseResultArray;
 
 //- (void)svnCommand:(NSString *)command options:(NSDictionary *)options;
 - (void) svnCommand: (NSString*)     command
@@ -64,7 +69,6 @@ int filterMode;
 - (NSInvocation*) svnOptionsInvocation;
 - (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj;
 - (NSInvocation*) makeCallbackInvocationOfKind: (int) callbackKind;
-- (void) fileMergeItems: (NSArray*) items;
 
 
 //- (void)computesResultArray;

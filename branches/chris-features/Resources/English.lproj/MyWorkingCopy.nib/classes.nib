@@ -62,6 +62,7 @@
         {
             ACTIONS = {
                 changeFilter = id; 
+                changeMode = id; 
                 commitPanelCancel = id; 
                 commitPanelValidate = id; 
                 openAWorkingCopy = id; 
@@ -69,22 +70,23 @@
                 performAction = id; 
                 refresh = id; 
                 renamePanelValidate = id; 
+                revealInFinder = id; 
+                svnFileMerge = id; 
+                svnUpdate = id; 
                 switchPanelValidate = id; 
             }; 
             CLASS = MyWorkingCopyController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                addMenu = id; 
                 commitPanel = id; 
                 commitPanelText = id; 
-                deleteMenu = id; 
                 document = MyWorkingCopy; 
                 drawerLogView = DrawerLogView; 
                 fileMergeController = MyFileMergeController; 
+                filterView = NSView; 
+                modeView = NSView; 
                 outliner = id; 
-                performPopUp = id; 
                 progressIndicator = id; 
-                refreshButton = id; 
                 renamePanel = NSPanel; 
                 renamePanelTextField = NSTextField; 
                 sidebar = NSDrawer; 
@@ -106,9 +108,10 @@
             CLASS = MyWorkingCopyToolbar; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                controller = id; 
+                controller = MyWorkingCopyController; 
                 filterView = id; 
                 flatModeView = id; 
+                modeView = id; 
                 refreshView = id; 
                 searchView = id; 
                 smartModeView = id; 
@@ -117,6 +120,7 @@
             }; 
             SUPERCLASS = NSObject; 
         }, 
+        {CLASS = NSSegmentedControl; LANGUAGE = ObjC; SUPERCLASS = NSControl; }, 
         {
             CLASS = OutlinerDataSource; 
             LANGUAGE = ObjC; 

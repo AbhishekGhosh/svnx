@@ -1,30 +1,25 @@
 #import <Cocoa/Cocoa.h>
 
-@class MySvn;
-
 @class MyWorkingCopy;
 @class MySvnFilesArrayController, DrawerLogView;
 @class MyFileMergeController;
 
 /*" Controller of the working copy browser "*/
-@interface MyWorkingCopyController : NSObject
+@interface MyWorkingCopyController : NSResponder
 {
     IBOutlet MyWorkingCopy *document;
 	
-    IBOutlet id window;
-    IBOutlet id splitView;
-    IBOutlet id workingCopyPath;
-    IBOutlet id progressIndicator;
-    IBOutlet id refreshButton;
-    IBOutlet id textResult;
-    IBOutlet id tableResult;
-
+	IBOutlet id window;
+	IBOutlet id splitView;
+	IBOutlet id workingCopyPath;
+	IBOutlet id progressIndicator;
+	IBOutlet id textResult;
+	IBOutlet id tableResult;
     IBOutlet id outliner;
 
-    IBOutlet id performPopUp;
-    IBOutlet id addMenu;
-    IBOutlet id deleteMenu;
-	
+	IBOutlet NSControl*		modeView;
+	IBOutlet NSPopUpButton*	filterView;
+
 	IBOutlet id commitPanel;
 	IBOutlet id commitPanelText;
 	IBOutlet id toolbar;
@@ -42,31 +37,38 @@
 	IBOutlet NSTextField	*switchPanelSourceTextField;
 	IBOutlet NSTextField	*switchPanelDestinationTextField;
 	IBOutlet NSButton		*switchPanelRelocateButton;
-	
-	NSDictionary *performActionMenusDict;
-    	
+
 	BOOL svnStatusPending;
 	BOOL svnActionPending;
 	
 	BOOL isDisplayingErrorSheet;
 }
 
-- (IBAction)openAWorkingCopy:(id)sender;
-- (IBAction)refresh:(id)sender;
++ (void) presetDocumentName: name;
 
-- (IBAction)changeFilter:(id)sender;
+- (IBAction) openAWorkingCopy: (id) sender;
+- (IBAction) changeFilter:     (id) sender;
+- (IBAction) performAction:    (id) sender;
 
-- (IBAction)performAction:(id)sender;
+- (IBAction) revealInFinder: (id) sender;
+- (IBAction) refresh:        (id) sender;
+- (IBAction) svnUpdate:      (id) sender;
+- (IBAction) svnFileMerge:   (id) sender;
+- (IBAction) openRepository: (id) sender;
+- (IBAction) toggleSidebar:  (id) sender;
+- (IBAction) changeMode:     (id) sender;
+- (int)      currentMode;
+- (void)     setCurrentMode: (int) mode;
 
-- (IBAction)openRepository:(id)sender;
+- (IBAction) commitPanelValidate: (id) sender;
+- (IBAction) commitPanelCancel:   (id) sender;
+- (IBAction) renamePanelValidate: (id) sender;
+- (IBAction) switchPanelValidate: (id) sender;
 
-- (IBAction)commitPanelValidate:(id)sender;
-- (IBAction)commitPanelCancel:(id)sender;
-
-- (IBAction)renamePanelValidate:(id)sender;
-- (IBAction)switchPanelValidate:(id)sender;
-
+- (void) setup;
+- (void) savePrefs;
 - (void) cleanup;
+- (void) keyDown: (NSEvent*) theEvent;
 
 - (void) doubleClickInTableView: (id) sender;
 - (void) adjustOutlineView;
@@ -76,9 +78,6 @@
 - (void) fetchSvnInfo;
 - (void) fetchSvnStatusVerboseReceiveDataFinished;
 
-- (void) svnUpdate: (id) sender;
-- (void) svnFileMerge: (id) sender;
-
 - (void) runAlertBeforePerformingAction: (NSDictionary*) command;
 - (void) startCommitMessage: (NSString*) selectedOrAll;
 - (void) svnError: (NSString*) errorString;
@@ -87,7 +86,6 @@
 
 - (MyWorkingCopy*) document;
 - (NSWindow*) window;
-- (void) revealInFinder: (id) sender;
 - (void) requestSwitchToRepositoryPath: (NSDictionary*) repositoryPathObj;
 - (void) requestSvnRenameSelectedItemTo:           (NSString*) destination;
 - (void) requestSvnMoveSelectedItemsToDestination: (NSString*) destination;
