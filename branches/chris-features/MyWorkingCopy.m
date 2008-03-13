@@ -984,8 +984,6 @@ useOldParsingMethod ()
 //				
 //				[self setRepositoryUrl:[NSURL URLWithString:repositoryUrlString]];
 //			}
-					
-		
 		}
 	}
 }
@@ -1000,7 +998,9 @@ useOldParsingMethod ()
 	if ( options == nil ) options = [NSArray array];
 
 	[controller startProgressIndicator];
-	
+	NSInvocation* const callback = [self makeCallbackInvocation: @selector(svnGenericCompletedCallback:)];
+	NSDictionary* const taskInfo = [NSDictionary dictionaryWithObject: windowTitle forKey: @"documentName"];
+
 	if ( [command isEqualToString:@"rename"] )
 	{
 		[itemsPaths addObject:[info objectForKey:@"destination"]];
@@ -1009,34 +1009,31 @@ useOldParsingMethod ()
 					  arguments: itemsPaths
                  generalOptions: [self svnOptionsInvocation]
 						options: options
-					   callback: [self makeCallbackInvocationOfKind:SVNXCallbackGeneric]
+					   callback: callback
 				   callbackInfo: nil
-					   taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]];
-		
-	} else
-	if ( [command isEqualToString:@"move"] )
+					   taskInfo: taskInfo];
+	}
+	else if ( [command isEqualToString:@"move"] )
 	{
 		[MySvn     moveMultiple: itemsPaths
 					destination: [info objectForKey:@"destination"]
                  generalOptions: [self svnOptionsInvocation]
 						options: options
-					   callback: [self makeCallbackInvocationOfKind:SVNXCallbackGeneric]
+					   callback: callback
 				   callbackInfo: nil
-					   taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]];
-	
-	} else
-	if ( [command isEqualToString:@"copy"] )
+					   taskInfo: taskInfo];
+	}
+	else if ( [command isEqualToString:@"copy"] )
 	{
 		[MySvn     copyMultiple: itemsPaths
 					destination: [info objectForKey:@"destination"]
                  generalOptions: [self svnOptionsInvocation]
 						options: options
-					   callback: [self makeCallbackInvocationOfKind:SVNXCallbackGeneric]
+					   callback: callback
 				   callbackInfo: nil
-					   taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]];
-		
-	} else
-	if ( [command isEqualToString:@"switch"] )
+					   taskInfo: taskInfo];
+	}
+	else if ( [command isEqualToString:@"switch"] )
 	{
 		// it would be much more clean to use a specific [MySvn switch:... command.
 		[self setDisplayedTaskObj:
@@ -1044,24 +1041,24 @@ useOldParsingMethod ()
 						  arguments: [NSArray array]
 					 generalOptions: [self svnOptionsInvocation]
 							options: options
-						   callback: [self makeCallbackInvocationOfKind:SVNXCallbackGeneric]
+						   callback: callback
 					   callbackInfo: nil
-						   taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]]
+						   taskInfo: taskInfo]
 		];
-		
-	} else
+	}
+	else // commit & ...
 	{
 		id taskObj =
-		[MySvn   genericCommand: command
-					  arguments: itemsPaths
-                 generalOptions: [self svnOptionsInvocation]
-						options: options
-					   callback: [self makeCallbackInvocationOfKind:SVNXCallbackGeneric]
-				   callbackInfo: nil
-					   taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]];
+			[MySvn   genericCommand: command
+						  arguments: itemsPaths
+					 generalOptions: [self svnOptionsInvocation]
+							options: options
+						   callback: callback
+					   callbackInfo: nil
+						   taskInfo: taskInfo];
 
-		if ( [command isEqualToString:@"commit"] ) [self setDisplayedTaskObj:taskObj];
-					   
+		if ( [command isEqualToString:@"commit"] )
+			[self setDisplayedTaskObj: taskObj];
 	}
 }
 
@@ -1085,12 +1082,13 @@ useOldParsingMethod ()
 {	
 	[controller startProgressIndicator];
 	
-	[self setDisplayedTaskObj:[MySvn    updateAtWorkingCopyPath: [self workingCopyPath]
-					   generalOptions: [self svnOptionsInvocation]
-							  options: nil
-							 callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnUpdate]
-						 callbackInfo: nil
-							 taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]]];
+	[self setDisplayedTaskObj:
+		[MySvn updateAtWorkingCopyPath: [self workingCopyPath]
+					    generalOptions: [self svnOptionsInvocation]
+							   options: nil
+							  callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnUpdate]
+						  callbackInfo: nil
+							  taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]]];
 }
 
 -(void)svnUpdateCompletedCallback:(id)taskObj
@@ -1149,50 +1147,46 @@ useOldParsingMethod ()
 	return svnOptionsInvocation;
 }
 
-- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind
+
+- (NSInvocation*) makeCallbackInvocation: (SEL) selector
 {
-	
+	NSInvocation* callback = [NSInvocation invocationWithMethodSignature:
+									[MyWorkingCopy instanceMethodSignatureForSelector: selector]];
+	[callback setSelector: selector];
+	[callback setTarget: self];	
+
+	return callback;
+}
+
+
+- (NSInvocation*) makeCallbackInvocationOfKind: (int) callbackKind
+{
 	SEL callbackSelector;
-	NSInvocation *callback;
 
 	switch ( callbackKind )
 	{
 		case SVNXCallbackSvnUpdate:
-		
 			callbackSelector = @selector(svnUpdateCompletedCallback:);
+			break;
 
-		break;
-		
 		case SVNXCallbackSvnStatus:
-		
 			callbackSelector = @selector(svnStatusCompletedCallback:);
+			break;
 
-		break;
-		
 		case SVNXCallbackSvnInfo:
-		
 			callbackSelector = @selector(svnInfoCompletedCallback:);
+			break;
 
-		break;
-		
 		case SVNXCallbackGeneric:
-		
 			callbackSelector = @selector(svnGenericCompletedCallback:);
-			
-		break;
-		
-		case SVNXCallbackFileMerge:
-			
-			callbackSelector = @selector(fileMergeCallback:);
-		
-		break;
-	}
-	
-	callback = [NSInvocation invocationWithMethodSignature:[MyWorkingCopy instanceMethodSignatureForSelector:callbackSelector]];
-	[callback setSelector:callbackSelector];
-	[callback setTarget:self];	
+			break;
 
-	return callback;
+		case SVNXCallbackFileMerge:
+			callbackSelector = @selector(fileMergeCallback:);
+			break;
+	}
+
+	return [self makeCallbackInvocation: callbackSelector];
 }
 
 

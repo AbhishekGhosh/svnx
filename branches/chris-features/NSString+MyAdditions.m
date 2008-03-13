@@ -9,25 +9,66 @@
 #import "NSString+MyAdditions.h"
 
 
+NSString*
+UTF8 (const char* aUTF8String)
+{
+	return [NSString stringWithUTF8String: aUTF8String];
+}
+
+
+//----------------------------------------------------------------------------------------
+
 @implementation NSString (MyAdditions)
 
 + (NSString *)stringByAddingPercentEscape:(NSString *)url
 {
-	return [(id)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)url, NULL, NULL, kCFStringEncodingUTF8) autorelease];
+	return [(id) CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef) url, NULL, NULL,
+														 kCFStringEncodingUTF8) autorelease];
 }
 
-// used in MyRepository.m as a workaround to a problem in standard [NSString stringByDeletingLastPathComponent] which turns "svn://blah" to "svn:/blah"
-- (NSString *)stringByDeletingLastComponent
+
+//----------------------------------------------------------------------------------------
+// used in MyRepository.m as a workaround to a problem in standard
+// [NSString stringByDeletingLastPathComponent] which turns "svn://blah" to "svn:/blah"
+
+- (NSString*) stringByDeletingLastComponent
 {
-	
-	NSRange r = [[self stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]] rangeOfString:@"/" options:NSBackwardsSearch];
-	
-	
-	if ( r.length > 0 )
-	{
-		return [self substringToIndex:r.location];
+	NSRange r = [[self trimSlashes] rangeOfString: @"/" options: NSBackwardsSearch];
 
-	} else return self;
+	if ( r.length > 0 )
+		return [self substringToIndex: r.location];
+
+	return self;
 }
+
+
+//----------------------------------------------------------------------------------------
+
+- (NSString*) trimSlashes
+{
+	static NSCharacterSet* chSet = nil;
+	if (chSet == nil)
+		[chSet = [NSCharacterSet characterSetWithCharactersInString: @"/"] retain];
+
+	return [self stringByTrimmingCharactersInSet: chSet];
+}
+
+
+//----------------------------------------------------------------------------------------
+// Normalize end-of-line characters
+
+- (NSString*) normalizeEOLs
+{
+	NSMutableString* str = [NSMutableString stringWithCapacity: 0];
+	[str setString: self];
+	[str replaceOccurrencesOfString: @"\r\n" withString: @"\n"
+		 options: NSLiteralSearch range: NSMakeRange(0, [str length])];
+	[str replaceOccurrencesOfString: @"\r" withString: @"\n"
+		 options: NSLiteralSearch range: NSMakeRange(0, [str length])];
+
+	return str;
+}
+
 
 @end
+

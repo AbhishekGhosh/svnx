@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+NSString* UTF8 (const char* aUTF8String);
+
 
 // NSString Additions
 @interface NSString (MyAdditions)
@@ -15,6 +17,8 @@
 + (NSString*) stringByAddingPercentEscape: (NSString*) url;
 
 - (NSString*) stringByDeletingLastComponent;
+- (NSString*) trimSlashes;
+- (NSString*) normalizeEOLs;
 
 @end
 

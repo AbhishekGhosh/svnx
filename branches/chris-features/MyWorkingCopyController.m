@@ -3,6 +3,7 @@
 #import "MyApp.h"
 #import "MyFileMergeController.h"
 #import "DrawerLogView.h"
+#import "NSString+MyAdditions.h"
 
 typedef float GCoord;
 
@@ -26,6 +27,20 @@ static ConstString keyWCWidows    = @"wcWindows",
 static NSString* gInitName = nil;
 
 
+//----------------------------------------------------------------------------------------
+
+static NSMutableDictionary*
+MakeCommandDict (NSString* command, NSString* destination)
+{
+	return [NSMutableDictionary dictionaryWithObjectsAndKeys: command, @"command",
+															  command, @"verb",
+															  destination, @"destination",
+															  nil];
+}
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark -
 //----------------------------------------------------------------------------------------
 
 @implementation MyWorkingCopyController
@@ -266,70 +281,34 @@ static NSString* gInitName = nil;
 //	[self adjustOutlineView];
 }
 
-- (IBAction)performAction:(id)sender;
+
+//----------------------------------------------------------------------------------------
+// Add, Delete, Update, Revert, Resolved, Commit, Lock, Unlock
+
+static NSString* const gCommands[] = {
+	@"add", @"remove", @"update", @"revert", @"resolved", @"commit", @"lock", @"unlock"
+};
+
+static NSString* const gVerbs[] = {
+	@"add", @"remove", @"update", @"revert", @"resolve", @"commit", @"lock", @"unlock"
+};
+
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) performAction: (id) sender
 {
-	NSDictionary *command;
-
-	switch ( [[sender selectedCell] tag] )
+	const unsigned int action = [[sender selectedCell] tag];
+	if (action < sizeof(gCommands) / sizeof(gCommands[0]))
 	{
-		case 0:			// Add Selected
-			
-			command = [NSDictionary dictionaryWithObjectsAndKeys:@"add", @"command",  
-																@"add", @"verb", nil]; 
-		break;
-
-		case 1:		// Delete Selected
-
-			command = [NSDictionary dictionaryWithObjectsAndKeys:@"remove", @"command",
-																@"remove", @"verb", nil]; 
-
-		break;
-
-		case 2:		// Update Selected
-
-			command = [NSDictionary dictionaryWithObjectsAndKeys:@"update", @"command",
-																@"update", @"verb", nil]; 
-
-		break;
-
-		case 3:		// Revert Selected
-
-			command = [NSDictionary dictionaryWithObjectsAndKeys:@"revert", @"command",
-																@"revert", @"verb", nil]; 
-
-		break;
-
-		case 4:		// Resolved Selected
-
-			command = [NSDictionary dictionaryWithObjectsAndKeys:@"resolved", @"command",
-																	@"resolve", @"verb", nil]; 
-
-		break;
-
-		case 5:		// Commit Selected
-
-			command = [NSDictionary dictionaryWithObjectsAndKeys:@"commit", @"command",
-																	@"commit", @"verb",nil]; 
-
-		break;
-
-		case 6:		// Lock Selected
-
-			command = [NSDictionary dictionaryWithObjectsAndKeys:@"lock", @"command",
-																	@"lock", @"verb",nil]; 
-
-		break;
-
-		case 7:		// Unlock Selected
-
-			command = [NSDictionary dictionaryWithObjectsAndKeys:@"unlock", @"command",
-																	@"unlock", @"verb",nil]; 
-
-		break;
+		[self runAlertBeforePerformingAction:
+			[NSDictionary dictionaryWithObjectsAndKeys: gCommands[action], @"command", gVerbs[action], @"verb", nil]];
 	}
-
-	[self runAlertBeforePerformingAction:command];
 }
+
+
+//----------------------------------------------------------------------------------------
+
 
 - (void) doubleClickInTableView:(id)sender
 {
@@ -673,10 +652,7 @@ static NSString* gInitName = nil;
 
 - (void) requestSvnRenameSelectedItemTo:(NSString *)destination
 {
-	[self runAlertBeforePerformingAction:[NSDictionary dictionaryWithObjectsAndKeys:	@"rename", @"command", 
-																						@"rename", @"verb", 
-																						destination, @"destination",
-																						nil]];
+	[self runAlertBeforePerformingAction: MakeCommandDict(@"rename", destination)];
 }
 
 
@@ -685,17 +661,17 @@ static NSString* gInitName = nil;
 
 - (void)requestSvnMoveSelectedItemsToDestination:(NSString *)destination
 {
-	NSMutableDictionary *action = [NSMutableDictionary dictionaryWithObjectsAndKeys:	@"move", @"command", 
-																						@"move", @"verb", 
-																						destination, @"destination",
-																						nil];
+	NSMutableDictionary* action = MakeCommandDict(@"move", destination);
+
 	if ( [[svnFilesAC selectedObjects] count] == 1 )
 	{
 		[renamePanel setTitle:@"Move and rename"];
 		[renamePanelTextField setStringValue:[[[[svnFilesAC selectedObjects] objectAtIndex:0] valueForKey:@"path"] lastPathComponent]];
-		[NSApp beginSheet:renamePanel modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(renamePanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
-	
-	} else [self runAlertBeforePerformingAction:action];
+		[NSApp beginSheet:renamePanel modalForWindow:[self window] modalDelegate:self
+			   didEndSelector:@selector(renamePanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
+	}
+	else
+		[self runAlertBeforePerformingAction:action];
 }
 
 
@@ -704,18 +680,17 @@ static NSString* gInitName = nil;
 
 - (void) requestSvnCopySelectedItemsToDestination:(NSString *)destination
 {
-	NSMutableDictionary *action = [NSMutableDictionary dictionaryWithObjectsAndKeys:	@"copy", @"command", 
-																						@"copy", @"verb", 
-																						destination, @"destination",
-																						nil];
+	NSMutableDictionary* action = MakeCommandDict(@"copy", destination);
+
 	if ( [[svnFilesAC selectedObjects] count] == 1 )
 	{
 		[renamePanel setTitle:@"Copy and rename"];
 		[renamePanelTextField setStringValue:[[[[svnFilesAC selectedObjects] objectAtIndex:0] valueForKey:@"path"] lastPathComponent]];
-		[NSApp beginSheet:renamePanel modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(renamePanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
+		[NSApp beginSheet:renamePanel modalForWindow:[self window] modalDelegate:self
+			   didEndSelector:@selector(renamePanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
 	
 	} else
-	[self runAlertBeforePerformingAction:action];
+		[self runAlertBeforePerformingAction:action];
 }
 
 
@@ -753,18 +728,15 @@ static NSString* gInitName = nil;
 	NSString *path = [repositoryPathObj valueForKeyPath:@"url.absoluteString"];
 	NSString *revision = [repositoryPathObj valueForKey:@"revision"];
 
-	NSMutableDictionary *action = [NSMutableDictionary dictionaryWithObjectsAndKeys:	@"switch", @"command", 
-																						@"switch", @"verb", 
-																						path, @"destination",
-																						revision, @"revision",
-																						nil];
+	NSMutableDictionary* action = MakeCommandDict(@"switch", path);
+	[action setObject: revision forKey: @"revision"];
 
 	[switchPanel setTitle:@"Switch"];
 	[switchPanelSourceTextField setStringValue:[NSString stringWithFormat:@"%@  (rev. %@)", [[self document] repositoryUrl], [[self document] revision]]];
 	[switchPanelDestinationTextField setStringValue:[NSString stringWithFormat:@"%@  (rev. %@)", path, revision]];
 	
-	[NSApp beginSheet:switchPanel modalForWindow:[self window] modalDelegate:self didEndSelector:@selector(switchPanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
-
+	[NSApp beginSheet:switchPanel modalForWindow:[self window] modalDelegate:self
+		   didEndSelector:@selector(switchPanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
 }
 
 - (IBAction)switchPanelValidate:(id)sender;
@@ -817,7 +789,7 @@ static NSString* gInitName = nil;
 	}
 	else
 	{
-		[[NSAlert alertWithMessageText:[NSString stringWithFormat: @"Are you sure you want to %@ selected items?",
+		[[NSAlert alertWithMessageText:[NSString stringWithFormat: @"Are you sure you want to %@ the selected items?",
 																   [command objectForKey:@"verb"]]
 			defaultButton:@"Yes"
 			alternateButton:@"No"
@@ -829,9 +801,8 @@ static NSString* gInitName = nil;
 						didEndSelector:@selector(commandPanelDidEnd:returnCode:contextInfo:)
 						contextInfo:[command retain]];
 	}
-	
-	return;
 }
+
 
 - (void)commandPanelDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void  *)contextInfo
 {
@@ -881,11 +852,14 @@ static NSString* gInitName = nil;
 									contextInfo:[selectedOrAll retain]];
 }
 
-- (void)commitPanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo;
+
+- (void) commitPanelDidEnd: (NSWindow*) sheet returnCode: (int) returnCode contextInfo: (void*) contextInfo;
 {
 	if ( returnCode == 1 )
 	{
-		[[self document] svnCommand:@"commit" options:[NSArray arrayWithObjects:@"-m", [commitPanelText string], nil] info:nil];
+		[document svnCommand: @"commit"
+				  options:    [NSArray arrayWithObjects: @"-m", [[commitPanelText string] normalizeEOLs], nil]
+				  info:       nil];
 	}
 	[(id) contextInfo release];	
 	[sheet close];

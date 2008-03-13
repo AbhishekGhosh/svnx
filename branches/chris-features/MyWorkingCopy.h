@@ -49,10 +49,6 @@ enum {
 		 path:  (NSString*) fullPath;
 - (void) svnRefresh;
 
-//- (void)fetchSvnStatus;
-//- (void)fetchSvnStatusReceiveData:(NSArray*)shellOutput;
-//- (void)fetchSvnStatusReceiveDataFinished: (NSString *)result;
-
 - (void) fetchSvnInfo;
 - (void) svnUpdate;
 - (void) fileMergeItems: (NSArray*) items;
@@ -61,17 +57,14 @@ enum {
 - (void) fetchSvnInfoReceiveDataFinished: (NSString*) result;
 - (void) computesVerboseResultArray;
 
-//- (void)svnCommand:(NSString *)command options:(NSDictionary *)options;
 - (void) svnCommand: (NSString*)     command
 		 options:    (NSArray*)      options
 		 info:       (NSDictionary*) info;
 
 - (NSInvocation*) svnOptionsInvocation;
 - (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj;
+- (NSInvocation*) makeCallbackInvocation: (SEL) selector;
 - (NSInvocation*) makeCallbackInvocationOfKind: (int) callbackKind;
-
-
-//- (void)computesResultArray;
 
 - (int) filterMode;
 - (void) setFilterMode: (int) aFilterMode;
@@ -81,7 +74,6 @@ enum {
 
 - (void)setWorkingCopyPath: (NSString *)str;
 - (NSString *)workingCopyPath;
-
 
 - (NSString *) user;
 - (void) setUser: (NSString *) aUser;
