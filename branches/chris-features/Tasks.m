@@ -75,9 +75,9 @@ static id sharedInstance;
 	{
 		if ( [[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask ) // if Alt is pressed, use kill -9 to kill.
 		{
-			[MySvn killProcess:[taskObj valueForKey:@"pid"]];
-		
-		} else
+			[MySvn killProcess: [[taskObj valueForKey: @"pid"] intValue]];
+		}
+		else
 		{
 			[[taskObj valueForKey:@"task"] terminate];
 		}	

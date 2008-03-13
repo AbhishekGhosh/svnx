@@ -88,9 +88,9 @@
 	
 	if ( [[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask )
 	{
-		[MySvn killProcess:[taskObj valueForKey:@"pid"]];
-	
-	} else
+		[MySvn killProcess: [[taskObj valueForKey: @"pid"] intValue]];
+	}
+	else
 	{
 		[[taskObj valueForKey:@"task"] terminate];
 	}	
