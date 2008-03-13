@@ -7,11 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8314E66A0D79165C005538EF /* SvnLogReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 8314E6680D79165C005538EF /* SvnLogReport.m */; };
+		8314E66B0D79165C005538EF /* SvnLogReport.h in Headers */ = {isa = PBXBuildFile; fileRef = 8314E6690D79165C005538EF /* SvnLogReport.h */; };
+		8314E6B60D79191F005538EF /* textBigger.png in Resources */ = {isa = PBXBuildFile; fileRef = 8314E6B10D79191F005538EF /* textBigger.png */; };
+		8314E6B70D79191F005538EF /* textSmaller.png in Resources */ = {isa = PBXBuildFile; fileRef = 8314E6B20D79191F005538EF /* textSmaller.png */; };
+		8314E6B80D79191F005538EF /* svnlog.css in Resources */ = {isa = PBXBuildFile; fileRef = 8314E6B30D79191F005538EF /* svnlog.css */; };
+		8314E6B90D79191F005538EF /* BrowseLog.nib in Resources */ = {isa = PBXBuildFile; fileRef = 8314E6B40D79191F005538EF /* BrowseLog.nib */; };
+		8314E6BA0D79191F005538EF /* svnlog.xsl in Resources */ = {isa = PBXBuildFile; fileRef = 8314E6B50D79191F005538EF /* svnlog.xsl */; };
 		831A7ABB0D7B0F86006A81F0 /* ModeTree.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7AB80D7B0F86006A81F0 /* ModeTree.png */; };
 		831A7ABC0D7B0F86006A81F0 /* ModeSmart.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7AB90D7B0F86006A81F0 /* ModeSmart.png */; };
 		831A7ABD0D7B0F86006A81F0 /* ModeFlat.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7ABA0D7B0F86006A81F0 /* ModeFlat.png */; };
-		83D175550D870D280054C7BA /* EditListResponder.h in Headers */ = {isa = PBXBuildFile; fileRef = 83D175530D870D280054C7BA /* EditListResponder.h */; };
-		83D175560D870D280054C7BA /* EditListResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = 83D175540D870D280054C7BA /* EditListResponder.m */; };
+		83CCCE390D78D7E900237C1E /* EditListResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = 83CCCE370D78D7E900237C1E /* EditListResponder.m */; };
+		83CCCE3A0D78D7E900237C1E /* EditListResponder.h in Headers */ = {isa = PBXBuildFile; fileRef = 83CCCE380D78D7E900237C1E /* EditListResponder.h */; };
 		8D15AC290486D014006FF6A4 /* svnX_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32DBCF750370BD2300C91783 /* svnX_Prefix.pch */; settings = {ATTRIBUTES = (Public, ); }; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
@@ -186,11 +193,18 @@
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32DBCF750370BD2300C91783 /* svnX_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = svnX_Prefix.pch; sourceTree = "<group>"; };
+		8314E6680D79165C005538EF /* SvnLogReport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SvnLogReport.m; sourceTree = "<group>"; };
+		8314E6690D79165C005538EF /* SvnLogReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SvnLogReport.h; sourceTree = "<group>"; };
+		8314E6B10D79191F005538EF /* textBigger.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = textBigger.png; sourceTree = "<group>"; };
+		8314E6B20D79191F005538EF /* textSmaller.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = textSmaller.png; sourceTree = "<group>"; };
+		8314E6B30D79191F005538EF /* svnlog.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = svnlog.css; sourceTree = "<group>"; };
+		8314E6B40D79191F005538EF /* BrowseLog.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = BrowseLog.nib; sourceTree = "<group>"; };
+		8314E6B50D79191F005538EF /* svnlog.xsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = svnlog.xsl; sourceTree = "<group>"; };
 		831A7AB80D7B0F86006A81F0 /* ModeTree.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeTree.png; sourceTree = "<group>"; };
 		831A7AB90D7B0F86006A81F0 /* ModeSmart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeSmart.png; sourceTree = "<group>"; };
 		831A7ABA0D7B0F86006A81F0 /* ModeFlat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeFlat.png; sourceTree = "<group>"; };
-		83D175530D870D280054C7BA /* EditListResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditListResponder.h; sourceTree = "<group>"; };
-		83D175540D870D280054C7BA /* EditListResponder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditListResponder.m; sourceTree = "<group>"; };
+		83CCCE370D78D7E900237C1E /* EditListResponder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditListResponder.m; sourceTree = "<group>"; };
+		83CCCE380D78D7E900237C1E /* EditListResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditListResponder.h; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Info.plist; path = ../Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F203D9E309C2E78100857915 /* Finder.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Finder.icns; sourceTree = "<group>"; };
@@ -408,8 +422,6 @@
 			isa = PBXGroup;
 			children = (
 				F21DC4EB069FBBC4007CB4C0 /* Headers */,
-				83D175530D870D280054C7BA /* EditListResponder.h */,
-				83D175540D870D280054C7BA /* EditListResponder.m */,
 				F2B2112105F4F3500046FF94 /* MyApp.m */,
 				F23B407806AAFE210021E613 /* NSString+MyAdditions.m */,
 				F2830193082BEE22008E002A /* NSTextView+MyAdditions.m */,
@@ -419,6 +431,7 @@
 				F22004DC08099C6900F2CC97 /* Tasks.m */,
 				F2B2102C05F4EA100046FF94 /* MySVN.m */,
 				F2830105082BE24C008E002A /* DrawerLogView.m */,
+				83CCCE370D78D7E900237C1E /* EditListResponder.m */,
 				F21DC4BE069FBB68007CB4C0 /* WorkingCopies */,
 				F21DC4AF069FBB4B007CB4C0 /* Repositories */,
 				F2B0AA810832103F009B9254 /* svn operation nib owners */,
@@ -450,6 +463,11 @@
 				831A7AB80D7B0F86006A81F0 /* ModeTree.png */,
 				831A7AB90D7B0F86006A81F0 /* ModeSmart.png */,
 				831A7ABA0D7B0F86006A81F0 /* ModeFlat.png */,
+				8314E6B10D79191F005538EF /* textBigger.png */,
+				8314E6B20D79191F005538EF /* textSmaller.png */,
+				8314E6B30D79191F005538EF /* svnlog.css */,
+				8314E6B40D79191F005538EF /* BrowseLog.nib */,
+				8314E6B50D79191F005538EF /* svnlog.xsl */,
 				F230F8D308045D9C0000E35F /* svnextract.sh */,
 				F23B33ED0602A4AB005C11F2 /* svncopy.sh */,
 				F27CD111060241F500F19225 /* svnmove.sh */,
@@ -557,6 +575,8 @@
 				F2A62C4906A2BEDD00EC533F /* MyRadioButtonTableColumn.m */,
 				F2E4D7680803ECE500C13681 /* MyDragSupportMatrix.m */,
 				F23B3C6A06A997100021E613 /* MyRepositoryToolbar.m */,
+				8314E6680D79165C005538EF /* SvnLogReport.m */,
+				8314E6690D79165C005538EF /* SvnLogReport.h */,
 			);
 			name = Repositories;
 			sourceTree = "<group>";
@@ -598,6 +618,7 @@
 				F29E3EE3069C78C9007CE672 /* RepositoriesController.h */,
 				F29E4135069F0E3D007CE672 /* MyRepository.h */,
 				F29E3F61069EEFE2007CE672 /* MyWorkingCopyController.h */,
+				83CCCE380D78D7E900237C1E /* EditListResponder.h */,
 				F2E13A0A05FB2F2F0068B671 /* FavoriteWorkingCopies.h */,
 				F229659C06B270AF00441FA8 /* MyWorkingCopy.h */,
 				F27CD1E306028DC600F19225 /* MyOutlineView.h */,
@@ -700,7 +721,8 @@
 				F2695D960832637600B47C96 /* MySvnFilesArrayController.h in Headers */,
 				F22C6BC2096D51E500BAC56B /* SvnListParser.h in Headers */,
 				F20524330A5D3C9A003F966A /* GetEthernetAddrSample.h in Headers */,
-				83D175550D870D280054C7BA /* EditListResponder.h in Headers */,
+				83CCCE3A0D78D7E900237C1E /* EditListResponder.h in Headers */,
+				8314E66B0D79165C005538EF /* SvnLogReport.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -805,6 +827,11 @@
 				F2C2624A082B58D700077EFE /* sidebar.png in Resources */,
 				F2830131082BE371008E002A /* DrawerLogView.nib in Resources */,
 				F203D9E409C2E78100857915 /* Finder.icns in Resources */,
+				8314E6B60D79191F005538EF /* textBigger.png in Resources */,
+				8314E6B70D79191F005538EF /* textSmaller.png in Resources */,
+				8314E6B80D79191F005538EF /* svnlog.css in Resources */,
+				8314E6B90D79191F005538EF /* BrowseLog.nib in Resources */,
+				8314E6BA0D79191F005538EF /* svnlog.xsl in Resources */,
 				831A7ABB0D7B0F86006A81F0 /* ModeTree.png in Resources */,
 				831A7ABC0D7B0F86006A81F0 /* ModeSmart.png in Resources */,
 				831A7ABD0D7B0F86006A81F0 /* ModeFlat.png in Resources */,
@@ -884,7 +911,8 @@
 				F2695D980832638300B47C96 /* MySvnFilesArrayController.m in Sources */,
 				F22C6BC3096D51E500BAC56B /* SvnListParser.m in Sources */,
 				F20524320A5D3C9A003F966A /* GetEthernetAddrSample.c in Sources */,
-				83D175560D870D280054C7BA /* EditListResponder.m in Sources */,
+				83CCCE390D78D7E900237C1E /* EditListResponder.m in Sources */,
+				8314E66A0D79165C005538EF /* SvnLogReport.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

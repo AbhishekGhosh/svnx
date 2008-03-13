@@ -48,7 +48,7 @@
 
 - (NSString *)getCommitMessage
 {
-	return [commitMessage string];
+	return [[commitMessage string] normalizeEOLs];
 }
 
 - (NSArray *)getTargets

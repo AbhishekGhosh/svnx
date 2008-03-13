@@ -1,5 +1,6 @@
 #import "MySvnRepositoryBrowserView.h"
 #import "MySvn.h"
+#import "SvnLogReport.h"
 #import "NSString+MyAdditions.h"
 
 @implementation MySvnRepositoryBrowserView
@@ -36,6 +37,32 @@
 	[super unload];
 }
 
+
+//----------------------------------------------------------------------------------------
+
+- (void) onDoubleClick: (id) sender
+{
+	if (!disallowLeaves)
+	{
+		const BOOL optionPressed = ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0;
+		NSArray* items = [self selectedItems];
+		if (items != nil && [items count] > 0)
+		{
+			NSDictionary* dict = [items objectAtIndex: 0];
+			NSURL* furl = [dict objectForKey: @"url"];
+
+			SvnLogReport* logReport = [SvnLogReport alloc];
+			[logReport initWithURL: [furl absoluteString] revision: [self revision]];
+			if ([NSBundle loadNibNamed: @"BrowseLog" owner: logReport])
+			{
+				[logReport begin: self verbose: !optionPressed];
+			}
+		}
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark public methods
 
@@ -70,6 +97,8 @@
 	[browser setPath:@"/"];
 }
 
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Browser delegate methods
 
@@ -128,10 +157,11 @@
 	NSImage *icon = [[cell image] retain];
 	[icon setSize:NSMakeSize(13, 13)];
 	[cell setImage:icon];
-
+	[icon release];
 }
 
 
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark svn related methods
 
@@ -139,7 +169,6 @@
 - (void)fetchSvn
 /* Triggers the fetching */
 {
-	
 	[self setBrowserPath:[browser path]];
 
 	[super fetchSvn];

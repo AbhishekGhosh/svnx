@@ -146,6 +146,7 @@ StringToURL (NSString* urlString)
 {
 	MyRepository *newDoc = [[NSDocumentController sharedDocumentController] makeUntitledDocumentOfType:@"repository"];	
 
+	[newDoc setWindowTitle:title];
 	[newDoc setUser:user];
 	[newDoc setPass:pass];
 
@@ -155,7 +156,6 @@ StringToURL (NSString* urlString)
 	[[NSDocumentController sharedDocumentController] addDocument:newDoc];
 
 	[newDoc showWindows];
-	[newDoc setWindowTitle:title];
 }
 
 - (IBAction)openPath:(id)sender

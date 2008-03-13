@@ -9,33 +9,38 @@
 	if ( self = [super initWithFrame:frameRect mode:aMode prototype:aCell numberOfRows:numRows numberOfColumns:numColumns] )
 	{	
 		// register for files dragged to the repository (-> svn import)
-		[self registerForDraggedTypes:	[NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
+		[self registerForDraggedTypes: [NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
 	}
 	
 	return self;
 }
 
-- (id)initWithCoder:(NSCoder *)decoder {
-    if (self = [super initWithCoder:decoder]) {
-        [self registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
+- (id)initWithCoder:(NSCoder *)decoder
+{
+    if (self = [super initWithCoder:decoder])
+	{
+        [self registerForDraggedTypes: [NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
     }
     return self;
 }
 
 //  - dealloc:
-- (void)dealloc {
+- (void)dealloc
+{
     [self setDestinationCell: nil];
 
     [super dealloc];
 }
 
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Drag Out (export/checkout)
 
-- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender { 
-
-    if ([sender draggingSource] == self) {
-
+- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
+{
+    if ([sender draggingSource] == self)
+	{
         return NSDragOperationNone;
     } else {
         return NSDragOperationAll;
@@ -44,43 +49,50 @@
 
 - (void)mouseDown:(NSEvent *)event
 {
-  // need to override this because NSMatrix eats drag events
-  int row, col;
+	// need to override this because NSMatrix eats drag events
+	int row, col;
 
-  if ([self getRow: &row column: &col forPoint:[self convertPoint:[event locationInWindow] fromView: nil]])
-  {
+	if ([event clickCount] == 2)
+	{
+		[self setDoubleAction: @selector(onDoubleClick:)];
+		[super mouseDown: event];
+	}
+	else if ([self getRow: &row column: &col forPoint:[self convertPoint:[event locationInWindow] fromView: nil]])
+	{
+		if ([event modifierFlags] & NSCommandKeyMask)
+		{
+			int r, c, s, i, i2;
+			r = [self selectedRow];
+			c = [self selectedColumn];
+			s = [self numberOfColumns];
+			i = r*s + c;
+			i2 = row*s + col;
+			[self setSelectionFrom:i2 to:i2 anchor:i2 highlight:YES];     
+		}
+		else if ([event modifierFlags] & NSShiftKeyMask)
+		{
+			int r, c, s, i, i2;
+			r = [self selectedRow];
+			c = [self selectedColumn];
+			s = [self numberOfColumns];
+			i = r*s + c;
+			i2 = row*s + col;
+			[self setSelectionFrom:i to:i2 anchor:i highlight:YES];
+		}
+		else
+		{
+			if ( ![self isCellSelected: [self cellAtRow: row column: col]] )
+				[self selectCellAtRow:row column:col];
+		}
 
-    if ([event modifierFlags] & NSCommandKeyMask) {
-        int r, c, s, i, i2;
-        r = [self selectedRow];
-        c = [self selectedColumn];
-        s = [self numberOfColumns];
-        i = r*s + c;
-        i2 = row*s + col;
-        [self setSelectionFrom:i2 to:i2 anchor:i2 highlight:YES];     
-    } else if ([event modifierFlags] & NSShiftKeyMask) {
-        int r, c, s, i, i2;
-        r = [self selectedRow];
-        c = [self selectedColumn];
-        s = [self numberOfColumns];
-        i = r*s + c;
-        i2 = row*s + col;
-        [self setSelectionFrom:i to:i2 anchor:i highlight:YES];
-    } else {
-		
-		if ( ! [self isCellSelected:[self cellAtRow:row column:col]] ) [self selectCellAtRow:row column:col];
-    }
-
-
-    [self sendAction];
-    // this is used to deal with NSBrowser issues
-    [[self window] makeFirstResponder:self];
-
-  } else {
-    [super mouseDown: event];
-  }
-
+		[self sendAction];
+		// this is used to deal with NSBrowser issues
+		[[self window] makeFirstResponder:self];
+	}
+	else
+		[super mouseDown: event];
 }
+
 
 - (BOOL)isCellSelected:(NSCell *)cell
 {
@@ -139,15 +151,15 @@
 			[pboard addTypes:[NSArray arrayWithObject:@"REPOSITORY_PATH_AND_REVISION_TYPE"] owner:self];
 			[pboard setData:[NSArchiver archivedDataWithRootObject:[selectedCell valueForKey:@"representedObject"]] forType:@"REPOSITORY_PATH_AND_REVISION_TYPE"];
 			NSImage *img = [NSImage imageNamed:@"repository"];
-			[img  setSize:NSMakeSize(32, 32)];
+			[img setSize:NSMakeSize(32, 32)];
 			
 			[super dragImage:img at:imageLoc offset:dragOffset event:theEvent pasteboard:pboard source:self slideBack:NO];
 		}
-		else [super dragImage:anImage at:imageLoc offset:mouseOffset event:theEvent pasteboard:pboard source:sourceObject slideBack:slideBack];
-		
-	} else
-	
-	[super dragImage:anImage at:imageLoc offset:mouseOffset event:theEvent pasteboard:pboard source:sourceObject slideBack:slideBack];
+		else
+			[super dragImage:anImage at:imageLoc offset:mouseOffset event:theEvent pasteboard:pboard source:sourceObject slideBack:slideBack];
+	}
+	else
+		[super dragImage:anImage at:imageLoc offset:mouseOffset event:theEvent pasteboard:pboard source:sourceObject slideBack:slideBack];
 }
 
 - (unsigned int)draggingSourceOperationMaskForLocal:(BOOL)isLocal
@@ -171,10 +183,13 @@
 
 }
 
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Drag In (import)
 
-- (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender {
+- (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender
+{
     NSPoint point;
     NSRect drawRect, cellRect;
     int row, column;
@@ -260,6 +275,8 @@
     }
 }
 
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Accessors
 

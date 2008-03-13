@@ -17,6 +17,7 @@
 
 - (void)unload;
 
+- (void) onDoubleClick: (id) sender;
 - (void)fetchSvn;
 - (void)fetchSvnListForUrl:(NSString *)theURL
 		column:(int)column matrix:(NSMatrix *)matrix;

@@ -4,114 +4,84 @@
 
 @implementation MyRepositoryToolbar
 
-- (void)awakeFromNib {
-    int i;
-	
-    NSToolbarItem *svnCopyItem=[[NSToolbarItem alloc] initWithItemIdentifier:@"svnCopy"];
-    NSToolbarItem *svnMoveItem=[[NSToolbarItem alloc] initWithItemIdentifier:@"svnMove"];
-    NSToolbarItem *svnMkdirItem=[[NSToolbarItem alloc] initWithItemIdentifier:@"svnMkdir"];
-    NSToolbarItem *svnDelete=[[NSToolbarItem alloc] initWithItemIdentifier:@"svnDelete"];
-    NSToolbarItem *svnCheckout=[[NSToolbarItem alloc] initWithItemIdentifier:@"svnCheckout"];
-    NSToolbarItem *svnExport=[[NSToolbarItem alloc] initWithItemIdentifier:@"svnExport"];
-    NSToolbarItem *fileMergeItem=[[NSToolbarItem alloc] initWithItemIdentifier:@"svnFileMerge"];
-    NSToolbarItem *toggleSidebarItem=[[NSToolbarItem alloc] initWithItemIdentifier:@"toggleSidebar"];
+- (void) awakeFromNib
+{
+    items = [[NSMutableDictionary alloc] init];
 
-    items=[[NSMutableDictionary alloc] init];
+	[self createItem: @"svnCopy" label: @"Copy" help: @"Copy selected item within the repository."];
+	[self createItem: @"svnMove" label: @"Move" help: @"Move selected item within the repository."];
+	[self createItem: @"svnMkdir" label: @"Make Dir" help: @"Create directories in the repository." image: @"mkdir"];
+	[self createItem: @"svnDelete" label: @"Delete" help: @"Delete items in the repository." image: @"delete"];
+	[self createItem: @"svnCheckout" label: @"Checkout" help: @"Checkout items from the repository." image: @"checkout2"];
+	[self createItem: @"svnExport" label: @"Export" help: @"Export items from the repository." image: @"export"];
+	[self createItem: @"svnFileMerge" label: @"Diff" help: @"Compare revisions of an item in the repository." image: @"FileMerge"];
+	[self createItem: @"toggleSidebar" label: @"Output" help: @"Show/Hide output of main operations." image: @"sidebar"];
 
-	[svnMoveItem setPaletteLabel:@"svnMove"];
-	[svnMoveItem setLabel:@"svn move"];
-	[svnMoveItem setToolTip:@"Select an item to move and click."];
-	[svnMoveItem setTarget:document];
-	[svnMoveItem setAction:@selector(svnMove:)];
-	[svnMoveItem setImage:[NSImage imageNamed:@"svnMove"]];
-	[items setObject:svnMoveItem forKey:@"svnMove"];
-	[svnMoveItem release];
+	NSToolbar* toolbar = [[NSToolbar alloc] initWithIdentifier: @"RepositoryToolBar2"];
+	[toolbar setDelegate: self];
+	[toolbar setAllowsUserCustomization: YES];
+	[toolbar setAutosavesConfiguration: YES];
+	[toolbar setDisplayMode: NSToolbarDisplayModeDefault];
+	[toolbar setSizeMode: NSToolbarSizeModeDefault];
+	[window setToolbar: toolbar];
+	[toolbar release];
 
-	[svnCopyItem setPaletteLabel:@"svnCopy"];
-	[svnCopyItem setLabel:@"svn copy"];
-	[svnCopyItem setToolTip:@"Select a folder for branching or tagging and click."];
-	[svnCopyItem setTarget:document];
-	[svnCopyItem setAction:@selector(svnCopy:)];
-	[svnCopyItem setImage:[NSImage imageNamed:@"svnCopy"]];
-	[items setObject:svnCopyItem forKey:@"svnCopy"];
-	[svnCopyItem release];
-
-	[svnMkdirItem setPaletteLabel:@"svn mkdir"];
-	[svnMkdirItem setLabel:@"svn mkdir"];
-	[svnMkdirItem setToolTip:@"Click to create one or more directories via immediate commit."];
-	[svnMkdirItem setTarget:document];
-	[svnMkdirItem setAction:@selector(svnMkdir:)];
-	[svnMkdirItem setImage:[NSImage imageNamed:@"mkdir"]];
-	[items setObject:svnMkdirItem forKey:@"svnMkdir"];
-	[svnMkdirItem release];
-
-	[svnDelete setPaletteLabel:@"svn delete"];
-	[svnDelete setLabel:@"svn delete"];
-	[svnDelete setToolTip:@"Click to select items to delete via immediate commit."];
-	[svnDelete setTarget:document];
-	[svnDelete setAction:@selector(svnDelete:)];
-	[svnDelete setImage:[NSImage imageNamed:@"delete"]];
-	[items setObject:svnDelete forKey:@"svnDelete"];
-	[svnDelete release];
-	
-	[svnCheckout setPaletteLabel:@"svn checkout"];
-	[svnCheckout setLabel:@"svn checkout"];
-	[svnCheckout setToolTip:@"Select a revision and a path to checkout and click."];
-	[svnCheckout setTarget:document];
-	[svnCheckout setAction:@selector(svnCheckout:)];
-	[svnCheckout setImage:[NSImage imageNamed:@"checkout2"]];
-	[items setObject:svnCheckout forKey:@"svnCheckout"];
-	[svnCheckout release];
-
-	[svnExport setPaletteLabel:@"svn export"];
-	[svnExport setLabel:@"svn export"];
-	[svnExport setToolTip:@"Select a revision and a path to export and click."];
-	[svnExport setTarget:document];
-	[svnExport setAction:@selector(svnExport:)];
-	[svnExport setImage:[NSImage imageNamed:@"export"]];
-	[items setObject:svnExport forKey:@"svnExport"];
-	[svnExport release];
-	
-	[fileMergeItem setPaletteLabel:@"Diff"];
-	[fileMergeItem setLabel:@"Diff"];
-	[fileMergeItem setToolTip:@"Compare revisions of a file in the repository."];
-	[fileMergeItem setTarget:document];
-	[fileMergeItem setAction:@selector(svnFileMerge:)];
-	[fileMergeItem setImage:[NSImage imageNamed:@"FileMerge"]];
-	[items setObject:fileMergeItem forKey:@"svnFileMerge"];
-	[fileMergeItem release];
-
-	[toggleSidebarItem setPaletteLabel:@"Show output"];
-	[toggleSidebarItem setLabel:@"Show output"];
-	[toggleSidebarItem setToolTip:@"Shows output of main operations."];
-	[toggleSidebarItem setTarget:document];
-	[toggleSidebarItem setAction:@selector(toggleSidebar:)];
-	[toggleSidebarItem setImage:[NSImage imageNamed:@"sidebar"]];
-	[items setObject:toggleSidebarItem forKey:@"toggleSidebar"];
-	[toggleSidebarItem release];
-
-    toolbar=[[NSToolbar alloc] initWithIdentifier:@"RepositoryToolBar2"];
-    [toolbar setDelegate:self];
-    [toolbar setAllowsUserCustomization:YES];
-    [toolbar setAutosavesConfiguration:YES];
-    [toolbar setDisplayMode: NSToolbarDisplayModeDefault];
-	[toolbar setSizeMode:NSToolbarSizeModeDefault];
-    [window setToolbar:toolbar];
-    [toolbar release];
-    
-    [window makeKeyAndOrderFront:nil];
+	[window makeKeyAndOrderFront:nil];
 }
 
-- (void)dealloc {
+
+//----------------------------------------------------------------------------------------
+
+- (void) dealloc
+{
     [items release];
 	[super dealloc];
 }
 
-- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag {
-    return [items objectForKey:itemIdentifier];
+
+//----------------------------------------------------------------------------------------
+
+- (NSToolbarItem*) createItem: (NSString*) itsID
+				   label:      (NSString*) itsLabel
+				   help:       (NSString*) itsHelp
+				   image:      (NSString*) imageName
+{
+	NSToolbarItem* item = [[NSToolbarItem alloc] initWithItemIdentifier: itsID];
+	[item setPaletteLabel: itsLabel];
+	[item setLabel: itsLabel];
+	if (itsHelp)
+		[item setToolTip: itsHelp];
+	[item setTarget: document];
+	[item setAction: NSSelectorFromString([itsID stringByAppendingString: @":"])];
+	[item setImage: [NSImage imageNamed: imageName]];
+	[items setObject: item forKey: itsID];
+	[item release];
+	return item;
 }
 
-- (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar {
+
+//----------------------------------------------------------------------------------------
+
+- (NSToolbarItem*) createItem: (NSString*) itsID
+				   label:      (NSString*) itsLabel
+				   help:       (NSString*) itsHelp
+{
+	return [self createItem: itsID label: itsLabel help: itsHelp image: itsID];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (NSToolbarItem*) toolbar:                   (NSToolbar*) toolbar
+				   itemForItemIdentifier:     (NSString*)  itemIdentifier
+				   willBeInsertedIntoToolbar: (BOOL)       flag
+{
+    return [items objectForKey: itemIdentifier];
+}
+
+
+- (NSArray*) toolbarDefaultItemIdentifiers: (NSToolbar*) toolbar
+{
     return [NSArray arrayWithObjects:
 					@"svnCopy",
 					@"svnMove",
@@ -126,7 +96,8 @@
 					nil];
 }
 
-- (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar {
+- (NSArray*) toolbarAllowedItemIdentifiers: (NSToolbar*) toolbar
+{
     return [NSArray arrayWithObjects:
 					NSToolbarSeparatorItemIdentifier,
 					NSToolbarSpaceItemIdentifier,
@@ -142,20 +113,6 @@
 					nil];
 }
 
-- (int)count {
-    return [items count];
-}
-
-- (IBAction)customize:(id)sender {
-    [toolbar runCustomizationPalette:sender];
-}
-
-- (IBAction)showhide:(id)sender {
-    [toolbar setVisible:![toolbar isVisible]];
-}
-
-- (void)toolbaritemclicked:(NSToolbarItem*)item {
-}
-- (NSToolbar *) toolbar { return toolbar; }
 
 @end
+
