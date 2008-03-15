@@ -93,6 +93,15 @@ MakeCommandDict (NSString* command, NSString* destination)
 
 
 //----------------------------------------------------------------------------------------
+
+- (void) dealloc
+{
+	[savedSelection release];
+	[super dealloc];
+}
+
+
+//----------------------------------------------------------------------------------------
 // Called after 'document' is setup
 
 - (void) setup
@@ -238,6 +247,69 @@ MakeCommandDict (NSString* command, NSString* destination)
 
 
 //----------------------------------------------------------------------------------------
+
+- (void) saveSelection
+{
+	if ([[svnFilesAC arrangedObjects] count] > 0)
+	{
+		if (savedSelection != nil)
+		{
+			[savedSelection release];
+			savedSelection = nil;
+		}
+
+		NSArray* sel = [svnFilesAC selectedObjects];
+		const int count = [sel count];
+		if (count > 0)
+		{
+			NSMutableArray* files = [NSMutableArray arrayWithCapacity: count];
+			NSEnumerator* it = [sel objectEnumerator];
+			NSDictionary* dict;
+			while (dict = [it nextObject])
+				[files addObject: [dict objectForKey: @"fullPath"]];
+			savedSelection = [files retain];
+		}
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) restoreSelection
+{
+	if (savedSelection != nil)
+	{
+		NSArray* const wcFiles = [svnFilesAC arrangedObjects];
+		NSMutableIndexSet* sel = [NSMutableIndexSet indexSet];
+
+		NSEnumerator* it = [savedSelection objectEnumerator];
+		NSString* fullPath;
+		while (fullPath = [it nextObject])
+		{
+			NSEnumerator* wcIt = [wcFiles objectEnumerator];
+			NSDictionary* dict;
+			int index = 0;
+			while (dict = [wcIt nextObject])
+			{
+				if ([fullPath isEqualToString: [dict objectForKey: @"fullPath"]])
+				{
+					[sel addIndex: index];
+					break;
+				}
+				++index;
+			}
+		}
+
+		if ([sel count])
+			[svnFilesAC setSelectionIndexes: sel];
+
+		[savedSelection release];
+		savedSelection = nil;
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark IBActions
 //----------------------------------------------------------------------------------------
@@ -268,14 +340,14 @@ MakeCommandDict (NSString* command, NSString* destination)
 	}
 }
 
-- (IBAction) refresh:(id)sender;
-{	
+- (IBAction) refresh: (id) sender
+{
 	[self fetchSvnInfo];
 	[self fetchSvnStatus];
 }
 
-- (IBAction) toggleView:(id)sender;
-{		
+- (IBAction) toggleView: (id) sender
+{
 	//[[self document] setFlatMode:!([[self document] flatMode])];
 
 //	[self adjustOutlineView];
@@ -476,8 +548,9 @@ static NSString* const gVerbs[] = {
 - (void) setCurrentMode: (int) mode
 {
 //	NSLog(@"setCurrentMode: %d", mode);
-	//if ([self currentMode] != mode)
+	if ([self currentMode] != mode)
 	{
+		[self saveSelection];
 		switch (mode)
 		{
 			case kModeTree:

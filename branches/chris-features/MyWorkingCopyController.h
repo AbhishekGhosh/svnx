@@ -42,6 +42,8 @@
 	BOOL svnActionPending;
 	
 	BOOL isDisplayingErrorSheet;
+
+	NSArray*	savedSelection;		// used by save/restoreSelection
 }
 
 + (void) presetDocumentName: name;
@@ -69,6 +71,8 @@
 - (void) savePrefs;
 - (void) cleanup;
 - (void) keyDown: (NSEvent*) theEvent;
+- (void) saveSelection;
+- (void) restoreSelection;
 
 - (void) doubleClickInTableView: (id) sender;
 - (void) adjustOutlineView;

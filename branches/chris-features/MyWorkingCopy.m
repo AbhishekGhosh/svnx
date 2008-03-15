@@ -637,7 +637,6 @@ useOldParsingMethod ()
 
 									nil]];
 		[pool release];
-	
 	}
 
 	[self setSvnDirectories:outlineDirs];
@@ -906,6 +905,7 @@ useOldParsingMethod ()
 - (void)computesVerboseResultArray
 {
 //	NSLog(@"computesVerboseResultArray '%@' flat=%d smart=%d", windowTitle, flatMode, smartMode);
+	[controller saveSelection];
 	if (useOldParsingMethod())
 	{
 		[self computesOldVerboseResultArray];
@@ -914,6 +914,7 @@ useOldParsingMethod ()
 	{
 		[self computesNewVerboseResultArray];
 	}
+	[controller restoreSelection];
 }
 
 
