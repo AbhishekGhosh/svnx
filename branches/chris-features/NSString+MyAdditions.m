@@ -44,6 +44,15 @@ UTF8 (const char* aUTF8String)
 
 //----------------------------------------------------------------------------------------
 
+- (NSString*) escapeURL
+{
+	return [(id) CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef) self, NULL, NULL,
+														 kCFStringEncodingUTF8) autorelease];
+}
+
+
+//----------------------------------------------------------------------------------------
+
 - (NSString*) trimSlashes
 {
 	static NSCharacterSet* chSet = nil;

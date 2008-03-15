@@ -17,6 +17,7 @@ NSString* UTF8 (const char* aUTF8String);
 + (NSString*) stringByAddingPercentEscape: (NSString*) url;
 
 - (NSString*) stringByDeletingLastComponent;
+- (NSString*) escapeURL;
 - (NSString*) trimSlashes;
 - (NSString*) normalizeEOLs;
 

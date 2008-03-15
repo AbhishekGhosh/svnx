@@ -21,9 +21,10 @@
 - (void)fetchSvn;
 - (void)fetchSvnListForUrl:(NSString *)theURL
 		column:(int)column matrix:(NSMatrix *)matrix;
-- (void) displayResultArray:(NSMutableArray *)resultArray
-		column:(int)column matrix:(NSMatrix *)matrix;
-- (NSMutableArray *)parseSvnListResult:(NSString *)resultString;
+- (void) displayResultArray: (NSArray*)  resultArray
+		 column:             (int)       column
+		 matrix:             (NSMatrix*) matrix;
+- (NSArray*) parseSvnListResult: (NSString*) resultString;
 
 - (NSMutableArray*) selectedItems;
 - (void) setAllowsEmptySelection: (BOOL) flag;

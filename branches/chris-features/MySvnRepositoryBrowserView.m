@@ -1,5 +1,6 @@
 #import "MySvnRepositoryBrowserView.h"
 #import "MySvn.h"
+#import "MyRepository.h"
 #import "SvnLogReport.h"
 #import "NSString+MyAdditions.h"
 
@@ -108,43 +109,38 @@
 
 	if ( [matrix numberOfRows] != 0 )
 	{
-	} else
-	if ( [self showRoot] )
+	}
+	else if (column == 0 && [self showRoot])
 	{
-		if ( column == 0 )
-		{
-			NSBrowserCell *cell = [[NSBrowserCell alloc] initTextCell:@"root"];
+		NSBrowserCell *cell = [[NSBrowserCell alloc] initTextCell:@"root"];
 
-			NSFont *txtFont = [NSFont fontWithName:@"Lucida Grande" size:10];
-			NSDictionary *txtDict = [NSDictionary dictionaryWithObjectsAndKeys:txtFont, NSFontAttributeName, [NSNumber numberWithFloat:0.4], NSObliquenessAttributeName, nil];
-			NSAttributedString *attrStr = [[[NSAttributedString alloc] initWithString:@"root" attributes:txtDict] autorelease];
-			[cell setAttributedStringValue:attrStr];
+		NSFont *txtFont = [NSFont fontWithName:@"Lucida Grande" size:10];
+		NSDictionary *txtDict = [NSDictionary dictionaryWithObjectsAndKeys:
+										txtFont, NSFontAttributeName,
+										[NSNumber numberWithFloat:0.4], NSObliquenessAttributeName,
+										nil];
+		NSAttributedString *attrStr = [[[NSAttributedString alloc] initWithString:@"root" attributes:txtDict] autorelease];
+		[cell setAttributedStringValue:attrStr];
 
-			[self setIsFetching:NO];
+		[self setIsFetching:NO];
 
-			[cell setLeaf:NO];
-			
-			NSURL *url= [self url];
-
-			[cell setRepresentedObject:[NSDictionary dictionaryWithObjectsAndKeys:
-																[NSNumber numberWithBool:YES], @"isRoot",
-																@"root", @"name",
-																@"", @"path",
-																url, @"url",
-																[self revision], @"revision",
-																NSFileTypeDirectory, @"fileType",
-																[NSNumber numberWithBool:YES], @"isDir",
-																nil]];
-																
-			[matrix addRowWithCells:[NSArray arrayWithObject:cell]];
-			[matrix putCell:cell atRow:0 column:0];
-			[cell setLoaded:NO]; // because we want browser:willDisplayCell... to be called
-			[cell release];
-			[matrix sizeToCells];
-			[matrix display];
-		} 
-		else
-			[self fetchSvnListForUrl:[sender path] column:column matrix:matrix];
+		[cell setLeaf:NO];
+		[cell setRepresentedObject:[NSDictionary dictionaryWithObjectsAndKeys:
+															[NSNumber numberWithBool:YES], @"isRoot",
+															@"root", @"name",
+															@"", @"path",
+															[self url], @"url",
+															[self revision], @"revision",
+															NSFileTypeDirectory, @"fileType",
+															[NSNumber numberWithBool:YES], @"isDir",
+															nil]];
+															
+		[matrix addRowWithCells:[NSArray arrayWithObject:cell]];
+		[matrix putCell:cell atRow:0 column:0];
+		[cell setLoaded:NO]; // because we want browser:willDisplayCell... to be called
+		[cell release];
+		[matrix sizeToCells];
+		[matrix display];
 	}
 	else
 		[self fetchSvnListForUrl:[sender path] column:column matrix:matrix];
@@ -188,25 +184,21 @@
 
 - (void)fetchSvnListForUrl:(NSString *)theURL column:(int)column matrix:(NSMatrix *)matrix
 {
-	NSString *url2;
+	NSString* url2 = theURL;
 	
 	if ( [self showRoot] )
-	{
-		url2 = [theURL substringFromIndex:5]; // get rid of "root" prefix
-	
-	} else
-	{
-		url2 = theURL;
-	}
+		url2 = [url2 substringFromIndex:5]; // get rid of "root" prefix
 
-	NSURL *cleanUrl = [NSURL URLWithString:[NSString stringByAddingPercentEscape:[url2 stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]]] relativeToURL:[self url]];
+	NSURL *cleanUrl = [NSURL URLWithString:[[url2 trimSlashes] escapeURL] relativeToURL:[self url]];
 
-	BOOL useCache = [[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey:@"cacheSvnQueries"] boolValue];
+	BOOL useCache = [[[[NSUserDefaultsController sharedUserDefaultsController] values]
+							valueForKey:@"cacheSvnQueries"] boolValue];
 	NSDictionary *cachedDict;
 	
-	if ( useCache && ![[self revision] isEqualToString:@"HEAD"] && (cachedDict = [NSDictionary dictionaryWithContentsOfFile:[self getCachePathForUrl:cleanUrl]]) )
+	if ( useCache && ![[self revision] isEqualToString:@"HEAD"] &&
+		(cachedDict = [NSDictionary dictionaryWithContentsOfFile:[self getCachePathForUrl:cleanUrl]]) )
 	{
-		NSMutableArray *resultArray = [self parseSvnListResult:[cachedDict objectForKey:@"resultString"]];
+		NSArray *resultArray = [self parseSvnListResult:[cachedDict objectForKey:@"resultString"]];
 
 		[self displayResultArray:resultArray column:column matrix:matrix];
 	}
@@ -215,15 +207,13 @@
 		[self setIsFetching:YES];
 
 		[self setPendingTask:
-		
-		[MySvn		list: [NSString stringWithFormat:@"%@@%@", [cleanUrl absoluteString], [self revision]]
+			[MySvn	list: [NSString stringWithFormat:@"%@@%@", [cleanUrl absoluteString], [self revision]]
 		  generalOptions: [self svnOptionsInvocation]
-				 options: [NSArray arrayWithObjects:@"--xml", [NSString stringWithFormat:@"-r%@", [self revision]], nil]
-
+				 options: [NSArray arrayWithObjects:@"--xml", @"-r", [self revision], nil]
                 callback: [self makeCallbackInvocationOfKind:10]
-			callbackInfo: [NSDictionary dictionaryWithObjectsAndKeys:matrix, @"matrix", [NSNumber numberWithInt:column], @"column", cleanUrl, @"url", nil]
-			    taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[[[[self window] windowController] document] windowTitle], @"documentName", nil]]
-
+			callbackInfo: [NSDictionary dictionaryWithObjectsAndKeys:
+								matrix, @"matrix", [NSNumber numberWithInt:column], @"column", cleanUrl, @"url", nil]
+			    taskInfo: [NSDictionary dictionaryWithObject: [[self window] title] forKey: @"documentName"]]
 		];
 	}
 }
@@ -247,7 +237,7 @@
 	NSURL *fetchedUrl = [info objectForKey:@"url"];
 	NSMatrix *matrix = [info objectForKey:@"matrix"];
 	int column = [[info objectForKey:@"column"] intValue];
-	NSMutableArray *resultArray = [self parseSvnListResult:result];
+	NSArray *resultArray = [self parseSvnListResult:result];
 	[self displayResultArray:resultArray column:column matrix:matrix];
 
 	NSDictionary *cachedDict = [NSDictionary dictionaryWithObjectsAndKeys:result, @"resultString", nil];
@@ -262,43 +252,47 @@
 	//NSLog(@"%d  %@", [cachedDict writeToFile:[self getCachePathForUrl:fetchedUrl] atomically:YES], cachedDict);
 }
 
-- (void) displayResultArray:(NSMutableArray *)resultArray column:(int)column matrix:(NSMatrix *)matrix
+
+- (void) displayResultArray: (NSArray*) resultArray column: (int) column matrix: (NSMatrix*) matrix
 {
 	//NSLog(@"matrix %@ %@ %d %@", browser, matrix, column, [self pathToColumn:column]);
-	int i;
-	for (i=0; i<[resultArray count]; i++ )
+	NSFont* const font = [NSFont fontWithName: @"Lucida Grande" size: 10];
+	NSImage* const dirIcon = [NSImage imageNamed: @"FolderRef"];
+
+	int i, count = [resultArray count];
+	for (i = 0; i < count; ++i)
 	{
 		NSMutableDictionary *row = [resultArray objectAtIndex:i];
-		NSBrowserCell *cell = [[NSBrowserCell alloc] initTextCell:[row objectForKey:@"displayName"]];
-		NSString *fileType = [[row objectForKey:@"displayName"] pathExtension];
-		NSImage *icon;
-		NSString *name = [row objectForKey:@"name"];
-		BOOL isDir = [[row objectForKey:@"isDir"] boolValue];
-		
-		NSString *path = [[[self pathToColumn:column] stringByAppendingPathComponent:name] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]];
-		NSURL *theURL= [NSURL URLWithString:[NSString stringWithFormat:@"%@%@", [NSString stringByAddingPercentEscape:path], ((isDir)?(@"/"):(@""))] relativeToURL:[self url]];
+		NSString* const displayName = [row objectForKey: @"displayName"];
+		NSString* const name        = [row objectForKey: @"name"];
+		const BOOL isDir            = [[row objectForKey: @"isDir"] boolValue];
+		NSBrowserCell *cell = [[NSBrowserCell alloc] initTextCell: displayName];
+
+		NSString *path = [[[self pathToColumn:column] stringByAppendingPathComponent:name] trimSlashes];
+		NSString* urlPath = [path escapeURL];
+		if (isDir)
+			urlPath = [urlPath stringByAppendingString: @"/"];
+		NSURL* theURL = [NSURL URLWithString: urlPath relativeToURL: [self url]];
 		
 		[row setObject:path forKey:@"path"];
 		[row setObject:theURL forKey:@"url"];
 
-		if ( [[row objectForKey:@"isDir"] boolValue] )
+		NSString* fileType = NSFileTypeDirectory;
+		NSImage* icon = dirIcon;
+		if (!isDir)
 		{
-			icon = [NSImage imageNamed:@"FolderRef"];
-			[row setObject:NSFileTypeDirectory forKey:@"fileType"];
-			
-		} else
-		{
+			fileType = [displayName pathExtension];
 			icon = [[NSWorkspace sharedWorkspace] iconForFileType:fileType];
-			[row setObject:fileType forKey:@"fileType"];
 		}
+		[row setObject:fileType forKey:@"fileType"];
 
 		//NSLog(@"%@", row);
-		[cell setFont:[NSFont fontWithName:@"Lucida Grande" size:10]];
+		[cell setFont:font];
 		[cell setImage:icon];
-		[cell setLeaf:![[row objectForKey:@"isDir"] boolValue]];
+		[cell setLeaf:!isDir];
 		
 		// set the contextual menu on folders
-		if ( [[row objectForKey:@"isDir"] boolValue] )
+		if (isDir)
 		{
 			NSMenu *m = [browserContextMenu copy];
 			[[m itemAtIndex:0] setRepresentedObject:row];
@@ -313,11 +307,20 @@
 		}
 		
 		[matrix addRowWithCells:[NSArray arrayWithObject:cell]];
-		[matrix setToolTip:[NSString stringWithFormat:@"Revision : %@\nAuthor : %@\nSize : %@ bytes\nDate : %@\nTime : %@",  [row objectForKey:@"revision"],
-																											[row objectForKey:@"author"],
-																											[row objectForKey:@"size"],
-																											[row objectForKey:@"date"],
-																											[row objectForKey:@"time"]] forCell:cell];
+
+		NSString* const revisionStr = [row objectForKey: @"revision"];
+		NSString* const authorStr   = [row objectForKey: @"author"];
+		NSString* const dateStr     = [row objectForKey: @"date"];
+		NSString* const timeStr     = [row objectForKey: @"time"];
+		NSString* const helpStr = (isDir) ? [NSString stringWithFormat:
+													@"Revision: %@\nAuthor: %@\nDate: %@\nTime: %@",
+													revisionStr, authorStr, dateStr, timeStr]
+										  : [NSString stringWithFormat:
+													@"Revision: %@\nAuthor: %@\nSize: %@ bytes\nDate: %@\nTime: %@",
+													revisionStr, authorStr, [row objectForKey: @"size"],
+													dateStr, timeStr];
+		[matrix setToolTip: helpStr forCell: cell];
+
 		[matrix putCell:cell atRow:i column:0];
 		[cell setLoaded:NO]; // because we want browser:willDisplayCell... to be called
 		[cell release];
@@ -334,14 +337,16 @@
 }
 
 
--(NSMutableArray *)parseSvnListResult:(NSString *)resultString
-{	
+- (NSArray*) parseSvnListResult: (NSString*) resultString
+{
 	SvnListParser *parser = [[SvnListParser alloc] init];	
-	NSMutableArray *parsedArray = [parser parseXmlString:resultString];
+	NSArray* parsedArray = [parser parseXmlString: resultString];
 
-	return parsedArray;	
+	return parsedArray;
 }
 
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Accessors
 
@@ -379,3 +384,4 @@
 }
 
 @end
+

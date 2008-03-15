@@ -1,4 +1,5 @@
 #import "MyDragSupportMatrix.h"
+#import "MyDragSupportWindow.h"
 #import "MyRepository.h"
 
 @implementation MyDragSupportMatrix
@@ -126,18 +127,24 @@
     imageLocation.origin = dragPosition;
     imageLocation.size = NSMakeSize(32,32);
 	
-	// dragPromisedFilesOfTypes is meant for Finder. This will in turn call dragImage:at:offset... that we will override below to implement draggin to working copy (svn switch)
-	// see http://developer.apple.com/qa/qa2001/qa1300.html
+	// dragPromisedFilesOfTypes is meant for Finder. This will in turn call dragImage:at:offset... that we will override
+	// below to implement dragging to working copy (svn switch). See http://developer.apple.com/qa/qa2001/qa1300.html
 	
     [self dragPromisedFilesOfTypes:[[self selectedCells] valueForKeyPath:@"representedObject.fileType"] // key/value coding magic !
             fromRect:imageLocation
             source:self
             slideBack:YES
             event:event]; 
-	return;
 }
 
-- (void)dragImage:(NSImage *)anImage at:(NSPoint)imageLoc offset:(NSSize)mouseOffset event:(NSEvent *)theEvent pasteboard:(NSPasteboard *)pboard source:(id)sourceObject slideBack:(BOOL)slideBack
+
+- (void) dragImage:  (NSImage*)      anImage
+		 at:         (NSPoint)       imageLoc
+		 offset:     (NSSize)        mouseOffset
+		 event:      (NSEvent*)      theEvent
+		 pasteboard: (NSPasteboard*) pboard
+		 source:     (id)            sourceObject
+		 slideBack:  (BOOL)          slideBack
 {
 	// if we're dragging exactly one cell
 	if ( [[self selectedCells] count] == 1 ) 
@@ -147,26 +154,33 @@
 		// ... and the cell is a directory... then implement drag to working copy (svn switch)
 		if ( [[selectedCell valueForKeyPath:@"representedObject.isDir"] boolValue] )
 		{
-			NSSize dragOffset = NSMakeSize(0.0, 0.0);
-			[pboard addTypes:[NSArray arrayWithObject:@"REPOSITORY_PATH_AND_REVISION_TYPE"] owner:self];
-			[pboard setData:[NSArchiver archivedDataWithRootObject:[selectedCell valueForKey:@"representedObject"]] forType:@"REPOSITORY_PATH_AND_REVISION_TYPE"];
-			NSImage *img = [NSImage imageNamed:@"repository"];
-			[img setSize:NSMakeSize(32, 32)];
-			
-			[super dragImage:img at:imageLoc offset:dragOffset event:theEvent pasteboard:pboard source:self slideBack:NO];
+			[pboard addTypes:[NSArray arrayWithObject: kTypeRepositoryPathAndRevision] owner: self];
+			[pboard setData: [NSArchiver archivedDataWithRootObject:[selectedCell valueForKey:@"representedObject"]]
+					forType: kTypeRepositoryPathAndRevision];
+			anImage = [NSImage imageNamed: @"repository"];
+
+			sourceObject = self;
+			slideBack = NO;
 		}
-		else
-			[super dragImage:anImage at:imageLoc offset:mouseOffset event:theEvent pasteboard:pboard source:sourceObject slideBack:slideBack];
 	}
-	else
-		[super dragImage:anImage at:imageLoc offset:mouseOffset event:theEvent pasteboard:pboard source:sourceObject slideBack:slideBack];
+
+	const NSSize imgSize = { 32, 32 };
+	[anImage setSize: imgSize];
+	NSImage* image = [[NSImage alloc] initWithSize: imgSize];
+	[image lockFocus];
+	[anImage dissolveToPoint: NSMakePoint(0, 0) fraction: 0.667];
+	[image unlockFocus];
+
+	imageLoc.x -= 16;
+	imageLoc.y -= 16;
+	[super dragImage:image at:imageLoc offset:mouseOffset event:theEvent pasteboard:pboard source:sourceObject slideBack:slideBack];
 }
+
 
 - (unsigned int)draggingSourceOperationMaskForLocal:(BOOL)isLocal
 {
   return NSDragOperationCopy | NSDragOperationPrivate;
 }
-
 
 
 - (NSArray *)namesOfPromisedFilesDroppedAtDestination:(NSURL *)dropDestination
@@ -178,7 +192,8 @@
 
 - (void)draggedImage:(NSImage *)anImage endedAt:(NSPoint)aPoint operation:(NSDragOperation)operation
 {
-	// Panther bug workaround (http://www.cocoabuilder.com/archive/message/cocoa/2005/1/31/127154 and http://www.cocoabuilder.com/archive/message/2004/10/5/118857)
+	// Panther bug workaround (http://www.cocoabuilder.com/archive/message/cocoa/2005/1/31/127154
+	// and http://www.cocoabuilder.com/archive/message/2004/10/5/118857)
 	[[NSPasteboard pasteboardWithName:NSDragPboard] declareTypes:nil owner:nil];
 
 }
