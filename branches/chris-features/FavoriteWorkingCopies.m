@@ -4,8 +4,6 @@
 #import "MyRepository.h"
 #import "MyWorkingCopy.h"
 
-#define preferences [NSUserDefaults standardUserDefaults]
-
 static NSString* const kDocType = @"workingCopy";
 
 
@@ -18,26 +16,20 @@ static NSString* const kDocType = @"workingCopy";
 	self = [super init: @"wc"];
 	if (self)
 	{
-		NSData *dataPrefs = [preferences objectForKey:@"favoriteWorkingCopies"];
+		favoriteWorkingCopies = [[NSMutableArray array] retain];
+		NSData* dataPrefs = [[NSUserDefaults standardUserDefaults] dataForKey: @"favoriteWorkingCopies"];
 
-		if ( dataPrefs != nil )
+		if (dataPrefs != nil)
 		{
-			id favoriteWorkingCopiesPrefs = [NSUnarchiver unarchiveObjectWithData:dataPrefs];
-			
-			if ( favoriteWorkingCopiesPrefs != nil )
+			NSArray* arrayPrefs = [NSUnarchiver unarchiveObjectWithData: dataPrefs];
+
+			if (arrayPrefs != nil)
 			{
-				[self setFavoriteWorkingCopies:[NSMutableArray arrayWithArray:favoriteWorkingCopiesPrefs]];
-			
-			} else
-			{
-				[self setFavoriteWorkingCopies:[NSMutableArray array]];
+				[favoriteWorkingCopies addObjectsFromArray: arrayPrefs];
 			}
-		
-		} else
-		{
-			[self setFavoriteWorkingCopies:[NSMutableArray array]];
 		}
 	}
+
 	return self;
 }
 

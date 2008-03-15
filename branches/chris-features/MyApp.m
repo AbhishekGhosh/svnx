@@ -3,10 +3,19 @@
 #import "RepositoriesController.h"
 
 
+static void
+AddTransform (Class itsClass, NSString* itsName)
+{
+	[NSValueTransformer setValueTransformer: [[[itsClass alloc] init] autorelease] forName: itsName];
+}
+
+
+//----------------------------------------------------------------------------------------
+
 @implementation MyApp
 
 @class SvnFileStatusToColourTransformer, SvnDateTransformer, ArrayCountTransformer, SvnFilePathTransformer,
-	   FilePathCleanUpTransformer, TrimNewLinesTransformer, TaskStatusToColorTransformer;
+	   FilePathCleanUpTransformer, FilePathWorkingCopy, TrimNewLinesTransformer, TaskStatusToColorTransformer;
 
 + (MyApp *)myApp
 {
@@ -18,6 +27,8 @@
 
     return controller;
 }
+
+
 + (void)initialize
 {
 	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
@@ -36,19 +47,22 @@
 
 	[dictionary setObject:[NSNumber numberWithBool:YES] forKey:@"addWorkingCopyOnCheckout"];
 	[dictionary setObject:[NSNumber numberWithBool:NO] forKey:@"useOldParsingMethod"];
-	
+
+	[dictionary setObject: (id) kCFBooleanTrue forKey: @"abbrevWCFilePaths"];
+
 	[[NSUserDefaultsController sharedUserDefaultsController] setInitialValues:dictionary];
 
 	// Transformers
-
-	[NSValueTransformer setValueTransformer:[[[SvnFileStatusToColourTransformer alloc] init] autorelease] forName:@"SvnFileStatusToColourTransformer"]; // used by MyWorkingCopy
-	[NSValueTransformer setValueTransformer:[[[SvnDateTransformer alloc] init] autorelease] forName:@"SvnDateTransformer"];		// used by MySvnLogView
-	[NSValueTransformer setValueTransformer:[[[ArrayCountTransformer alloc] init] autorelease] forName:@"ArrayCountTransformer"]; // used by MySvnLogView
-	[NSValueTransformer setValueTransformer:[[[FilePathCleanUpTransformer alloc] init] autorelease] forName:@"FilePathCleanUpTransformer"]; // used by FavoriteWorkingCopies
-	[NSValueTransformer setValueTransformer:[[[SvnFilePathTransformer alloc] init] autorelease] forName:@"lastPathComponent"]; // used by SingleFileInspector
-	[NSValueTransformer setValueTransformer:[[[TrimNewLinesTransformer alloc] init] autorelease] forName:@"TrimNewLines"]; // used by MySvnLogView and MySvnLogView2 (to filter author name)
-	[NSValueTransformer setValueTransformer:[[[TaskStatusToColorTransformer alloc] init] autorelease] forName:@"TaskStatusToColor"]; // used by Activity Window in svnX.nib
+	AddTransform([SvnFileStatusToColourTransformer class], @"SvnFileStatusToColourTransformer");	// used by MyWorkingCopy
+	AddTransform([SvnDateTransformer class], @"SvnDateTransformer");								// used by MySvnLogView
+	AddTransform([ArrayCountTransformer class], @"ArrayCountTransformer");							// used by MySvnLogView
+	AddTransform([FilePathCleanUpTransformer class], @"FilePathCleanUpTransformer");				// used by FavoriteWorkingCopies
+	AddTransform([FilePathWorkingCopy class], @"FilePathWorkingCopy");								// used by FavoriteWorkingCopies
+	AddTransform([SvnFilePathTransformer class], @"lastPathComponent");								// used by SingleFileInspector
+	AddTransform([TrimNewLinesTransformer class], @"TrimNewLines");									// used by MySvnLogView and MySvnLogView2 (to filter author name)
+	AddTransform([TaskStatusToColorTransformer class], @"TaskStatusToColor");						// used by Activity Window in svnX.nib
 }
+
 
 - (bool)checkSVNExistence:(bool)warn
 {
