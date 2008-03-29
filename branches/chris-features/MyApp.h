@@ -4,6 +4,8 @@
 
 @class RepositoriesController, FavoriteWorkingCopies;
 
+id GetPreference (NSString* prefKey);
+
 /* " Application's main controller." */
 @interface MyApp : NSObject
 {

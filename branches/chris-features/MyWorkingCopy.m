@@ -1,11 +1,9 @@
 #import "MyWorkingCopy.h"
 #import "MyWorkingCopyController.h"
+#import "MyApp.h"
 #import "MySVN.h"
 #import "Tasks.h"
 
-@class MySvn;
-@class SvnFileStatusToColourTransformer;
-@class SvnFilePathTransformer;
 
 enum {
 	SVNXCallbackSvnStatus,
@@ -21,7 +19,7 @@ enum {
 static BOOL
 useOldParsingMethod ()
 {
-	return [[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey: @"useOldParsingMethod"] boolValue];
+	return [GetPreference(@"useOldParsingMethod") boolValue];
 }
 
 
@@ -47,8 +45,8 @@ useOldParsingMethod ()
 - (void) svnRefresh
 {
 //	NSLog(@"svnRefresh - isVisible=%d", [[controller window] isVisible]);
-	[controller fetchSvnInfo];		
-	[controller fetchSvnStatus];		
+	[controller fetchSvnInfo];
+	[controller fetchSvnStatus];
 }
 
 
@@ -64,36 +62,32 @@ useOldParsingMethod ()
 
 //----------------------------------------------------------------------------------------
 
-- (id)init
+- (id) init
 {
-    self = [super init];
-    if (self)
+	self = [super init];
+	if (self)
 	{
+		flatMode   =
+		smartMode  = TRUE;
 		filterMode = kFilterAll;
 
-		// initialize svnFiles :
+		// initialize svnFiles:
 		// svnFilesAC is bound in Interface Builder to this variable.
-		[self setSvnFiles:[NSMutableArray array]];
+		[self setSvnFiles: [NSArray array]];
+		[self setSvnDirectories: [NSDictionary dictionary]];
 
-		[self setSvnDirectories:[NSMutableDictionary dictionary]];
-
-		[self setFlatMode:TRUE];
-		[self setSmartMode:TRUE];
-		
 		[self setOutlineSelectedPath:@""];
 		[self setStatusInfo:@""];
 
 		// register self as an observer for bound variables
 		[self   addObserver:self forKeyPath:@"smartMode"
 				options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
-		[self   addObserver:self forKeyPath:@"outlineSelectedPath"
-				options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
 		[self   addObserver:self forKeyPath:@"flatMode"
 				options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
 		[self   addObserver:self forKeyPath:@"filterMode"
 				options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
 	}
-    
+
 	return self;
 }
 
@@ -105,6 +99,7 @@ useOldParsingMethod ()
 		 pass:  (NSString*) password
 		 path:  (NSString*) fullPath
 {
+	[self setFileURL: [NSURL fileURLWithPath: fullPath]];
 	[self setWindowTitle:     title];
 	[self setUser:            username];
 	[self setPass:            password];
@@ -122,10 +117,9 @@ useOldParsingMethod ()
 	[self setRevision:nil];
 	[self setWorkingCopyPath: nil];
 	[self setWindowTitle: nil];
-	[self setOutlineSelectedPath: nil];
-	[self setResultString: nil];
 	[self setSvnFiles: nil];
 	[self setSvnDirectories: nil];
+	[self setOutlineSelectedPath: nil];
 	[self setRepositoryUrl: nil];
 	[self setStatusInfo: nil];
 	[self setDisplayedTaskObj: nil];
@@ -159,7 +153,6 @@ useOldParsingMethod ()
 	[[Tasks sharedInstance] cancelCallbacksOnTarget:self];
 
 	[self removeObserver:self forKeyPath:@"smartMode"];
-	[self removeObserver:self forKeyPath:@"outlineSelectedPath"];
 	[self removeObserver:self forKeyPath:@"flatMode"];
 	[self removeObserver:self forKeyPath:@"filterMode"];
 
@@ -170,11 +163,13 @@ useOldParsingMethod ()
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark -
-#pragma mark svn status
+#pragma mark	-
+#pragma mark	svn status
+//----------------------------------------------------------------------------------------
 
-- (void)fetchSvnStatusVerbose
+- (void) fetchSvnStatus: (BOOL) showUpdates_
 {	
+	showUpdates = showUpdates_;
 	NSMutableArray *options = [NSMutableArray array];
 
 	if ( ![self smartMode] )
@@ -182,7 +177,7 @@ useOldParsingMethod ()
 		[options addObject:@"-v"];
 	}
 
-	if ( [self showUpdates] )
+	if (showUpdates_)
 	{
 		[options addObject:@"-u"];
 	}
@@ -195,39 +190,40 @@ useOldParsingMethod ()
 	[MySvn    statusAtWorkingCopyPath: [self workingCopyPath]
 					   generalOptions: [self svnOptionsInvocation]
 							  options: options
-							 callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnStatus]
+							 callback: [self makeCallbackInvocation: @selector(svnStatusCompletedCallback:)]
 						 callbackInfo: nil
-							 taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]];
+							 taskInfo: [NSDictionary dictionaryWithObject: windowTitle forKey: @"documentName"]];
 }
+
+
+- (void) fetchSvnStatusVerbose
+{
+	[self fetchSvnStatus: showUpdates];
+}
+
+
+//----------------------------------------------------------------------------------------
 
 -(void)svnStatusCompletedCallback:(NSMutableDictionary *)taskObj
 {
 	if ( [[taskObj valueForKey:@"status"] isEqualToString:@"completed"] )
 	{
-		[self fetchSvnStatusVerboseReceiveDataFinished:[taskObj valueForKey:@"stdout"]];
+		[self computesVerboseResultArray: [taskObj valueForKey:@"stdout"]];
+
+		[controller fetchSvnStatusVerboseReceiveDataFinished];
 	}
 
 	[self svnError: taskObj];
 }
 
 
-- (void)fetchSvnStatusVerboseReceiveDataFinished:(NSString*)result
-{
-	[self setResultString:result]; // this will feed the log file
-
-	[self computesVerboseResultArray];
-
-	[controller fetchSvnStatusVerboseReceiveDataFinished];
-}
-
-
 //----------------------------------------------------------------------------------------
 
-- (void)computesNewVerboseResultArray
+- (void)computesNewVerboseResultArray: (NSString*) xmlString
 {
     NSError* err = nil;
-	NSXMLDocument* xmlDoc = [[NSXMLDocument alloc] initWithXMLString:
-								[self resultString] options: NSXMLDocumentTidyXML error: &err];
+	NSXMLDocument* xmlDoc = [[NSXMLDocument alloc] initWithXMLString: xmlString
+												   options: NSXMLDocumentTidyXML error: &err];
 
 	if (err)
 		NSLog(@"Error parsing xml %@", err);
@@ -263,17 +259,17 @@ useOldParsingMethod ()
 	NSWorkspace* const workspace = [NSWorkspace sharedWorkspace];
 	NSFileManager* const fileManager = [NSFileManager defaultManager];
 	const BOOL kFlatMode    = [self flatMode],
-			   kShowUpdates = [self showUpdates];
+			   kShowUpdates = showUpdates;
 	const NSSize kIconSize = { 16, 16 };
+	NSString* const kCurrentDir = @".";
 
 	NSXMLElement *entry;
 	NSEnumerator *e = [[targetElement elementsForName:@"entry"] objectEnumerator];
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	// <entry> nodes
 	while ( entry = [e nextObject] )
 	{
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
 		NSString *revisionCurrent = @"";
 		NSString *revisionLastChanged = @"";
 		NSString *theUser = @"" ;
@@ -370,7 +366,7 @@ useOldParsingMethod ()
 
 		NSString* const itemFullPath = [[entry attributeForName: @"path"] stringValue];
 		NSString* const itemPath = (targetPathLength < [itemFullPath length])
-									? [itemFullPath substringFromIndex: targetPathLength + 1] : @".";
+									? [itemFullPath substringFromIndex: targetPathLength + 1] : kCurrentDir;
 
 		int col1 = ' ',  col2 = ' ';
 		NSString *column1 = @" ";
@@ -555,7 +551,7 @@ useOldParsingMethod ()
 		NSString* const dirPath = [itemPath stringByDeletingLastPathComponent];
 		BOOL isDir;
 
-		if (!kFlatMode && [itemPath length] &&
+		if (!kFlatMode && itemPath != kCurrentDir &&
 			[fileManager fileExistsAtPath: itemFullPath isDirectory: &isDir] && isDir)
 		{
 			NSArray* const pathArr = [itemPath componentsSeparatedByString: @"/"];
@@ -583,16 +579,16 @@ useOldParsingMethod ()
 				}
 
 				if ( child == nil )
-				{						
+				{
 					NSImage* dirIcon = [workspace iconForFile: filePath];
 					[dirIcon setSize: kIconSize];
-					[tmp addObject: [NSMutableDictionary dictionaryWithObjectsAndKeys:
+					child = [NSMutableDictionary dictionaryWithObjectsAndKeys:
 												[NSMutableArray array], @"children",
 												dirName, @"name",
 												[filePath substringFromIndex: wcPathLength], @"path",
 												dirIcon, @"icon",
-												nil]];
-					child = [tmp lastObject];
+												nil];
+					[tmp addObject: child];
 				}
 
 				tmp = [child objectForKey: @"children"];
@@ -636,16 +632,19 @@ useOldParsingMethod ()
 									(unlockable  ? kTrue : kFalse), @"unlockable",
 
 									nil]];
-		[pool release];
 	}
+	[pool release];
 
 	[self setSvnDirectories:outlineDirs];
 	[self setSvnFiles:newSvnFiles];
 }
 
-- (void)computesOldVerboseResultArray
+
+//----------------------------------------------------------------------------------------
+
+- (void)computesOldVerboseResultArray: (NSString*) resultString
 {
-	NSArray *arr = [[self resultString] componentsSeparatedByString:@"\n"];
+	NSArray *arr = [resultString componentsSeparatedByString:@"\n"];
 	NSMutableArray *newSvnFiles = [NSMutableArray arrayWithCapacity: 100];
 
 	NSMutableDictionary* outlineDirs = [NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -701,7 +700,7 @@ useOldParsingMethod ()
 		
 		if ( [self smartMode] )
 		{
-			if ( [self showUpdates] )
+			if (showUpdates)
 			{
 				itemFullPath = [itemString substringFromIndex:20];
 				int wcPathLength = [workingCopyPath length];
@@ -744,7 +743,7 @@ useOldParsingMethod ()
 			revisionLastChanged = [[itemString substringWithRange:NSMakeRange(18, 8)] stringByTrimmingCharactersInSet:ws];
 			theUser = [[itemString substringWithRange:NSMakeRange(27, 12)] stringByTrimmingCharactersInSet:ws];
 			
-			if ( [self showUpdates] )
+			if (showUpdates)
 			{
 				column5 = [itemString substringWithRange:NSMakeRange(7, 1)];
 			
@@ -902,24 +901,27 @@ useOldParsingMethod ()
 }
 
 
-- (void)computesVerboseResultArray
+//----------------------------------------------------------------------------------------
+
+- (void)computesVerboseResultArray: (NSString*) svnStatusText
 {
 //	NSLog(@"computesVerboseResultArray '%@' flat=%d smart=%d", windowTitle, flatMode, smartMode);
 	[controller saveSelection];
 	if (useOldParsingMethod())
 	{
-		[self computesOldVerboseResultArray];
+		[self computesOldVerboseResultArray: svnStatusText];
 	}
 	else
 	{
-		[self computesNewVerboseResultArray];
+		[self computesNewVerboseResultArray: svnStatusText];
 	}
 	[controller restoreSelection];
 }
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark svn info
+#pragma mark	svn info
+//----------------------------------------------------------------------------------------
 
 - (void)fetchSvnInfo
 {
@@ -927,7 +929,7 @@ useOldParsingMethod ()
 				   arguments: [NSArray arrayWithObject:[self workingCopyPath]]
               generalOptions: [self svnOptionsInvocation]
 					 options: nil
-					callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnInfo]
+					callback: [self makeCallbackInvocation: @selector(svnInfoCompletedCallback:)]
 				callbackInfo: nil
 					taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]];
 }
@@ -937,61 +939,52 @@ useOldParsingMethod ()
 	if ( [[taskObj valueForKey:@"status"] isEqualToString:@"completed"] )
 	{
 		[self fetchSvnInfoReceiveDataFinished:[taskObj valueForKey:@"stdout"]];
-		
 	}
 
 	[self svnError: taskObj];
 }
 
-- (void)fetchSvnInfoReceiveDataFinished:(NSString*)result
+
+- (void) fetchSvnInfoReceiveDataFinished: (NSString*) result
 {
 	NSArray *lines = [result componentsSeparatedByString:@"\n"];
 
-	if ( [lines count] < 5 )
+	const int count = [lines count];
+	if (count < 5)
 	{
 		[controller svnError:result];
-	
-	} else
+	}
+	else
 	{
+		bool gotRev = false, gotURL = false;
 		int i;
-
-		for ( i=0; i<[lines count]; i++)
+		for (i = 0; i < count && (!gotRev || !gotURL); ++i)
 		{
-			NSString *line = [lines objectAtIndex:i];
+			NSString* const line = [lines objectAtIndex: i];
+			const int lineLength = [line length];
 			
-			if ( [line length] > 9 && [[line substringWithRange:NSMakeRange(0, 10)] isEqual:@"Revision: "] )
+			if (!gotRev && lineLength > 9 && [[line substringWithRange:NSMakeRange(0, 10)] isEqualToString:@"Revision: "] )
 			{
-				[self setRevision:[line substringFromIndex:10]];			
-				//[self setStatusInfo:line];
+				[self setRevision: [line substringFromIndex:10]];
+				gotRev = true;			
 			}
-			else
-			if ( [line length] > 4 && [[line substringWithRange:NSMakeRange(0, 5)] isEqual:@"URL: "] )
+			else if (!gotURL && lineLength > 4 && [[line substringWithRange:NSMakeRange(0, 5)] isEqualToString:@"URL: "] )
 			{
 				NSString *urlString = [line substringFromIndex:5];
-				NSString *repositoryUrlString;
-				
-				if ( ![[urlString substringFromIndex:([urlString length]-1)] isEqualToString:@"/"] )
-				{
-					repositoryUrlString = [urlString stringByAppendingString:@"/"];
 
-				} else repositoryUrlString = urlString;
-				
-				[self setRepositoryUrl:[NSURL URLWithString:repositoryUrlString]];
+				if ([urlString characterAtIndex: [urlString length] - 1] != '/')
+					urlString = [urlString stringByAppendingString:@"/"];
+
+				[self setRepositoryUrl: [NSURL URLWithString: urlString]];
+				gotURL = true;			
 			}
-//			else
-//			if ( [line length] > 16 && [[line substringWithRange:NSMakeRange(0, 17)] isEqual:@"Repository Root: "] )
-//			{
-//				NSString *repositoryUrlString = [line substringFromIndex:17];
-//				
-//				[self setRepositoryUrl:[NSURL URLWithString:repositoryUrlString]];
-//			}
 		}
 	}
 }
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark svn generic command
+#pragma mark	svn generic command
 
 - (void)svnCommand:(NSString *)command options:(NSArray *)options info:(NSDictionary *)info
 {
@@ -1077,10 +1070,10 @@ useOldParsingMethod ()
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark svn update
+#pragma mark	svn update
 
 -(void) svnUpdate
-{	
+{
 	[controller startProgressIndicator];
 	
 	[self setDisplayedTaskObj:
@@ -1106,10 +1099,10 @@ useOldParsingMethod ()
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark FileMerge
+#pragma mark	svn merge
 
 -(void) fileMergeItems:(NSArray *)items
-{	
+{
 	[MySvn	   fileMergeItems: items
 			   generalOptions: [self svnOptionsInvocation]
 					  options: nil
@@ -1128,8 +1121,8 @@ useOldParsingMethod ()
 
 
 //----------------------------------------------------------------------------------------
-#pragma -
-#pragma mark Helpers
+#pragma mark	-
+#pragma mark	Helpers
 
 - (NSMutableDictionary *)getSvnOptions
 {
@@ -1192,10 +1185,11 @@ useOldParsingMethod ()
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Key-Value interface observing
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+- (void) observeValueForKeyPath: (NSString*)     keyPath
+		 ofObject:               (id)            object
+		 change:                 (NSDictionary*) change
+		 context:                (void*)         context
 {
 //	NSLog(@"WC:observe: '%@'", keyPath);
 	BOOL doRefresh = false,
@@ -1215,10 +1209,6 @@ useOldParsingMethod ()
 			smartMode = NO;
 	//	[controller adjustOutlineView];
 	}
-	else if ( [keyPath isEqualToString:@"outlineSelectedPath"] )
-	{
-		doRearrange = YES;
-	}
 	else if ( [keyPath isEqualToString:@"filterMode"] )
 	{
 		doRearrange = YES;
@@ -1228,171 +1218,183 @@ useOldParsingMethod ()
 		[self svnRefresh];
 	else if (doRearrange)
 		[svnFilesAC rearrangeObjects];
-//	NSLog(@"WC:observe ---");
+//	NSLog(@"WC:observe ---", (doRefresh ? @"doRefresh" : @""), (doRearrange ? @"doRearrange" : @""));
 }
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Accessors
+#pragma mark	-
+#pragma mark	Accessors
 
-// ACCESSORS
-//
-- (NSInvocation *)svnOptionsInvocation
+- (NSInvocation*) svnOptionsInvocation
 {
 	return [self makeSvnOptionInvocation];
 }
 
-//  displayedTaskObj 
-- (NSMutableDictionary *) displayedTaskObj {
+
+// get/set displayedTaskObj 
+- (NSMutableDictionary*) displayedTaskObj
+{
     return displayedTaskObj; 
 }
-- (void) setDisplayedTaskObj: (NSMutableDictionary *) aDisplayedTaskObj {
+
+- (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj
+{
     id old = [self displayedTaskObj];
     displayedTaskObj = [aDisplayedTaskObj retain];
     [old release];
 }
 
-// - user name:
-- (NSString *) user { return user; }
-- (void) setUser: (NSString *) aUser {
+
+// get/set user name
+- (NSString*) user { return user; }
+
+- (void) setUser: (NSString*) aUser
+{
     id old = [self user];
     user = [aUser retain];
     [old release];
 }
 
-// - user password:
-- (NSString *) pass { return pass; }
-- (void) setPass: (NSString *) aPass {
+
+// get/set user password
+- (NSString*) pass { return pass; }
+
+- (void) setPass: (NSString*) aPass
+{
     id old = [self pass];
     pass = [aPass retain];
     [old release];
 }
 
-- (NSArray *)svnFiles
+
+// get/set svnFiles
+- (NSArray*) svnFiles
 {
 	return svnFiles;
 }
-- (void)setSvnFiles:(NSMutableArray *)aSvnFiles
+
+- (void) setSvnFiles: (NSArray*) aSvnFiles
 {
-    if (svnFiles != aSvnFiles)
+	if (svnFiles != aSvnFiles)
 	{
-        [svnFiles release];
-        svnFiles = aSvnFiles ? [aSvnFiles mutableCopy] : nil;
-    }
+		[svnFiles release];
+		svnFiles = [aSvnFiles retain];
+	}
 }
 
-- (NSString *)resultString
-{
-	return resultString;
-}
-- (void)setResultString: (NSString *)str
-{
-	id old = resultString;
-	resultString = [str retain];
-	[old release];
-}
 
-- (NSString *)revision { return revision; }
-- (void)setRevision:(NSString *)aRevision {
+// get/set revision
+- (NSString*) revision { return revision; }
+
+- (void) setRevision: (NSString*) aRevision
+{
     id old = [self revision];
     revision = [aRevision retain];
     [old release];
 }
 
-- (NSString *)workingCopyPath
+
+// get/set workingCopyPath
+- (NSString*) workingCopyPath
 {
 	return workingCopyPath;
 }
-- (void)setWorkingCopyPath: (NSString *)str
+
+- (void) setWorkingCopyPath: (NSString*) str
 {
 	id old = workingCopyPath;
 	workingCopyPath = [str retain];
 	[old release];
 }
 
-// - svnDirectories:
-- (NSMutableDictionary *) svnDirectories { return svnDirectories; }
 
-// - setSvnDirectories:
-- (void) setSvnDirectories: (NSMutableDictionary *) aSvnDirectories {
+// get/set svnDirectories
+- (NSDictionary*) svnDirectories { return svnDirectories; }
+
+- (void) setSvnDirectories: (NSDictionary*) aSvnDirectories
+{
     id old = [self svnDirectories];
     svnDirectories = [aSvnDirectories retain];
     [old release];
 }
 
 
-
-// filterMode : set by the toolbar dropdown menu
-//
+// filterMode: set by the toolbar pop-up menu
 - (int) filterMode { return filterMode; }
+
 - (void) setFilterMode: (int) aFilterMode
 {
 //	NSLog(@"setFilterMode: %d", aFilterMode);
     filterMode = aFilterMode;
 }
 
-// - windowTitle:
-- (NSString *) windowTitle { return windowTitle; }
+// get/set windowTitle
+- (NSString*) windowTitle { return windowTitle; }
 
-// - setWindowTitle:
-- (void) setWindowTitle: (NSString *) aWindowTitle {
+- (void) setWindowTitle: (NSString*) aWindowTitle
+{
     id old = [self windowTitle];
     windowTitle = [aWindowTitle retain];
     [old release];
 }
 
-// - flatMode:
+// get/set flatMode
 - (BOOL) flatMode { return flatMode; }
-// - setFlatMode:
-- (void) setFlatMode: (BOOL) flag {
+
+- (void) setFlatMode: (BOOL) flag
+{
     flatMode = flag;
 }
 
-// - smartMode:
+
+// get/set smartMode
 - (BOOL) smartMode { return smartMode; }
-// - setSmartMode:
-- (void) setSmartMode: (BOOL) flag {
+
+- (void) setSmartMode: (BOOL) flag
+{
     smartMode = flag;
 }
 
-// - showUpdates:
-- (BOOL)showUpdates { return showUpdates; }
-// - setShowUpdates:
-- (void)setShowUpdates:(BOOL)flag {
-    showUpdates = flag;
+
+// get/set outlineSelectedPath
+- (NSString*) outlineSelectedPath { return outlineSelectedPath; }
+
+- (void) setOutlineSelectedPath: (NSString*) anOutlineSelectedPath
+{
+//	NSLog(@"setOutlineSelectedPath('%@')", anOutlineSelectedPath);
+	id old = outlineSelectedPath;
+	outlineSelectedPath = [anOutlineSelectedPath retain];
+	[old release];
+	if (svnFiles != nil)
+		[svnFilesAC rearrangeObjects];
 }
 
-// - outlineSelectedPath:
-- (NSString *) outlineSelectedPath { return outlineSelectedPath; }
 
-// - setOutlineSelectedPath:
-- (void) setOutlineSelectedPath: (NSString *) anOutlineSelectedPath {
-    id old = [self outlineSelectedPath];
-    outlineSelectedPath = [anOutlineSelectedPath retain];
-    [old release];
-}
+//----------------------------------------------------------------------------------------
 
--(id)controller
+-(id) controller
 {
 	return controller;
 }
 
-// - repositoryUrl:
-- (NSURL *)repositoryUrl { return repositoryUrl; }
 
-	// - setRepositoryUrl:
-- (void)setRepositoryUrl:(NSURL *)aRepositoryUrl {
+// get/set repositoryUrl
+- (NSURL*) repositoryUrl { return repositoryUrl; }
+
+- (void) setRepositoryUrl: (NSURL*) aRepositoryUrl
+{
     id old = [self repositoryUrl];
     repositoryUrl = [aRepositoryUrl retain];
     [old release];
 }
 
-// - statusInfo:
-- (NSString *)statusInfo { return statusInfo; }
 
-// - setStatusInfo:
-- (void)setStatusInfo:(NSString *)aStatusInfo {
+// get/set statusInfo
+- (NSString*) statusInfo { return statusInfo; }
+
+- (void) setStatusInfo: (NSString*) aStatusInfo
+{
     id old = [self statusInfo];
     statusInfo = [aStatusInfo retain];
     [old release];

@@ -30,7 +30,7 @@ static NSString* gInitName = nil;
 //----------------------------------------------------------------------------------------
 
 static NSMutableDictionary*
-MakeCommandDict (NSString* command, NSString* destination)
+makeCommandDict (NSString* command, NSString* destination)
 {
 	return [NSMutableDictionary dictionaryWithObjectsAndKeys: command, @"command",
 															  command, @"verb",
@@ -125,8 +125,8 @@ MakeCommandDict (NSString* command, NSString* destination)
 
 	[modeView setIntValue: viewMode];
 	[self setCurrentMode: viewMode];
-	if (viewMode != kModeTree)
-		[document svnRefresh];		
+	if (viewMode == kModeSmart)		// Force refresh as mode is default & thus hasn't changed so won't auto-refresh
+		[document svnRefresh];
 	[filterView selectItemWithTag: filterMode];
 	[document setFilterMode: filterMode];
 
@@ -270,6 +270,7 @@ MakeCommandDict (NSString* command, NSString* destination)
 			savedSelection = [files retain];
 		}
 	}
+//	NSLog(@"savedSelection=%@", savedSelection);
 }
 
 
@@ -277,6 +278,8 @@ MakeCommandDict (NSString* command, NSString* destination)
 
 - (void) restoreSelection
 {
+//	NSLog(@"restoreSelection=%@ tree='%@'", savedSelection, [document outlineSelectedPath]);
+//	NSLog(@"restoreSelection=%@ tree='%@'\nsvnFiles=%@", savedSelection, [document outlineSelectedPath], [svnFilesAC arrangedObjects]);
 	if (savedSelection != nil)
 	{
 		NSArray* const wcFiles = [svnFilesAC arrangedObjects];
@@ -451,8 +454,7 @@ static NSString* const gVerbs[] = {
 {
 	[self startProgressIndicator];
 
-	[document setShowUpdates: ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0];
-	[document fetchSvnStatusVerbose];
+	[document fetchSvnStatus: ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0];
 }
 
 
@@ -476,18 +478,16 @@ static NSString* const gVerbs[] = {
 - (void) fetchSvnStatusVerboseReceiveDataFinished
 {
 	[self stopProgressIndicator];
-//	[textResult setString:[[self document] resultString]];
-//	[tableResult reloadData];
 
-	[outliner setIndentationPerLevel:8];
-	
+	BOOL expandChildren = [GetPreference(@"expandWCTree") boolValue];
 	NSIndexSet *selectedRows = [outliner selectedRowIndexes];
+	[outliner setIndentationPerLevel: 8];
 	[outliner reloadData];
-	[outliner expandItem:[outliner itemAtRow:0] expandChildren:YES];
-	[outliner selectRowIndexes:selectedRows byExtendingSelection:NO];
+	[outliner expandItem: [outliner itemAtRow: 0] expandChildren: expandChildren];
+	[outliner selectRowIndexes: selectedRows byExtendingSelection: NO];
 	if ( [selectedRows count] )
 		[outliner scrollRowToVisible:[selectedRows firstIndex]];
-	
+
 	svnStatusPending = NO;
 }
 
@@ -725,7 +725,7 @@ static NSString* const gVerbs[] = {
 
 - (void) requestSvnRenameSelectedItemTo:(NSString *)destination
 {
-	[self runAlertBeforePerformingAction: MakeCommandDict(@"rename", destination)];
+	[self runAlertBeforePerformingAction: makeCommandDict(@"rename", destination)];
 }
 
 
@@ -734,7 +734,7 @@ static NSString* const gVerbs[] = {
 
 - (void)requestSvnMoveSelectedItemsToDestination:(NSString *)destination
 {
-	NSMutableDictionary* action = MakeCommandDict(@"move", destination);
+	NSMutableDictionary* action = makeCommandDict(@"move", destination);
 
 	if ( [[svnFilesAC selectedObjects] count] == 1 )
 	{
@@ -753,7 +753,7 @@ static NSString* const gVerbs[] = {
 
 - (void) requestSvnCopySelectedItemsToDestination:(NSString *)destination
 {
-	NSMutableDictionary* action = MakeCommandDict(@"copy", destination);
+	NSMutableDictionary* action = makeCommandDict(@"copy", destination);
 
 	if ( [[svnFilesAC selectedObjects] count] == 1 )
 	{
@@ -801,7 +801,7 @@ static NSString* const gVerbs[] = {
 	NSString *path = [repositoryPathObj valueForKeyPath:@"url.absoluteString"];
 	NSString *revision = [repositoryPathObj valueForKey:@"revision"];
 
-	NSMutableDictionary* action = MakeCommandDict(@"switch", path);
+	NSMutableDictionary* action = makeCommandDict(@"switch", path);
 	[action setObject: revision forKey: @"revision"];
 
 	[switchPanel setTitle:@"Switch"];

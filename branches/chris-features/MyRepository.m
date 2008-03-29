@@ -1,4 +1,5 @@
 #import "MyRepository.h"
+#import "MyApp.h"
 #import "MySvn.h"
 #import "Tasks.h"
 #import "DrawerLogView.h"
@@ -471,7 +472,7 @@ TrimSlashes (id obj)
 					  taskInfo: [self documentNameDict]]];
 
 		// TL : Creating new working copy for the checked out path.
-		BOOL addWorkingCopy = [[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey:@"addWorkingCopyOnCheckout"] boolValue];
+		BOOL addWorkingCopy = [GetPreference(@"addWorkingCopyOnCheckout") boolValue];
 		if (addWorkingCopy)
 		{
 			[[NSNotificationCenter defaultCenter] postNotificationName:@"newWorkingCopy" object:destinationPath];
@@ -652,7 +653,7 @@ TrimSlashes (id obj)
 		];
 
 		// TL : Creating new working copy for the checked out path.
-		BOOL addWorkingCopy = [[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey:@"addWorkingCopyOnCheckout"] boolValue];
+		BOOL addWorkingCopy = [GetPreference(@"addWorkingCopyOnCheckout") boolValue];
 		if (addWorkingCopy)
 		{
 			[[NSNotificationCenter defaultCenter] postNotificationName:@"newWorkingCopy" object:destinationPath];

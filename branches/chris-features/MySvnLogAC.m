@@ -1,4 +1,5 @@
 #import "MySvnLogAC.h"
+#import "MyApp.h"
 
 @implementation MySvnLogAC
 
@@ -13,71 +14,68 @@
     [self rearrangeObjects];    
 }
 
-- (NSArray *)arrangeObjects:(NSArray *)objects
+- (NSArray*) arrangeObjects: (NSArray*) objects
 {
-    NSMutableArray *matchedObjects = [NSMutableArray arrayWithCapacity:[objects count]];
-    NSString *lowerSearch = [searchString lowercaseString];
-    BOOL shouldSearchPathsOrMessages = [[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey:@"shouldSearchPathsOrMessages"] boolValue];
-
-	NSEnumerator *oEnum = [objects objectEnumerator];
-    id item;
-	
-	if ((searchString != nil) && (![searchString isEqualToString:@""]))
+	if (searchString != nil && [searchString length] != 0)
 	{
+		const BOOL searchInPaths = [GetPreference(@"shouldSearchPathsOrMessages") boolValue];
+		NSString* const lowerSearch = [searchString lowercaseString];
+		NSMutableArray* const matchedObjects = [NSMutableArray arrayWithCapacity: [objects count]];
+
+		NSEnumerator* oEnum = [objects objectEnumerator];
+		id item;
 		while (item = [oEnum nextObject])
 		{
-			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-			NSString *lowerName = [[item valueForKeyPath:@"msg"] lowercaseString];
-			BOOL test = TRUE;
-			
-			
-			if ( shouldSearchPathsOrMessages && [item valueForKeyPath:@"paths"] != NULL )
+			NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+			BOOL test = FALSE;
+
+			if (searchInPaths)
 			{
-				BOOL testPath = FALSE;
-				id pathDict;
-				NSEnumerator *pEnum = [[item valueForKeyPath:@"paths"] objectEnumerator];
-				
-				while (pathDict = [pEnum nextObject])
+				NSArray* paths = [item objectForKey: @"paths"];
+				if (paths != nil)
 				{
-					NSAutoreleasePool *pool2 = [[NSAutoreleasePool alloc] init];
+					id pathDict;
+					NSEnumerator* pEnum = [paths objectEnumerator];
 
-					if ([[[pathDict valueForKeyPath:@"path"] lowercaseString] rangeOfString:lowerSearch].location != NSNotFound)
+					while (pathDict = [pEnum nextObject])
 					{
-						testPath = testPath || TRUE;
-					}
-					
-					if ( [pathDict valueForKeyPath:@"copyfrompath"] != NULL )
-					if ([[[pathDict valueForKeyPath:@"copyfrompath"] lowercaseString] rangeOfString:lowerSearch].location != NSNotFound)
-					{
-						testPath = testPath || TRUE;
-					}
+				//		NSAutoreleasePool* pool2 = [[NSAutoreleasePool alloc] init];
 
-					[pool2 release];
+						NSString* text = [pathDict objectForKey: @"path"];
+						if (text != nil && [[text lowercaseString] rangeOfString: lowerSearch].location != NSNotFound)
+						{
+							test = TRUE;
+							break;
+						}
+
+						text = [pathDict objectForKey: @"copyfrompath"];
+						if (text != nil && [[text lowercaseString] rangeOfString: lowerSearch].location != NSNotFound)
+						{
+							test = TRUE;
+							break;
+						}
+
+				//		[pool2 release];
+					}
 				}
-			
-				test = testPath;
-				
-			} else
-			{
-					if ([lowerName rangeOfString:lowerSearch].location == NSNotFound)
-					{
-						test = FALSE;
-					}
-
 			}
-					
-			if ( test ) [matchedObjects addObject:item];
-			
+			else
+			{
+				NSString* text = [item objectForKey: @"msg"];
+				if ([[text lowercaseString] rangeOfString: lowerSearch].location != NSNotFound)
+					test = TRUE;
+			}
+
+			if (test)
+				[matchedObjects addObject: item];
+
 			[pool release];
-		
 		}
 
-	    return [super arrangeObjects:matchedObjects];
-		
-	} else
-	{
-		return [super arrangeObjects:objects];
+	    objects = matchedObjects;
 	}
+
+	return [super arrangeObjects: objects];
 }
 
 

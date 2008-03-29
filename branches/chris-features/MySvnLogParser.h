@@ -18,7 +18,7 @@
 	NSMutableArray *pathsArray;
 }
 
-- (NSArray*) parseXmlString: (NSString*) string;
+- (NSMutableArray*) parseXmlString: (NSString*) string;
 
 - (NSMutableArray*) logArray;
 - (void) setLogArray: (NSMutableArray*) aLogArray;

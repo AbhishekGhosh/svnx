@@ -178,13 +178,16 @@ static NSString* const colKeys[kNumColumns + 1]  = {
 		NSDictionary* rowDict = [[svnFilesAC arrangedObjects] objectAtIndex: row];
 		return [helpTags[colID] objectForKey: [rowDict objectForKey: colKeys[colID]]];
 	}
-	else if ([[aTableColumn identifier] isEqual: @"path"])
+	else if ([[aTableColumn identifier] isEqualToString: @"path"])
 	{
 		NSMutableString* help = [NSMutableString stringWithCapacity: 0];
 		NSDictionary* rowDict = [[svnFilesAC arrangedObjects] objectAtIndex: row];
 		int i;
 		for (i = kFirstColumn; i <= kNumColumns; ++i)
 		{
+			NSString* key = [rowDict objectForKey: colKeys[i]];
+			if ([key isEqualToString: @" "])
+				continue;
 			NSString* str = [helpTags[i] objectForKey: [rowDict objectForKey: colKeys[i]]];
 			if (str)
 			{

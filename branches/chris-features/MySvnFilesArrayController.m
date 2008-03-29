@@ -10,9 +10,9 @@
 }
 
 
-- (NSArray *)arrangeObjects:(NSArray *)objects
+- (NSArray*) arrangeObjects: (NSArray*) objects
 {
-    NSMutableArray *matchedObjects = [NSMutableArray arrayWithCapacity:[objects count]];
+    NSMutableArray* matchedObjects = [NSMutableArray arrayWithCapacity: [objects count]];
 
 	const int filterMode = [document filterMode];
 	const BOOL flatMode = [document flatMode];
@@ -23,12 +23,12 @@
 	id item;
 	for (oEnum = [objects objectEnumerator]; item = [oEnum nextObject]; )
 	{
-		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 		BOOL test = TRUE;
 
 		if (filterMode != kFilterAll)
 		{
-			const unichar ch = [[item valueForKeyPath: @"col1"] characterAtIndex: 0];
+			const unichar ch = [[item objectForKey: @"col1"] characterAtIndex: 0];
 
 			switch (filterMode)
 			{
@@ -56,13 +56,13 @@
 
 		if (test && !flatMode)
 		{
-			test = [[item valueForKeyPath: @"dirPath"] isEqualToString: selectedPath] &&
-					![[item valueForKeyPath: @"path"] isEqualToString: selectedPath];
+			test = [[item objectForKey: @"dirPath"] isEqualToString: selectedPath] &&
+					![[item objectForKey: @"path"] isEqualToString: selectedPath];
 		}
 
 		if (test && lowerSearch)
 		{
-			test = ([[[item valueForKeyPath: @"path"] lowercaseString] rangeOfString: lowerSearch].location != NSNotFound);
+			test = ([[[item objectForKey: @"path"] lowercaseString] rangeOfString: lowerSearch].location != NSNotFound);
 		}
 
 		if (test)
@@ -71,7 +71,7 @@
 		[pool release];
 	}
 
-	return [super arrangeObjects:matchedObjects];
+	return [super arrangeObjects: matchedObjects];
 }
 
 

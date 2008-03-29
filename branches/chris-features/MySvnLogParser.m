@@ -15,7 +15,7 @@
 }
 
 
--(NSArray *)parseXmlString:(NSString *)string
+-(NSMutableArray *)parseXmlString:(NSString *)string
 {
 	NSXMLParser *parser = [[NSXMLParser alloc] initWithData:[string dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES]];
 	[parser setDelegate:self];
