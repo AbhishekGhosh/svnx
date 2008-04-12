@@ -1,7 +1,6 @@
 #import "MyWorkingCopyToolbar.h"
 #import "NSString+MyAdditions.h"
-
-typedef float GCoord;
+#include "CommonUtils.h"
 
 
 //----------------------------------------------------------------------------------------
@@ -77,7 +76,7 @@ typedef float GCoord;
 	[self createItem: @"svnUpdate" label: @"Update" image: @"checkout2"
 		  help:       UTF8("Perform an \xE2\x80\x98svn update\xE2\x80\x99 on this working copy.")];
 
-	[self createItem: @"openRepository" label: @"Repository" image: @"repository"
+	[self createItem: @"openRepository" label: @"Repository" image: @"Repository"
 		  help:       @"Open repository window for this current working."];
 
 	[self createItem: @"toggleSidebar" label: @"Output" image: @"sidebar"

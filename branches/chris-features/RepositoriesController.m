@@ -2,6 +2,8 @@
 #import "MyDragSupportArrayController.h"
 #import "MyRepository.h"
 #import "NSString+MyAdditions.h"
+#include "CommonUtils.h"
+
 
 #define preferences [NSUserDefaults standardUserDefaults]
 
@@ -368,8 +370,7 @@ StringToURL (NSString* urlString)
 {
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 	[prefs setObject:[NSArchiver archivedDataWithRootObject:[self repositories]] forKey:@"repositories"];
-	CFBooleanRef editShown = [[self disclosureView] state] ? kCFBooleanTrue : kCFBooleanFalse;
-	[prefs setObject: (id) editShown forKey: @"repEditShown"];
+	[prefs setObject: NSBool([[self disclosureView] state]) forKey: @"repEditShown"];
 	[prefs synchronize];
 }
 

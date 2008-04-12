@@ -3,7 +3,6 @@
 #import <Cocoa/Cocoa.h>
 #import "MySvnView.h"
 
-#import "MySvnLogParser.h"
 
 @interface MySvnLogView : MySvnView
 {

@@ -1,4 +1,5 @@
 #import "FilePathCleanUpTransformer.h"
+#import "MyApp.h"
 
 
 @implementation FilePathCleanUpTransformer
@@ -62,12 +63,31 @@
 	self = [super init];
 	if (self)
 	{
-		fTransform = [[[[NSUserDefaultsController sharedUserDefaultsController] values]
-								valueForKey: @"abbrevWCFilePaths"] boolValue];
+		[[NSUserDefaultsController sharedUserDefaultsController]
+								addObserver: self
+								forKeyPath:  @"values.abbrevWCFilePaths"
+								options:     0
+								context:     NULL];
+
+		fTransform = [GetPreference(@"abbrevWCFilePaths") boolValue];
 	}
 
     return self;
 }
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) observeValueForKeyPath: (NSString*)     keyPath
+		 ofObject:               (id)            object
+		 change:                 (NSDictionary*) change
+		 context:                (void*)         context
+{
+	fTransform = [GetPreference(@"abbrevWCFilePaths") boolValue];
+}
+
+
+//----------------------------------------------------------------------------------------
 
 - (id) transformedValue: (id) aString
 {

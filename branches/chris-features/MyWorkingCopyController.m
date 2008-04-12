@@ -4,8 +4,8 @@
 #import "MyFileMergeController.h"
 #import "DrawerLogView.h"
 #import "NSString+MyAdditions.h"
+#include "CommonUtils.h"
 
-typedef float GCoord;
 
 enum {
 	vFlatTable	=	2000,
@@ -164,7 +164,7 @@ makeCommandDict (NSString* command, NSString* destination)
 								[window stringWithSavedFrame],                   keyWidowFrame,
 								[NSNumber numberWithInt: [self currentMode]],    keyViewMode,
 								[NSNumber numberWithInt: [document filterMode]], keyFilterMode,
-								showToolbar ? kCFBooleanTrue : kCFBooleanFalse,  keyShowToolbar,
+								NSBool(showToolbar),  keyShowToolbar,
 								nil];
 
 	ConstString nameKey = [document windowTitle];
@@ -345,8 +345,7 @@ makeCommandDict (NSString* command, NSString* destination)
 
 - (IBAction) refresh: (id) sender
 {
-	[self fetchSvnInfo];
-	[self fetchSvnStatus];
+	[document svnRefresh];
 }
 
 - (IBAction) toggleView: (id) sender
@@ -454,7 +453,7 @@ static NSString* const gVerbs[] = {
 {
 	[self startProgressIndicator];
 
-	[document fetchSvnStatus: ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0];
+	[document fetchSvnStatus: ([[NSApp currentEvent] modifierFlags] & (NSAlternateKeyMask | NSShiftKeyMask)) != 0];
 }
 
 
@@ -674,6 +673,9 @@ static NSString* const gVerbs[] = {
 	
 	if ( [NSBundle loadNibNamed:@"svnFileMerge" owner:fileMergeController] )
 	{
+	//	NSLog(@"fileHistoryOpenSheetForItem: item=<%@>",
+	//			[[NSURL URLWithString: [item objectForKey: @"displayPath"] relativeToURL: [document repositoryUrl]] absoluteString]);
+	//	[fileMergeController setUrl:[self url]];
 		[fileMergeController setPath:[item objectForKey:@"fullPath"]];
 		[fileMergeController setSvnOptionsInvocation:[[self document] svnOptionsInvocation]];
 		[fileMergeController setSourceItem:item];
@@ -685,28 +687,29 @@ static NSString* const gVerbs[] = {
 		   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
 			  contextInfo:nil];
 	}	
-
 }
 
-- (void)svnFileMerge:(id)sender
-{
-	if ( [[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask )
-	{
 
-		if ( [[svnFilesAC selectedObjects] count ] != 1 )
+- (void) svnFileMerge: (id) sender
+{
+	NSArray* selectedObjects = [svnFilesAC selectedObjects];
+
+	if (([[NSApp currentEvent] modifierFlags] & (NSAlternateKeyMask | NSShiftKeyMask)) != 0)
+	{
+		if ( [selectedObjects count] != 1 )
 		{
 			[self svnError:@"Please select exactly one item."];
-			return;	
-		} 
+			return;
+		}
 
-		[self fileHistoryOpenSheetForItem:[[svnFilesAC selectedObjects] objectAtIndex:0]];
-
+		[self fileHistoryOpenSheetForItem:[selectedObjects objectAtIndex:0]];
 	}
 	else
 	{
-		[[self document] fileMergeItems:[[svnFilesAC selectedObjects] mutableArrayValueForKey:@"fullPath"]];
+		[[self document] fileMergeItems:[selectedObjects mutableArrayValueForKey:@"fullPath"]];
 	}
 }
+
 
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 {
@@ -795,7 +798,7 @@ static NSString* const gVerbs[] = {
 // called from MyDragSupportWindow
 #pragma mark	svn switch
 
--(void)requestSwitchToRepositoryPath:(NSDictionary *)repositoryPathObj
+- (void) requestSwitchToRepositoryPath: (NSDictionary*) repositoryPathObj
 {
 //	NSLog(@"%@", repositoryPathObj);
 	NSString *path = [repositoryPathObj valueForKeyPath:@"url.absoluteString"];
@@ -804,20 +807,23 @@ static NSString* const gVerbs[] = {
 	NSMutableDictionary* action = makeCommandDict(@"switch", path);
 	[action setObject: revision forKey: @"revision"];
 
-	[switchPanel setTitle:@"Switch"];
-	[switchPanelSourceTextField setStringValue:[NSString stringWithFormat:@"%@  (rev. %@)", [[self document] repositoryUrl], [[self document] revision]]];
-	[switchPanelDestinationTextField setStringValue:[NSString stringWithFormat:@"%@  (rev. %@)", path, revision]];
+	[switchPanelSourceTextField setStringValue:[NSString stringWithFormat:@"%@ [Rev. %@]", [document repositoryUrl], [document revision]]];
+	[switchPanelDestinationTextField setStringValue:[NSString stringWithFormat:@"%@ [Rev. %@]", path, revision]];
 	
 	[NSApp beginSheet:switchPanel modalForWindow:[self window] modalDelegate:self
 		   didEndSelector:@selector(switchPanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
 }
 
-- (IBAction)switchPanelValidate:(id)sender;
+
+- (IBAction) switchPanelValidate: (id) sender
 {
 	[NSApp endSheet:switchPanel returnCode:[sender tag]];
 }
 
-- (void)switchPanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+
+- (void) switchPanelDidEnd: (NSWindow*) sheet
+		 returnCode:        (int)       returnCode
+		 contextInfo:       (void*)     contextInfo
 {
 	[sheet orderOut:nil];
 	NSMutableDictionary *action = contextInfo;
@@ -826,17 +832,17 @@ static NSString* const gVerbs[] = {
 	{
 		if ( [switchPanelRelocateButton intValue] == 1 )//  --relocate
 		{
-			[[self document] svnCommand:@"switch" options:[NSArray arrayWithObjects:@"-r",
+			[document svnCommand:@"switch" options:[NSArray arrayWithObjects:@"-r",
 															[action objectForKey:@"revision"],
 															@"--relocate",
-															[[[self document] repositoryUrl] absoluteString],
+															[[document repositoryUrl] absoluteString],
 															[action objectForKey:@"destination"],
 															[document workingCopyPath],
 															nil] info:nil];
 		}
 		else
 		{
-			[[self document] svnCommand:@"switch" options:[NSArray arrayWithObjects:@"-r",
+			[document svnCommand:@"switch" options:[NSArray arrayWithObjects:@"-r",
 															[action objectForKey:@"revision"],
 															[action objectForKey:@"destination"],
 															[document workingCopyPath],

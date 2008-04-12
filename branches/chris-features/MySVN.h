@@ -129,18 +129,16 @@
 						 callback:           (NSInvocation*) callback
 						 callbackInfo:       (id)            callbackInfo
 						 taskInfo:           (id)            taskInfo
-						 additionalTaskInfo: (id)            additionalTaskInfo;
+						 additionalTaskInfo: (id)            additionalTaskInfo
+						 outputToData:       (BOOL)          outputToData;
 
 + (void) killProcess: (int) pid;
 
-+ (NSString*) cachePathForUrl: (NSURL*) url;
-
-+ (NSString*) cachePathForUrl: (NSURL*)    url
-			  revision:        (NSString*) revision;
++ (NSString*) cachePathForKey: (NSString*) key;
 
 // CLASS VARIABLES ACCESSORS
-+ (NSString *) svnPath;
-+ (void) setSvnPath: (NSString *) aSvnPath;
-+ (NSString *)bundleScriptPath:(NSString *)script;
++ (NSString*) bundleScriptPath: (NSString*) script;
++ (NSString*) svnPath;
++ (NSString*) svnCmdPath;
 
 @end

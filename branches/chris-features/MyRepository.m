@@ -36,6 +36,34 @@ TrimSlashes (id obj)
 #pragma mark	-
 //----------------------------------------------------------------------------------------
 
+@interface NSSavePanel (ShouldBeAvailableInOSX10_4)
+	- (void) _setIncludeNewFolderButton: (BOOL) flag;
+@end
+
+
+//----------------------------------------------------------------------------------------
+
+@interface NSSavePanel (MakeAvailable)
+	- (void) setIncludeNewFolderButton: (BOOL) flag;
+@end
+
+
+@implementation NSSavePanel (MakeAvailable)
+
+- (void) setIncludeNewFolderButton: (BOOL) flag
+{
+	if ([self respondsToSelector: @selector(_setIncludeNewFolderButton:)])
+		[self _setIncludeNewFolderButton: flag];
+}
+
+
+@end
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+//----------------------------------------------------------------------------------------
+
 @implementation MyRepository
 
 - init
@@ -422,7 +450,7 @@ TrimSlashes (id obj)
 	[oPanel setAllowsMultipleSelection:NO];
 	[oPanel setCanChooseDirectories:YES];
 	[oPanel setCanChooseFiles:NO];
-	[oPanel _setIncludeNewFolderButton:YES];
+	[oPanel setIncludeNewFolderButton:YES];
 	
 	[oPanel beginSheetForDirectory:selectionPath file:nil types:nil modalForWindow:[self windowForSheet]
 							  modalDelegate: self
@@ -926,94 +954,105 @@ TrimSlashes (id obj)
 #pragma mark	-
 #pragma mark	Accessors
 
-- (NSInvocation *)svnOptionsInvocation
+- (NSInvocation*) svnOptionsInvocation
 {
 	return [self makeSvnOptionInvocation];
 }
 
+
 //  displayedTaskObj 
-- (NSMutableDictionary *) displayedTaskObj {
-    return displayedTaskObj; 
+- (NSMutableDictionary*) displayedTaskObj { return displayedTaskObj; }
+
+- (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj
+{
+	id old = displayedTaskObj;
+	displayedTaskObj = [aDisplayedTaskObj retain];
+	[old release];
 }
-- (void) setDisplayedTaskObj: (NSMutableDictionary *) aDisplayedTaskObj {
-    id old = [self displayedTaskObj];
-    displayedTaskObj = [aDisplayedTaskObj retain];
-    [old release];
-}
+
 
 // - url:
-- (NSURL *)url {
-    return url; 
+- (NSURL*) url { return url; }
+
+- (void) setUrl: (NSURL*) anUrl
+{
+	id old = url;
+	url = [anUrl retain];
+	[old release];
 }
-- (void)setUrl:(NSURL *)anUrl {
-    id old = [self url];
-    url = [anUrl retain];
-    [old release];
-}
+
 
 // - rootUrl:
-- (NSURL *)rootUrl {
-    return rootUrl; 
+- (NSURL*) rootUrl { return rootUrl; }
+
+- (void) setRootUrl: (NSURL*) anUrl
+{
+	id old = rootUrl;
+	rootUrl = [anUrl retain];
+	[old release];
 }
-- (void)setRootUrl:(NSURL *)anUrl {
-    id old = [self rootUrl];
-    rootUrl = [anUrl retain];
-    [old release];
-}
+
 
 // - revision:
-- (NSString *)revision {
-    return revision; 
+- (NSString*) revision { return revision; }
+
+- (void) setRevision: (NSString*) aRevision
+{
+	id old = revision;
+	revision = [aRevision retain];
+	[old release];
 }
-- (void)setRevision:(NSString *)aRevision {
-    id old = [self revision];
-    revision = [aRevision retain];
-    [old release];
-}
+
 
 // - user name:
-- (NSString *) user { return user; }
-- (void) setUser: (NSString *) aUser {
-    id old = [self user];
-    user = [aUser retain];
-    [old release];
+- (NSString*) user { return user; }
+
+- (void) setUser: (NSString*) aUser
+{
+	id old = user;
+	user = [aUser retain];
+	[old release];
 }
 
+
 // - user password:
-- (NSString *) pass { return pass; }
-- (void) setPass: (NSString *) aPass {
-    id old = [self pass];
-    pass = [aPass retain];
-    [old release];
+- (NSString*) pass { return pass; }
+
+- (void) setPass: (NSString*) aPass
+{
+	id old = pass;
+	pass = [aPass retain];
+	[old release];
 }
 
 // - windowTitle:
-- (NSString *) windowTitle { return windowTitle; }
-- (void) setWindowTitle: (NSString *) aWindowTitle {
-    id old = [self windowTitle];
-    windowTitle = [aWindowTitle retain];
-    [old release];
+- (NSString*) windowTitle { return windowTitle; }
+
+- (void) setWindowTitle: (NSString*) aWindowTitle
+{
+	id old = windowTitle;
+	windowTitle = [aWindowTitle retain];
+	[old release];
 }
 
 
 // - url:
-- (BOOL)operationInProgress {
-    return operationInProgress; 
-}
+- (BOOL) operationInProgress { return operationInProgress; }
 
-// - setUrl:
-- (void)setOperationInProgress:(BOOL)aBool {
+- (void) setOperationInProgress: (BOOL) aBool
+{
 	operationInProgress = aBool;
 }
 
-// - logViewKind:
-- (NSString *)logViewKind { return logViewKind; }
 
-// - setLogViewKind:
-- (void)setLogViewKind:(NSString *)aLogViewKind {
-    id old = [self logViewKind];
-    logViewKind = [aLogViewKind retain];
-    [old release];
+// - logViewKind:
+- (NSString*) logViewKind { return logViewKind; }
+
+- (void) setLogViewKind: (NSString*) aLogViewKind
+{
+	id old = logViewKind;
+	logViewKind = [aLogViewKind retain];
+	[old release];
 }
 
 @end

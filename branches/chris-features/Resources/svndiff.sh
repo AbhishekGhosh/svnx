@@ -1,87 +1,77 @@
 #!/bin/sh
 
-# Uncomment exactly one of the following 4 lines to set the diff app
-#appToDoDiffWith="$SVNX_FILEMERGE_DIFF"
-#appToDoDiffWith="$SVNX_CODEWARRIOR_DIFF"
-#appToDoDiffWith="$SVNX_TEXTWRANGLER_DIFF"
-#appToDoDiffWith="$SVNX_BBEDIT_DIFF"
+#echo "svndiff @=[$@]" >> /tmp/app.txt
+#echo "
+#svndiff
+#	$1
+#	$2 '$3'
+#	$4 '$5'
+#	$6
+#	$7" >> /tmp/app.txt
 
-#echo $@
-#until [ -z "$1" ]
-#do
-#	echo $1
-#	shift
-#done
-#echo "app2: $DIFFAPPINDEX" > /tmp/app.txt
+get_ext()
+{
+	r=`echo "$1" | \
+	   sed -n -E -e '/^[^	]+\.([^	]+)	.*\(revision ([0-9]+)\)$/ { s//r\2.\1/; p; q; }' \
+				 -e '/^[^	]+\.([^	]+)	.*$/ { s//\1/; p; q; }' \
+				 -e '/^[^	]+	.*\(revision ([0-9]+)\)$/ { s//r\1.tmp/; p; q; }' \
+				 -e '/.*/s//tmp/;p;q'`
+}
 
 # Sometimes, the temp file created by svn diff is deleted before
 # opendiff had a chance to open it...
 
-BASE=`basename "$7"`
-fileExt2="${BASE##*.}"
-
-if [ "$fileExt2" == "$BASE" -o "$fileExt2" == "tmp" ]
-then
-	firstTempFile=/tmp/svnx-opendiff_$$.tmp
-	secondTempFile=/tmp/svnx-opendiff2_$$.tmp
-else
-	firstTempFile=/tmp/svnx-opendiff_$$.tmp."$fileExt2"
-	secondTempFile=/tmp/svnx-opendiff2_$$.tmp."$fileExt2"
-fi
-
-cp -f "$6" "$firstTempFile"
-cp -f "$7" "$secondTempFile"
+get_ext "$3"; file1="/tmp/svnx-$$-diff1.$r"
+cp -f "$6" $file1
 
 # Sometimes, svn diff wants us to diff from a tmp file. (don't know why)
 # We want to diff the real working copy file.
 
 tmpFileFlag=`echo "$7" | sed -E 's/.*svndiff(\.[0-9]+)?\.tmp$/1/'`
-if [ "$tmpFileFlag" == "1" ]
-then
+if [ "$tmpFileFlag" == '1' ]; then
 	f=`echo "$5" | sed -E 's/(.*)	\(working copy\)$/\1/'`
 else
 	f=`echo "$7" | sed -e 's/\.svn\/tmp\/\(.*\)\.tmp$/\1/'`
 fi
 
-name=$5
-workingCopyFlag=${name/*(working copy)/1}
+name="$5"
+isWorkingCopy="${name/*(working copy)/1}"
+isWorkingCopy="${isWorkingCopy/[!1]*/}"
 
-WORKING_COPY="1"
-firstFile=$firstTempFile
-if [ "$workingCopyFlag" == "$WORKING_COPY" ]
-then
-	secondFile=$f ; 
-	isWorkingCopy=true
+if [ $isWorkingCopy ]; then
+	file2=$f
 else
-	secondFile=$secondTempFile
+	get_ext "$5"; file2="/tmp/svnx-$$-diff2.$r"
+	cp -f "$7" $file2
 fi
+
+#echo "  isWorkingCopy='$isWorkingCopy'  tmpFileFlag='$tmpFileFlag'
+#	f='$f'
+#	file1='$file1'
+#	file2='$file2'" >> /tmp/app.txt
 
 codewarrior_diff()
 {
 	osascript -e \
-	"tell application \"CodeWarrior IDE\" 
+	"set file1 to POSIX file \"$1\"
+	set file2 to POSIX file \"$2\"
+	tell application \"CodeWarrior IDE\"
 		activate
-		set fileOne to POSIX file \"$1\" 
-		set fileTwo to POSIX file \"$2\" 
-		Compare Files fileOne to fileTwo with case sensitive and ignore extra space
+		Compare Files file1 to file2 without case sensitive and ignore extra space
 	end tell"
 }
 
-case "$appToDoDiffWith" in
-	"$SVNX_CODEWARRIOR_DIFF" ) codewarrior_diff "$firstFile" "$secondFile" ;;
-	"$SVNX_TEXTWRANGLER_DIFF" ) /usr/bin/twdiff --case-sensitive "$firstFile" "$secondFile" ;;
-	"$SVNX_BBEDIT_DIFF" ) /usr/bin/bbdiff --case-sensitive "$firstFile" "$secondFile" ;;
-	"$SVNX_ARAXISMRGE_DIFF" ) /usr/local/bin/araxissvndiff "$firstFile" "$secondFile" "$firstFile" "$secondFile" ;;
-
-	# $SVNX_FILEMERGE_DIFF | * is kind of redundant, as * matches $SVNX_FILEMERGE_DIFF
-	# as well, but it makes the code more explicit
-
-	"$SVNX_FILEMERGE_DIFF" | * ) 
-		if [ $isWorkingCopy ]
-		then 
-			/usr/bin/opendiff "$firstFile" "$secondFile" -merge "$secondFile" &> /dev/null
+case "$1" in
+	"codewarrior"   ) codewarrior_diff "$file1" "$file2" ;;
+	"textwrangler"  ) /usr/bin/twdiff --case-sensitive "$file1" "$file2" ;;
+	"bbedit"        ) /usr/bin/bbdiff --case-sensitive "$file1" "$file2" ;;
+	"araxissvndiff" ) /usr/local/bin/araxissvndiff "$file1" "$file2" "$file1" "$file2" ;;
+	"opendiff" | *  ) 
+		if [ $isWorkingCopy ]; then 
+			/usr/bin/opendiff "$file1" "$file2" -merge "$file2" &> /dev/null
 		else 
-			/usr/bin/opendiff "$firstFile" "$secondFile"
+			/usr/bin/opendiff "$file1" "$file2"
 		fi
 		;;
 esac
+

@@ -42,5 +42,7 @@
 - (id)pendingTask;
 - (void)setPendingTask:(id)aPendingTask;
 
+- (NSDictionary*) documentNameDict;
+
 
 @end

@@ -3,8 +3,8 @@
 //
 
 #import "EditListResponder.h"
+#include "CommonUtils.h"
 
-typedef float GCoord;
 
 @implementation EditListResponder
 
@@ -148,6 +148,31 @@ typedef float GCoord;
 - (void) showWindow
 {
 	[window makeKeyAndOrderFront: nil];
+}
+
+
+//----------------------------------------------------------------------------------------
+// subclass to implement
+
+- (NSArray*)  dataArray
+{
+	return nil;
+}
+
+
+//----------------------------------------------------------------------------------------
+// subclass to implement
+
+- (void) savePreferences
+{
+}
+
+
+//----------------------------------------------------------------------------------------
+// subclass to implement
+
+- (void) onDoubleClick: (id) sender
+{
 }
 
 

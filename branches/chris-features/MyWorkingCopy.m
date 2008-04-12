@@ -3,7 +3,16 @@
 #import "MyApp.h"
 #import "MySVN.h"
 #import "Tasks.h"
+#import "NSString+MyAdditions.h"
+#import "AppKit/NSGraphicsContext.h"
+#include "CommonUtils.h"
 
+#ifndef Assert
+#define	Assert(expr)	/*(expr)*/
+#endif
+#ifndef WarnIf
+#define	WarnIf(expr)	(expr)
+#endif
 
 enum {
 	SVNXCallbackSvnStatus,
@@ -20,6 +29,139 @@ static BOOL
 useOldParsingMethod ()
 {
 	return [GetPreference(@"useOldParsingMethod") boolValue];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+struct ICEntry
+{
+	IconRef		fIcon;
+	NSImage*	fImage;
+};
+
+typedef struct ICEntry ICEntry;
+enum { kMaxIcons = 128 };
+static ICEntry gIconFolder = { NULL },
+			   gIconFile   = { NULL },
+			   gIconCache[kMaxIcons] = { NULL };
+
+
+//----------------------------------------------------------------------------------------
+
+static NSImage*
+getImageForIcon (IconRef iconRef, const NSRect* rect)
+{
+	Assert(iconRef);
+
+	NSImage* image = [[NSImage alloc] initWithSize: rect->size];
+	[image lockFocus];
+	CGContextRef ctx = [[NSGraphicsContext currentContext] graphicsPort];
+//	CGContextSetInterpolationQuality(ctx, kCGInterpolationHigh);
+	WarnIf(PlotIconRefInContext(ctx, (CGRect*) rect, kAlignNone, kTransformNone,
+								NULL, kPlotIconRefNormalFlags, iconRef));
+	[image unlockFocus];
+
+	return image;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static NSImage*
+getImageForIconSize (IconRef iconRef, GCoord size)
+{
+	const NSRect rect = { 0, 0, size, size };
+
+	return getImageForIcon(iconRef, &rect);
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static NSImage*
+getImageForIcon16 (IconRef iconRef)
+{
+	static const NSRect rect = { 0, 0, 16, 16 };
+
+	return getImageForIcon(iconRef, &rect);
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static NSImage*
+getImageForIconType (OSType iconType, GCoord size)
+{
+	IconRef iconRef;
+	if (WarnIf(GetIconRef(kOnSystemDisk, kSystemIconsCreator, iconType, &iconRef)) == noErr)
+	{
+		NSImage* image = [getImageForIconSize(iconRef, size) retain];
+		WarnIf(ReleaseIconRef(iconRef));
+		return image;
+	}
+
+	return nil;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static NSImage*
+setImageForIconType (NSString* name, OSType iconType)
+{
+	NSImage* image = getImageForIconType(iconType, 32);
+	if (image == nil || ![image setName: name])
+		NSLog(@"WARNING: init image '%@' FAILED", name);
+
+	return image;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static void
+initICEntry (ICEntry* entry, OSType iconType)
+{
+//	Assert(entry->fIcon == NULL);
+	if (WarnIf(GetIconRef(kOnSystemDisk, kSystemIconsCreator, iconType, &entry->fIcon)) == noErr)
+		entry->fImage = [getImageForIcon16(entry->fIcon) retain];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static void
+initIconCache ()
+{
+	if (gIconFolder.fIcon == NULL)	// do only once
+	{
+		// 16 x 16 icons
+		initICEntry(&gIconFolder, kGenericFolderIcon);
+		initICEntry(&gIconFile, kGenericDocumentIcon);
+		if (![gIconFolder.fImage setName: @"FolderRef"])
+			NSLog(@"WARNING: init image 'FolderRef' FAILED");
+
+		// 32 x 32 icons
+		setImageForIconType(@"Finder", kFinderIcon);
+		setImageForIconType(@"delete", kToolbarDeleteIcon);
+		NSImage* image = setImageForIconType(@"mkdir", kGenericFolderIcon);
+		[image lockFocus];
+		[[NSImage imageNamed: @"PlusTopRight"] compositeToPoint: NSMakePoint(0, 0) operation: NSCompositeSourceOver];
+		[image unlockFocus];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
+NSImage* GenericFolderImage ();
+
+NSImage*
+GenericFolderImage ()
+{
+	initIconCache();
+	return gIconFolder.fImage;
 }
 
 
@@ -86,6 +228,7 @@ useOldParsingMethod ()
 				options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
 		[self   addObserver:self forKeyPath:@"filterMode"
 				options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
+		initIconCache();
 	}
 
 	return self;
@@ -162,6 +305,12 @@ useOldParsingMethod ()
 }
 
 
+- (NSDictionary*) documentNameDict
+{
+	return [NSDictionary dictionaryWithObject: windowTitle ? windowTitle : @"" forKey: @"documentName"];
+}
+
+
 //----------------------------------------------------------------------------------------
 #pragma mark	-
 #pragma mark	svn status
@@ -192,7 +341,7 @@ useOldParsingMethod ()
 							  options: options
 							 callback: [self makeCallbackInvocation: @selector(svnStatusCompletedCallback:)]
 						 callbackInfo: nil
-							 taskInfo: [NSDictionary dictionaryWithObject: windowTitle forKey: @"documentName"]];
+							 taskInfo: [self documentNameDict]];
 }
 
 
@@ -254,8 +403,6 @@ useOldParsingMethod ()
 
 	NSString* const targetPath = [[targetElement attributeForName: @"path"] stringValue];
 	const int targetPathLength = [targetPath length];
-	const id kTrue  = (id) kCFBooleanTrue,
-			 kFalse = (id) kCFBooleanFalse;
 	NSWorkspace* const workspace = [NSWorkspace sharedWorkspace];
 	NSFileManager* const fileManager = [NSFileManager defaultManager];
 	const BOOL kFlatMode    = [self flatMode],
@@ -615,21 +762,21 @@ useOldParsingMethod ()
 									itemFullPath, @"fullPath",
 									dirPath, @"dirPath",
 
-									(col1 == 'M' ? kTrue : kFalse), @"modified",
-									(col1 == '?' ? kTrue : kFalse), @"new",
-									(col1 == '!' ? kTrue : kFalse), @"missing",
-									(col1 == 'A' ? kTrue : kFalse), @"added",
-									(col1 == 'D' ? kTrue : kFalse), @"deleted",
+									NSBool(col1 == 'M'), @"modified",
+									NSBool(col1 == '?'), @"new",
+									NSBool(col1 == '!'), @"missing",
+									NSBool(col1 == 'A'), @"added",
+									NSBool(col1 == 'D'), @"deleted",
 
-									(renamable   ? kTrue : kFalse), @"renamable",
-									(addable     ? kTrue : kFalse), @"addable",
-									(removable   ? kTrue : kFalse), @"removable",
-									(updatable   ? kTrue : kFalse), @"updatable",
-									(revertable  ? kTrue : kFalse), @"revertable",
-									(committable ? kTrue : kFalse), @"committable",
-									(resolvable  ? kTrue : kFalse), @"resolvable",
-									(lockable    ? kTrue : kFalse), @"lockable",
-									(unlockable  ? kTrue : kFalse), @"unlockable",
+									NSBool(renamable  ), @"renamable",
+									NSBool(addable    ), @"addable",
+									NSBool(removable  ), @"removable",
+									NSBool(updatable  ), @"updatable",
+									NSBool(revertable ), @"revertable",
+									NSBool(committable), @"committable",
+									NSBool(resolvable ), @"resolvable",
+									NSBool(lockable   ), @"lockable",
+									NSBool(unlockable ), @"unlockable",
 
 									nil]];
 	}
@@ -931,7 +1078,7 @@ useOldParsingMethod ()
 					 options: nil
 					callback: [self makeCallbackInvocation: @selector(svnInfoCompletedCallback:)]
 				callbackInfo: nil
-					taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]];
+					taskInfo: [self documentNameDict]];
 }
 
 - (void)svnInfoCompletedCallback:(id)taskObj
@@ -993,7 +1140,7 @@ useOldParsingMethod ()
 
 	[controller startProgressIndicator];
 	NSInvocation* const callback = [self makeCallbackInvocation: @selector(svnGenericCompletedCallback:)];
-	NSDictionary* const taskInfo = [NSDictionary dictionaryWithObject: windowTitle forKey: @"documentName"];
+	NSDictionary* const taskInfo = [self documentNameDict];
 
 	if ( [command isEqualToString:@"rename"] )
 	{
@@ -1082,7 +1229,7 @@ useOldParsingMethod ()
 							   options: nil
 							  callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnUpdate]
 						  callbackInfo: nil
-							  taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]]];
+							  taskInfo: [self documentNameDict]]];
 }
 
 -(void)svnUpdateCompletedCallback:(id)taskObj
@@ -1108,7 +1255,7 @@ useOldParsingMethod ()
 					  options: nil
 					 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
 				 callbackInfo: nil
-					 taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self windowTitle], @"documentName", nil]];
+					 taskInfo: [self documentNameDict]];
 }
 
 -(void)fileMergeCallback:(id)taskObj
@@ -1233,16 +1380,13 @@ useOldParsingMethod ()
 
 
 // get/set displayedTaskObj 
-- (NSMutableDictionary*) displayedTaskObj
-{
-    return displayedTaskObj; 
-}
+- (NSMutableDictionary*) displayedTaskObj { return displayedTaskObj; }
 
 - (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj
 {
-    id old = [self displayedTaskObj];
-    displayedTaskObj = [aDisplayedTaskObj retain];
-    [old release];
+	id old = displayedTaskObj;
+	displayedTaskObj = [aDisplayedTaskObj retain];
+	[old release];
 }
 
 
@@ -1251,9 +1395,9 @@ useOldParsingMethod ()
 
 - (void) setUser: (NSString*) aUser
 {
-    id old = [self user];
-    user = [aUser retain];
-    [old release];
+	id old = user;
+	user = [aUser retain];
+	[old release];
 }
 
 
@@ -1262,17 +1406,14 @@ useOldParsingMethod ()
 
 - (void) setPass: (NSString*) aPass
 {
-    id old = [self pass];
-    pass = [aPass retain];
-    [old release];
+	id old = pass;
+	pass = [aPass retain];
+	[old release];
 }
 
 
 // get/set svnFiles
-- (NSArray*) svnFiles
-{
-	return svnFiles;
-}
+- (NSArray*) svnFiles { return svnFiles; }
 
 - (void) setSvnFiles: (NSArray*) aSvnFiles
 {
@@ -1289,17 +1430,14 @@ useOldParsingMethod ()
 
 - (void) setRevision: (NSString*) aRevision
 {
-    id old = [self revision];
-    revision = [aRevision retain];
-    [old release];
+	id old = [self revision];
+	revision = [aRevision retain];
+	[old release];
 }
 
 
 // get/set workingCopyPath
-- (NSString*) workingCopyPath
-{
-	return workingCopyPath;
-}
+- (NSString*) workingCopyPath { return workingCopyPath; }
 
 - (void) setWorkingCopyPath: (NSString*) str
 {
@@ -1314,9 +1452,9 @@ useOldParsingMethod ()
 
 - (void) setSvnDirectories: (NSDictionary*) aSvnDirectories
 {
-    id old = [self svnDirectories];
-    svnDirectories = [aSvnDirectories retain];
-    [old release];
+	id old = [self svnDirectories];
+	svnDirectories = [aSvnDirectories retain];
+	[old release];
 }
 
 
@@ -1326,25 +1464,27 @@ useOldParsingMethod ()
 - (void) setFilterMode: (int) aFilterMode
 {
 //	NSLog(@"setFilterMode: %d", aFilterMode);
-    filterMode = aFilterMode;
+	filterMode = aFilterMode;
 }
+
 
 // get/set windowTitle
 - (NSString*) windowTitle { return windowTitle; }
 
 - (void) setWindowTitle: (NSString*) aWindowTitle
 {
-    id old = [self windowTitle];
-    windowTitle = [aWindowTitle retain];
-    [old release];
+	id old = windowTitle;
+	windowTitle = [aWindowTitle retain];
+	[old release];
 }
+
 
 // get/set flatMode
 - (BOOL) flatMode { return flatMode; }
 
 - (void) setFlatMode: (BOOL) flag
 {
-    flatMode = flag;
+	flatMode = flag;
 }
 
 
@@ -1353,7 +1493,7 @@ useOldParsingMethod ()
 
 - (void) setSmartMode: (BOOL) flag
 {
-    smartMode = flag;
+	smartMode = flag;
 }
 
 

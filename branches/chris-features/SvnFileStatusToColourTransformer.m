@@ -1,6 +1,6 @@
 
-
 #import "SvnFileStatusToColourTransformer.h"
+#import "MyApp.h"
 
 
 @implementation SvnFileStatusToColourTransformer
@@ -18,16 +18,20 @@
 
 - (id)transformedValue:(id)aString
 {	
-    //int priority = [aNumber intValue];
-    
-	if ( [aString isEqualToString:@"M"] )
-	return [NSUnarchiver unarchiveObjectWithData:[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey:@"svnFileStatusModifiedColor"]];
+	//int priority = [aNumber intValue];
 
-	if ( [aString isEqualToString:@"?"] )
-	return [NSUnarchiver unarchiveObjectWithData:[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey:@"svnFileStatusNewColor"]];
-
-	if ( [aString isEqualToString:@"!"] )
-	return [NSUnarchiver unarchiveObjectWithData:[[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey:@"svnFileStatusMissingColor"]];
+	if ([aString length] == 1)
+	{
+		NSString* prefKey = nil;
+		switch ([aString characterAtIndex: 0])
+		{
+			case 'M':	prefKey = @"svnFileStatusModifiedColor";	break;
+			case '?':	prefKey = @"svnFileStatusNewColor";			break;
+			case '!':	prefKey = @"svnFileStatusMissingColor";		break;
+		}
+		if (prefKey != nil)
+			return [NSUnarchiver unarchiveObjectWithData: GetPreference(prefKey)];
+	}
 
     return [NSColor blackColor];
 }

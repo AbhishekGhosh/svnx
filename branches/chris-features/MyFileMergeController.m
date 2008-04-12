@@ -33,10 +33,10 @@
 
 - (IBAction)validate:(id)sender
 {
-	if ( [objectController valueForKeyPath:@"content.sourceItem.callback"] ) // see singleFileInspector
+	id callback = [objectController valueForKeyPath: @"content.sourceItem.callback"];
+	if (callback)	// see singleFileInspector
 	{
-		id callback = [objectController valueForKeyPath:@"content.sourceItem.callback"];
-		[callback closeCallback];
+	//	[callback closeCallback];
 	}
 	
 	[NSApp endSheet:svnSheet returnCode:[sender tag]];
@@ -61,53 +61,55 @@
 //	[targetName setStringValue:[[item objectForKey:@"path"] lastPathComponent]];
 }
 
-# pragma mark FileMerge
+
+//----------------------------------------------------------------------------------------
+# pragma mark	FileMerge
 
 - (IBAction)compare:(id)sender
 {
-	if ( [sender tag ] == 0 ) // Compare working copy to selected 
-	{
-		[MySvn	   fileMergeItems: [NSArray arrayWithObject:[objectController valueForKeyPath:@"content.sourceItem.fullPath"]]
-				   generalOptions: [self svnOptionsInvocation]
-						  options: [NSArray arrayWithObject:[NSString stringWithFormat:@"-r%@", [svnLogView selectedRevision]]]
-						 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
-					 callbackInfo: nil
-						 taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self documentName], @"documentName", nil]];
+	NSString* revOption = ([sender tag ] == 0) ? @"-r%@"		// Compare working copy to selected
+											   : @"-r%@:%@";	// Compare marked to selected
 
-	} else // tag == 1    Compare marked to selected
-	{   
-		[MySvn	   fileMergeItems: [NSArray arrayWithObject:[objectController valueForKeyPath:@"content.sourceItem.fullPath"]]
-				   generalOptions: [self svnOptionsInvocation]
-						  options: [NSArray arrayWithObject:[NSString stringWithFormat:@"-r%@:%@", [svnLogView selectedRevision], [svnLogView currentRevision]]]
-						 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
-					 callbackInfo: nil
-						 taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self documentName], @"documentName", nil]];
-	}
+	[MySvn fileMergeItems: [NSArray arrayWithObject:[objectController valueForKeyPath:@"content.sourceItem.fullPath"]]
+		   generalOptions: [self svnOptionsInvocation]
+				  options: [NSArray arrayWithObject:[NSString stringWithFormat:revOption,
+														[svnLogView selectedRevision], [svnLogView currentRevision]]]
+				 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
+			 callbackInfo: nil
+				 taskInfo: [NSDictionary dictionaryWithObject: [self documentName] forKey: @"documentName"]];
 }
+
+
+// used by svnFileMergeFromRepository
 
 - (IBAction)compareUrl:(id)sender
-/* used by svnFileMergeFromRepository */
 {
-		[MySvn	   fileMergeItems: [NSArray arrayWithObject:[[objectController valueForKeyPath:@"content.sourceItem.url"] absoluteString]]
-				   generalOptions: [self svnOptionsInvocation]
-						  options: [NSArray arrayWithObject:[NSString stringWithFormat:@"-r%@:%@", [svnLogView selectedRevision], [svnLogView currentRevision]]]
-						 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
-					 callbackInfo: nil
-						 taskInfo: [NSDictionary dictionaryWithObjectsAndKeys:[self documentName], @"documentName", nil]];
+	[MySvn fileMergeItems: [NSArray arrayWithObject:[[objectController valueForKeyPath:@"content.sourceItem.url"] absoluteString]]
+		   generalOptions: [self svnOptionsInvocation]
+				  options: [NSArray arrayWithObject:[NSString stringWithFormat:@"-r%@:%@",
+														[svnLogView selectedRevision], [svnLogView currentRevision]]]
+				 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
+			 callbackInfo: nil
+				 taskInfo: [NSDictionary dictionaryWithObject: [self documentName] forKey: @"documentName"]];
 }
+
 
 -(void)fileMergeCallback:(id)taskObj
 {
 	if ( [[taskObj valueForKey:@"status"] isEqualToString:@"completed"] )
 	{
-		
-	} else
-	if ( [[taskObj valueForKey:@"stderr"] length] > 0 ) [self svnError:[taskObj valueForKey:@"stderr"]];
-
+		;
+	}
+	else if ( [[taskObj valueForKey:@"stderr"] length] > 0 )
+	{
+		[svnLogView svnError: [taskObj valueForKey: @"stderr"]];
+	}
 }
 
-#pragma mark -
-#pragma mark Tab View delegate
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+#pragma mark	Tab View delegate
 
 - (void)tabView:(NSTabView *)tabView willSelectTabViewItem:(NSTabViewItem *)tabViewItem
 {
@@ -120,43 +122,44 @@
 	if ( isFileMergeFromRepository )
 	{
 		[svnLogView setUrl:[objectController valueForKeyPath:@"content.itemUrl"]];
-		
-	} else // This was invoked from a working copy window
-	{
-		[svnLogView setPath:[objectController valueForKeyPath:@"content.itemPath"]]; // with FileMerge operation, logView doesn't need and URL and a revision... just a path	
 	}
-	
+	else // This was invoked from a working copy window
+	{
+		// with FileMerge operation, logView doesn't need and URL and a revision... just a path
+		[svnLogView setPath:[objectController valueForKeyPath:@"content.itemPath"]];
+	}
+
 	[svnLogView fetchSvnLog];
-	
 }
 
-#pragma mark -
-#pragma mark Helpers
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+#pragma mark	Helpers
 
 - (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind
 {
-	
 	SEL callbackSelector;
-	NSInvocation *callback;
 
 	switch ( callbackKind )
-	{		
+	{
 		case SVNXCallbackFileMerge:
-			
 			callbackSelector = @selector(fileMergeCallback:);
-		
-		break;
+			break;
 	}
-	
-	callback = [NSInvocation invocationWithMethodSignature:[MyFileMergeController instanceMethodSignatureForSelector:callbackSelector]];
+
+	NSInvocation* callback = [NSInvocation invocationWithMethodSignature:
+									[MyFileMergeController instanceMethodSignatureForSelector:callbackSelector]];
 	[callback setSelector:callbackSelector];
-	[callback setTarget:self];	
+	[callback setTarget:self];
 
 	return callback;
 }
 
-#pragma mark -
-#pragma mark Accessors
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+#pragma mark	Accessors
 
 - (NSWindow *)window
 {
@@ -169,8 +172,10 @@
 }
 
 
-- (NSInvocation *) svnOptionsInvocation { return svnOptionsInvocation; }
-- (void) setSvnOptionsInvocation: (NSInvocation *) aSvnOptionsInvocation {
+- (NSInvocation*) svnOptionsInvocation { return svnOptionsInvocation; }
+
+- (void) setSvnOptionsInvocation: (NSInvocation*) aSvnOptionsInvocation
+{
     id old = [self svnOptionsInvocation];
     svnOptionsInvocation = [aSvnOptionsInvocation retain];
     [old release];
@@ -180,3 +185,4 @@
 
 
 @end
+

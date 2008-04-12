@@ -8,7 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-NSString* UTF8 (const char* aUTF8String);
+NSString* UTF8   (const char* aUTF8String);
+BOOL      ToUTF8 (NSString* string, char* buf, unsigned int bufSize);
 
 
 // NSString Additions

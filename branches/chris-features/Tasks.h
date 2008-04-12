@@ -2,8 +2,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class MySvn;
-
 @interface Tasks : NSObject
 {
     IBOutlet NSArrayController *tasksAC;
@@ -18,13 +16,11 @@
 
 + (id) sharedInstance;
 
-- (IBAction)stopTask:(id)sender;
-- (IBAction)clearCompleted:(id)sender;
+- (IBAction) stopTask:       (id) sender;
+- (IBAction) clearCompleted: (id) sender;
 
+- (void) newTaskWithDictionary: (NSMutableDictionary*) taskObj;
+- (void) taskDataAvailable: (NSNotification*) aNotification isError: (BOOL) isError;
 - (void) cancelCallbacksOnTarget: (id) target;
-- (void) invokeCallBackForTask: (id) taskObj;
-- (NSMutableAttributedString*) appendString:       (NSString*)                  string
-							   toAttributedString: (NSMutableAttributedString*) otherString
-							   errorStyle:         (BOOL)                       isError;
 
 @end

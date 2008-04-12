@@ -22,7 +22,7 @@ NSString* const kTypeRepositoryPathAndRevision = @"REPOSITORY_PATH_AND_REVISION_
 
 	NSDictionary *fileObj = [NSUnarchiver unarchiveObjectWithData:[pboard dataForType: kTypeRepositoryPathAndRevision]];
 
-	[[[self document] controller] requestSwitchToRepositoryPath:fileObj];
+	[[[(id) self document] controller] requestSwitchToRepositoryPath:fileObj];
 	
 	return YES;
 }

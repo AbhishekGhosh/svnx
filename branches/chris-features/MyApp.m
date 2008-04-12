@@ -1,6 +1,7 @@
 #import "MyApp.h"
 #import "GetEthernetAddrSample.h"
 #import "RepositoriesController.h"
+#include "CommonUtils.h"
 
 
 //----------------------------------------------------------------------------------------
@@ -43,9 +44,6 @@ addTransform (Class itsClass, NSString* itsName)
 
 + (void)initialize
 {
-	const id kTrue  = (id) kCFBooleanTrue,
-			 kFalse = (id) kCFBooleanFalse;
-
 	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
 	NSData *svnFileStatusModifiedColor = [NSArchiver archivedDataWithRootObject:[NSColor blackColor]];
 	NSData *svnFileStatusNewColor      = [NSArchiver archivedDataWithRootObject:[NSColor blueColor]];
@@ -56,15 +54,17 @@ addTransform (Class itsClass, NSString* itsName)
 	[dictionary setObject:svnFileStatusMissingColor forKey:@"svnFileStatusMissingColor"];
 	
 	[dictionary setObject:@"/usr/local/bin" forKey:@"svnBinariesFolder"];
-	[dictionary setObject: kTrue forKey: @"cacheSvnQueries"];
+	[dictionary setObject: kNSTrue forKey: @"cacheSvnQueries"];
 	[dictionary setObject:[NSNumber numberWithInt:0] forKey:@"defaultDiffApplication"];
 	[dictionary setObject:@"%m/%d/%y %H:%M:%S" forKey:@"dateformat"];
 
-	[dictionary setObject: kTrue  forKey: @"addWorkingCopyOnCheckout"];
-	[dictionary setObject: kFalse forKey: @"useOldParsingMethod"];
+	[dictionary setObject: kNSTrue  forKey: @"addWorkingCopyOnCheckout"];
+	[dictionary setObject: kNSFalse forKey: @"useOldParsingMethod"];
 
-	[dictionary setObject: kTrue forKey: @"abbrevWCFilePaths"];
-	[dictionary setObject: kTrue forKey: @"expandWCTree"];
+	[dictionary setObject: kNSTrue forKey: @"abbrevWCFilePaths"];
+	[dictionary setObject: kNSTrue forKey: @"expandWCTree"];
+
+	[dictionary setObject: [NSNumber numberWithInt: 99] forKey: @"loggingLevel"];
 
 	[[NSUserDefaultsController sharedUserDefaultsController] setInitialValues:dictionary];
 

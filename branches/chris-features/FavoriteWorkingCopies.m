@@ -3,6 +3,8 @@
 #import "MyDragSupportArrayController.h"
 #import "MyRepository.h"
 #import "MyWorkingCopy.h"
+#include "CommonUtils.h"
+
 
 static NSString* const kDocType = @"workingCopy";
 
@@ -35,8 +37,9 @@ static NSString* const kDocType = @"workingCopy";
 
 - (void)dealloc
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
+	[[NSNotificationCenter defaultCenter] removeObserver: self];
+	[[NSUserDefaultsController sharedUserDefaultsController] removeObserver: self];
+
 	[self setFavoriteWorkingCopies:nil];
 	[super dealloc];
 }
@@ -70,16 +73,24 @@ static NSString* const kDocType = @"workingCopy";
 	// Notification for user creating a new working copy - now add item into favorites list.
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newWorkingCopyNotificationHandler:) name:@"newWorkingCopy" object:nil];
 
+	[[NSUserDefaultsController sharedUserDefaultsController]
+							addObserver: self
+							forKeyPath:  @"values.abbrevWCFilePaths"
+							options:     0
+							context:     NULL];
+
 	[super awakeFromNib];
 }
 
-//
-//- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-//{
-//
-//	[self saveFavoriteWorkingCopiesPrefs];
-//
-//}
+
+- (void) observeValueForKeyPath: (NSString*)     keyPath
+		 ofObject:               (id)            object
+		 change:                 (NSDictionary*) change
+		 context:                (void*)         context
+{
+	[workingCopiesTableView setNeedsDisplay: TRUE];
+}
+
 
 -(void)newWorkingCopyNotificationHandler:(NSNotification *)notification
 {
@@ -193,8 +204,7 @@ static NSString* const kDocType = @"workingCopy";
 {
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 	[prefs setObject: [NSArchiver archivedDataWithRootObject: [self favoriteWorkingCopies]] forKey: @"favoriteWorkingCopies"];
-	CFBooleanRef editShown = [[self disclosureView] state] ? kCFBooleanTrue : kCFBooleanFalse;
-	[prefs setObject: (id) editShown forKey: @"wcEditShown"];
+	[prefs setObject: NSBool([[self disclosureView] state]) forKey: @"wcEditShown"];
 	[prefs synchronize];
 }
 

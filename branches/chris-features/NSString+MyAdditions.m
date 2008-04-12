@@ -9,10 +9,22 @@
 #import "NSString+MyAdditions.h"
 
 
+//----------------------------------------------------------------------------------------
+
 NSString*
 UTF8 (const char* aUTF8String)
 {
-	return [NSString stringWithUTF8String: aUTF8String];
+	return aUTF8String ? [NSString stringWithUTF8String: aUTF8String] : @"";
+}
+
+
+//----------------------------------------------------------------------------------------
+
+BOOL
+ToUTF8 (NSString* string, char* buf, unsigned int bufSize)
+{
+	return string &&
+		   [string getCString: buf maxLength: bufSize encoding: NSUTF8StringEncoding];
 }
 
 

@@ -5,9 +5,17 @@
 @implementation MyDragSupportMatrix
 
 // Special init would be done here :
-- (id)initWithFrame:(NSRect)frameRect mode:(int)aMode prototype:(NSCell *)aCell numberOfRows:(int)numRows numberOfColumns:(int)numColumns
+- (id) initWithFrame:   (NSRect)  frameRect
+	   mode:            (int)     aMode
+	   prototype:       (NSCell*) aCell
+	   numberOfRows:    (int)     numRows
+	   numberOfColumns: (int)     numColumns
 {
-	if ( self = [super initWithFrame:frameRect mode:aMode prototype:aCell numberOfRows:numRows numberOfColumns:numColumns] )
+	if (self = [super initWithFrame: frameRect
+							   mode: aMode
+						  prototype: aCell
+					   numberOfRows: numRows
+					numberOfColumns: numColumns])
 	{	
 		// register for files dragged to the repository (-> svn import)
 		[self registerForDraggedTypes: [NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
@@ -18,19 +26,19 @@
 
 - (id)initWithCoder:(NSCoder *)decoder
 {
-    if (self = [super initWithCoder:decoder])
+	if (self = [super initWithCoder:decoder])
 	{
         [self registerForDraggedTypes: [NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
-    }
-    return self;
+	}
+	return self;
 }
 
 //  - dealloc:
 - (void)dealloc
 {
-    [self setDestinationCell: nil];
+	[self setDestinationCell: nil];
 
-    [super dealloc];
+	[super dealloc];
 }
 
 
@@ -40,12 +48,12 @@
 
 - (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
 {
-    if ([sender draggingSource] == self)
+	if ([sender draggingSource] == self)
 	{
         return NSDragOperationNone;
-    } else {
+	} else {
         return NSDragOperationAll;
-    }
+	}
 }
 
 - (void)mouseDown:(NSEvent *)event
@@ -114,27 +122,26 @@
 	return cellIsSelected;
 }
 
-- (void)mouseDragged:(NSEvent *)event
+
+enum { kDragImageSize = 32, kDragImageOffset = kDragImageSize / 2 };
+static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
+
+
+- (void) mouseDragged: (NSEvent*) event
 {
-	NSPoint dragPoint;
-	int row, col;
+	NSRect srcRect = { [self convertPoint: [event locationInWindow] fromView: nil], gDragImageSize };
+	srcRect.origin.x -= kDragImageOffset;
+	srcRect.origin.y -= kDragImageOffset;
 
-	NSCell *cell;
-    NSPoint dragPosition;
-    NSRect imageLocation;
-
-    dragPosition = [self convertPoint:[event locationInWindow] fromView:nil];
-    imageLocation.origin = dragPosition;
-    imageLocation.size = NSMakeSize(32,32);
-	
 	// dragPromisedFilesOfTypes is meant for Finder. This will in turn call dragImage:at:offset... that we will override
 	// below to implement dragging to working copy (svn switch). See http://developer.apple.com/qa/qa2001/qa1300.html
-	
-    [self dragPromisedFilesOfTypes:[[self selectedCells] valueForKeyPath:@"representedObject.fileType"] // key/value coding magic !
-            fromRect:imageLocation
-            source:self
-            slideBack:YES
-            event:event]; 
+
+	NSArray* types = [[self selectedCells] valueForKeyPath: @"representedObject.fileType"];	// key/value coding magic!
+	[self dragPromisedFilesOfTypes: types
+						  fromRect: srcRect
+						    source: self
+						 slideBack: YES
+							 event: event];
 }
 
 
@@ -157,35 +164,47 @@
 			[pboard addTypes:[NSArray arrayWithObject: kTypeRepositoryPathAndRevision] owner: self];
 			[pboard setData: [NSArchiver archivedDataWithRootObject:[selectedCell valueForKey:@"representedObject"]]
 					forType: kTypeRepositoryPathAndRevision];
-			anImage = [NSImage imageNamed: @"repository"];
+			anImage = [NSImage imageNamed: @"Repository"];
 
 			sourceObject = self;
 			slideBack = NO;
 		}
 	}
 
-	const NSSize imgSize = { 32, 32 };
-	[anImage setSize: imgSize];
-	NSImage* image = [[NSImage alloc] initWithSize: imgSize];
+	[anImage setSize: gDragImageSize];
+	NSImage* image = [[NSImage alloc] initWithSize: gDragImageSize];
 	[image lockFocus];
 	[anImage dissolveToPoint: NSMakePoint(0, 0) fraction: 0.667];
 	[image unlockFocus];
 
-	imageLoc.x -= 16;
-	imageLoc.y -= 16;
-	[super dragImage:image at:imageLoc offset:mouseOffset event:theEvent pasteboard:pboard source:sourceObject slideBack:slideBack];
+	[super dragImage: image
+				  at: imageLoc
+			  offset: mouseOffset
+			   event: theEvent
+		  pasteboard: pboard
+			  source: sourceObject
+		   slideBack: slideBack];
 }
 
 
 - (unsigned int)draggingSourceOperationMaskForLocal:(BOOL)isLocal
 {
-  return NSDragOperationCopy | NSDragOperationPrivate;
+	return NSDragOperationCopy | NSDragOperationPrivate;
+}
+
+
+- (id) document
+{
+//	NSLog(@"MyDragSupportMatrix document=%@", [[self window] classDescription]);
+	return [(id) [self window] document];
 }
 
 
 - (NSArray *)namesOfPromisedFilesDroppedAtDestination:(NSURL *)dropDestination
 {
-	[[[self window] document] dragOutFilesFromRepository:[[self selectedCells] valueForKey:@"representedObject"] toURL:dropDestination];
+	[[self document]
+			dragOutFilesFromRepository: [[self selectedCells] valueForKey:@"representedObject"]
+			toURL: dropDestination];
 	
 	return NULL; // we're just interested in the dropDestination.
 }
@@ -195,7 +214,6 @@
 	// Panther bug workaround (http://www.cocoabuilder.com/archive/message/cocoa/2005/1/31/127154
 	// and http://www.cocoabuilder.com/archive/message/2004/10/5/118857)
 	[[NSPasteboard pasteboardWithName:NSDragPboard] declareTypes:nil owner:nil];
-
 }
 
 
@@ -205,21 +223,18 @@
 
 - (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender
 {
-    NSPoint point;
-    NSRect drawRect, cellRect;
-    int row, column;
-
-    if ([sender draggingSource] == self) return NSDragOperationNone;
+	if ([sender draggingSource] == self) return NSDragOperationNone;
 
 	NSArray *files = [[sender draggingPasteboard] propertyListForType:NSFilenamesPboardType];
 
 	if ( [files count] != 1 ) return NSDragOperationNone;
-	
+
+	int row, column;
 	if ( [self getRow: &row column: &column forPoint:[self convertPoint:[sender draggingLocation] fromView: nil]] )
 	{
 		NSCell *cell = [self cellAtRow:row column:column];
 		NSDictionary *obj = [cell representedObject];
-		
+
 		if ( ![[obj objectForKey:@"isDir"] boolValue] )
 		{
 			shouldDraw = NO;
@@ -228,9 +243,9 @@
 			[self setNeedsDisplay:TRUE];
 			return NSDragOperationNone;
 		}
-		
+
 		[self setDestinationCell: cell];
-		drawRect = [self cellFrameAtRow:row column:column];
+		NSRect drawRect = [self cellFrameAtRow:row column:column];
 
 		shouldDraw = TRUE;
 
@@ -241,53 +256,50 @@
 		}
 
 		return NSDragOperationAll;
-		
-	} else
+	}
+	else
 	{
 		shouldDraw = NO;
 		[self setNeedsDisplay:TRUE];
 		return NSDragOperationNone;
 	}
-	
 }
 
-- (void)draggingExited:(id <NSDraggingInfo>)sender {
+- (void)draggingExited:(id <NSDraggingInfo>)sender
+{
 	shouldDraw = NO;
 	newDrawRect = NSZeroRect;
 	oldDrawRect = NSZeroRect;
-    [self setNeedsDisplay:TRUE];
+	[self setNeedsDisplay:TRUE];
 }
 
-- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender {
-    NSPasteboard *pboard;
-    NSArray *types;
-
+- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender
+{
 	shouldDraw = NO;
 	newDrawRect = NSZeroRect;
 	oldDrawRect = NSZeroRect;
-    [self setNeedsDisplay:TRUE];
+	[self setNeedsDisplay:TRUE];
 
-    pboard = [sender draggingPasteboard];
+	NSPasteboard* pboard = [sender draggingPasteboard];
 	NSArray *files = [pboard propertyListForType:NSFilenamesPboardType];
 
-	[[[self window] document] dragExternalFiles:files ToRepositoryAt:[[self destinationCell] representedObject]];
-	
-    return YES;
+	[[self document] dragExternalFiles:files ToRepositoryAt:[[self destinationCell] representedObject]];
+
+	return YES;
 }
 
-- (void) drawRect:(NSRect)rect {
-    [super drawRect:rect];
-	
-    if (shouldDraw)
+- (void) drawRect:(NSRect)rect
+{
+	[super drawRect:rect];
+
+	if (shouldDraw)
 	{
-        NSRect rect;
+		shouldDraw = TRUE;
+		[[NSColor blackColor] set];
+		[NSBezierPath strokeRect:newDrawRect];
 
-        shouldDraw = TRUE;
-        [[NSColor blackColor] set];
-        [NSBezierPath strokeRect:newDrawRect];
-
-        oldDrawRect = newDrawRect;
-    }
+		oldDrawRect = newDrawRect;
+	}
 }
 
 
@@ -295,11 +307,13 @@
 #pragma mark -
 #pragma mark Accessors
 
-- (NSCell *)destinationCell { return destinationCell; }
-- (void)setDestinationCell:(NSCell *)aDestinationCell {
-    id old = [self destinationCell];
-    destinationCell = [aDestinationCell retain];
-    [old release];
+- (NSCell*) destinationCell { return destinationCell; }
+
+- (void) setDestinationCell: (NSCell*) aDestinationCell
+{
+	id old = [self destinationCell];
+	destinationCell = [aDestinationCell retain];
+	[old release];
 }
 
 

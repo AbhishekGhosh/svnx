@@ -2,7 +2,6 @@
 
 #import <Cocoa/Cocoa.h>
 #import "MySvnView.h"
-#import "SvnListParser.h"
 
 @interface MySvnRepositoryBrowserView : MySvnView
 {
@@ -18,13 +17,13 @@
 - (void)unload;
 
 - (void) onDoubleClick: (id) sender;
-- (void)fetchSvn;
-- (void)fetchSvnListForUrl:(NSString *)theURL
-		column:(int)column matrix:(NSMatrix *)matrix;
+- (void) fetchSvn;
+- (void) fetchSvnListForUrl: (NSString*) theURL
+		 column:             (int)       column
+		 matrix:             (NSMatrix*) matrix;
 - (void) displayResultArray: (NSArray*)  resultArray
 		 column:             (int)       column
 		 matrix:             (NSMatrix*) matrix;
-- (NSArray*) parseSvnListResult: (NSString*) resultString;
 
 - (NSMutableArray*) selectedItems;
 - (void) setAllowsEmptySelection: (BOOL) flag;
