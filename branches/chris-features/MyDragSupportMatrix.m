@@ -4,7 +4,8 @@
 
 @implementation MyDragSupportMatrix
 
-// Special init would be done here :
+// Special init would be done here:
+
 - (id) initWithFrame:   (NSRect)  frameRect
 	   mode:            (int)     aMode
 	   prototype:       (NSCell*) aCell
@@ -16,7 +17,7 @@
 						  prototype: aCell
 					   numberOfRows: numRows
 					numberOfColumns: numColumns])
-	{	
+	{
 		// register for files dragged to the repository (-> svn import)
 		[self registerForDraggedTypes: [NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
 	}
@@ -24,17 +25,19 @@
 	return self;
 }
 
-- (id)initWithCoder:(NSCoder *)decoder
+
+- (id) initWithCoder: (NSCoder*) decoder
 {
 	if (self = [super initWithCoder:decoder])
 	{
-        [self registerForDraggedTypes: [NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
+		[self registerForDraggedTypes: [NSArray arrayWithObjects:NSFilenamesPboardType, nil]];
 	}
 	return self;
 }
 
+
 //  - dealloc:
-- (void)dealloc
+- (void) dealloc
 {
 	[self setDestinationCell: nil];
 
@@ -43,85 +46,83 @@
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Drag Out (export/checkout)
+// Called if this is not the main repository browser.  Disables drag & drop and double-clicks.
 
-- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
+- (void) setupForSubBrowser
 {
-	if ([sender draggingSource] == self)
-	{
-        return NSDragOperationNone;
-	} else {
-        return NSDragOperationAll;
-	}
+	isSubBrowser = TRUE;
+	[self unregisterDraggedTypes];
 }
 
-- (void)mouseDown:(NSEvent *)event
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+#pragma mark	Drag Out (export/checkout)
+
+- (NSDragOperation) draggingEntered: (id<NSDraggingInfo>) sender
+{
+	return (isSubBrowser || [sender draggingSource] == self) ? NSDragOperationNone : NSDragOperationAll;
+}
+
+
+- (void) mouseDown: (NSEvent*) event
 {
 	// need to override this because NSMatrix eats drag events
 	int row, col;
 
 	if ([event clickCount] == 2)
 	{
-		[self setDoubleAction: @selector(onDoubleClick:)];
-		[super mouseDown: event];
+		if (!isSubBrowser )
+		{
+			[self setDoubleAction: @selector(onDoubleClick:)];
+			[super mouseDown: event];
+		}
 	}
 	else if ([self getRow: &row column: &col forPoint:[self convertPoint:[event locationInWindow] fromView: nil]])
 	{
-		if ([event modifierFlags] & NSCommandKeyMask)
+		const int nCols = [self numberOfColumns];
+		BOOL sendAction = YES;
+		if ([event modifierFlags] & NSCommandKeyMask)		// Toggle
 		{
-			int r, c, s, i, i2;
-			r = [self selectedRow];
-			c = [self selectedColumn];
-			s = [self numberOfColumns];
-			i = r*s + c;
-			i2 = row*s + col;
-			[self setSelectionFrom:i2 to:i2 anchor:i2 highlight:YES];     
+			int i2 = row * nCols + col;
+			NSBrowserCell* cell = [self cellAtRow: row column: col];
+			if ([cell isEnabled])
+				[self setSelectionFrom: i2 to: i2 anchor: i2 highlight: ![self isCellSelected: cell]];
+			else
+				sendAction = NO;
 		}
-		else if ([event modifierFlags] & NSShiftKeyMask)
+		else if ([event modifierFlags] & NSShiftKeyMask)	// Continuous selection
 		{
-			int r, c, s, i, i2;
-			r = [self selectedRow];
-			c = [self selectedColumn];
-			s = [self numberOfColumns];
-			i = r*s + c;
-			i2 = row*s + col;
-			[self setSelectionFrom:i to:i2 anchor:i highlight:YES];
+			int r = [self selectedRow];
+			int c = [self selectedColumn];
+			int i = r * nCols + c;
+			int i2 = row * nCols + col;
+			[self setSelectionFrom: i to: i2 anchor: i highlight: YES];
 		}
 		else
 		{
-			if ( ![self isCellSelected: [self cellAtRow: row column: col]] )
-				[self selectCellAtRow:row column:col];
+			NSBrowserCell* cell = [self cellAtRow: row column: col];
+			if ([cell isEnabled] && ![self isCellSelected: cell])
+				[self selectCellAtRow: row column: col];
 		}
 
-		[self sendAction];
-		// this is used to deal with NSBrowser issues
-		[[self window] makeFirstResponder:self];
+		if (sendAction)
+			[self sendAction];
+
+		[[self window] makeFirstResponder: self];	// this is used to deal with NSBrowser issues
 	}
 	else
 		[super mouseDown: event];
 }
 
 
-- (BOOL)isCellSelected:(NSCell *)cell
+- (BOOL) isCellSelected: (NSCell*) cell
 {
-	NSArray *selectedCells = [self selectedCells];
-	NSEnumerator *e = [selectedCells objectEnumerator];
-	id c;
-	BOOL cellIsSelected = FALSE;
-	
-	while ( c = [e nextObject] )
-	{
-		if ( c == cell )
-		{
-			cellIsSelected = TRUE;
-			break;
-		}
-	}
-	
-	return cellIsSelected;
+	return [[self selectedCells] indexOfObjectIdenticalTo: cell] != NSNotFound;
 }
 
+
+//----------------------------------------------------------------------------------------
 
 enum { kDragImageSize = 32, kDragImageOffset = kDragImageSize / 2 };
 static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
@@ -129,6 +130,9 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 
 - (void) mouseDragged: (NSEvent*) event
 {
+	if (isSubBrowser)
+		return;
+
 	NSRect srcRect = { [self convertPoint: [event locationInWindow] fromView: nil], gDragImageSize };
 	srcRect.origin.x -= kDragImageOffset;
 	srcRect.origin.y -= kDragImageOffset;
@@ -187,9 +191,9 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 }
 
 
-- (unsigned int)draggingSourceOperationMaskForLocal:(BOOL)isLocal
+- (unsigned int) draggingSourceOperationMaskForLocal: (BOOL) isLocal
 {
-	return NSDragOperationCopy | NSDragOperationPrivate;
+	return isSubBrowser ? NSDragOperationNone : NSDragOperationCopy | NSDragOperationPrivate;
 }
 
 
@@ -200,7 +204,7 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 }
 
 
-- (NSArray *)namesOfPromisedFilesDroppedAtDestination:(NSURL *)dropDestination
+- (NSArray*) namesOfPromisedFilesDroppedAtDestination: (NSURL*) dropDestination
 {
 	[[self document]
 			dragOutFilesFromRepository: [[self selectedCells] valueForKey:@"representedObject"]
@@ -209,7 +213,10 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 	return NULL; // we're just interested in the dropDestination.
 }
 
-- (void)draggedImage:(NSImage *)anImage endedAt:(NSPoint)aPoint operation:(NSDragOperation)operation
+
+- (void) draggedImage: (NSImage*)        anImage
+		 endedAt:      (NSPoint)         aPoint
+		 operation:    (NSDragOperation) operation
 {
 	// Panther bug workaround (http://www.cocoabuilder.com/archive/message/cocoa/2005/1/31/127154
 	// and http://www.cocoabuilder.com/archive/message/2004/10/5/118857)
@@ -218,12 +225,13 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Drag In (import)
+#pragma mark	-
+#pragma mark	Drag In (import)
 
-- (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender
+- (NSDragOperation) draggingUpdated: (id<NSDraggingInfo>) sender
 {
-	if ([sender draggingSource] == self) return NSDragOperationNone;
+	if (isSubBrowser || [sender draggingSource] == self)
+		return NSDragOperationNone;
 
 	NSArray *files = [[sender draggingPasteboard] propertyListForType:NSFilenamesPboardType];
 
@@ -250,7 +258,8 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 		shouldDraw = TRUE;
 
 		// Don't ask the view to draw it self unless necessary
-		if (NSEqualRects(drawRect, oldDrawRect) == FALSE) {
+		if (!NSEqualRects(drawRect, oldDrawRect))
+		{
 			newDrawRect = drawRect;
 			[self setNeedsDisplay:TRUE];
 		}
@@ -265,7 +274,8 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 	}
 }
 
-- (void)draggingExited:(id <NSDraggingInfo>)sender
+
+- (void) draggingExited: (id<NSDraggingInfo>) sender
 {
 	shouldDraw = NO;
 	newDrawRect = NSZeroRect;
@@ -273,8 +283,12 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 	[self setNeedsDisplay:TRUE];
 }
 
-- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender
+
+- (BOOL) performDragOperation: (id<NSDraggingInfo>) sender
 {
+	if (isSubBrowser)
+		return NO;
+
 	shouldDraw = NO;
 	newDrawRect = NSZeroRect;
 	oldDrawRect = NSZeroRect;
@@ -288,15 +302,17 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 	return YES;
 }
 
-- (void) drawRect:(NSRect)rect
+
+- (void) drawRect: (NSRect) rect
 {
-	[super drawRect:rect];
+	[super drawRect: rect];
 
 	if (shouldDraw)
 	{
 		shouldDraw = TRUE;
-		[[NSColor blackColor] set];
-		[NSBezierPath strokeRect:newDrawRect];
+		[[NSColor blackColor] setStroke];
+	//	[[NSColor selectedControlColor] setStroke];
+		[NSBezierPath strokeRect: newDrawRect];
 
 		oldDrawRect = newDrawRect;
 	}
@@ -304,17 +320,18 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Accessors
+#pragma mark	-
+#pragma mark	Accessors
 
 - (NSCell*) destinationCell { return destinationCell; }
 
 - (void) setDestinationCell: (NSCell*) aDestinationCell
 {
-	id old = [self destinationCell];
+	id old = destinationCell;
 	destinationCell = [aDestinationCell retain];
 	[old release];
 }
 
 
 @end
+

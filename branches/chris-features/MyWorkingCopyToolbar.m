@@ -63,8 +63,9 @@
 
 	[self createItem: @"View" view: modeView, 62, 20, 62, 20];
 
-	[self createItem: @"refresh" label: @"Refresh" image: @"Reload"
-		  help:       @"Refresh"];
+	[self createItem: @"refresh" label: @"Refresh" image: @"Refresh"
+		  help:       @"Refresh the display.\n"
+					   "Alt-click to also show repository updates."];
 
 	[self createItem: @"svnFileMerge" label: @"Diff" image: @"FileMerge"
 		  help:       @"Compare selected files with its base revision.\n"

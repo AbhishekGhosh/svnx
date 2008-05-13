@@ -8,11 +8,16 @@
 
 #import <Foundation/Foundation.h>
 
-NSString* UTF8   (const char* aUTF8String);
-BOOL      ToUTF8 (NSString* string, char* buf, unsigned int bufSize);
+NSString* UTF8				(const char* aUTF8String);
+BOOL      ToUTF8			(NSString* string, char* buf, unsigned int bufSize);
+NSString* PathWithRevision	(id path, id revision);
+NSString* PathPegRevision	(id path, id revision);
+NSString* PathPegRevNum		(id path, unsigned int revision);
 
 
+//----------------------------------------------------------------------------------------
 // NSString Additions
+
 @interface NSString (MyAdditions)
 
 + (NSString*) stringByAddingPercentEscape: (NSString*) url;
@@ -21,11 +26,14 @@ BOOL      ToUTF8 (NSString* string, char* buf, unsigned int bufSize);
 - (NSString*) escapeURL;
 - (NSString*) trimSlashes;
 - (NSString*) normalizeEOLs;
+- (NSString*) withRevision: (NSString*) revision;
 
 @end
 
 
+//----------------------------------------------------------------------------------------
 // NSTextView Additions
+
 @interface  NSTextView (MyAdditions)
 
 - (void) appendString: (NSString*) string

@@ -56,9 +56,10 @@ makeCommandDict (NSString* command, NSString* destination)
 
 //----------------------------------------------------------------------------------------
 
-- (void)awakeFromNib
+- (void) awakeFromNib
 {
 	isDisplayingErrorSheet = NO;
+	[self setStatusMessage: @""];
 
 	[document   addObserver:self forKeyPath:@"flatMode"
 				options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
@@ -67,7 +68,7 @@ makeCommandDict (NSString* command, NSString* destination)
 	[drawerLogView setUp];
 
 	NSTableView* tableView = [[window contentView] viewWithTag: vFlatTable];
-	[[[tableView tableColumnWithIdentifier: @"path"] dataCell] setDrawsBackground: false];
+	[[[tableView tableColumnWithIdentifier: @"path"] dataCell] setDrawsBackground: NO];
 
 	[self setNextResponder: [tableView nextResponder]];
 	[tableView setNextResponder: self];
@@ -80,7 +81,7 @@ makeCommandDict (NSString* command, NSString* destination)
 		if (settings != nil)
 		{
 			if (![[settings objectForKey: keyShowToolbar] boolValue])
-				[[window toolbar] setVisible: false];
+				[[window toolbar] setVisible: NO];
 
 			ConstString widowFrame = [settings objectForKey: keyWidowFrame];
 			if (widowFrame != nil)
@@ -139,8 +140,21 @@ makeCommandDict (NSString* command, NSString* destination)
 
 //----------------------------------------------------------------------------------------
 
+- (void) windowDidBecomeKey: (NSNotification*) notification
+{
+	#pragma unused(notification)
+	if (!svnStatusPending && GetPreferenceBool(@"autoRefreshWC"))
+	{
+		[document svnRefresh];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
 - (void) windowDidMove: (NSNotification*) notification
 {
+	#pragma unused(notification)
 	[self savePrefs];
 }
 
@@ -149,6 +163,7 @@ makeCommandDict (NSString* command, NSString* destination)
 
 - (void) windowDidResize: (NSNotification*) notification
 {
+	#pragma unused(notification)
 	[self savePrefs];
 }
 
@@ -192,6 +207,7 @@ makeCommandDict (NSString* command, NSString* destination)
 		 change:                 (NSDictionary*) change
 		 context:                (void*)         context
 {
+	#pragma unused(object, change, context)
 	if ( [keyPath isEqualToString:@"flatMode"] )
 	{
 		[self adjustOutlineView];
@@ -258,12 +274,12 @@ makeCommandDict (NSString* command, NSString* destination)
 			savedSelection = nil;
 		}
 
-		NSArray* sel = [svnFilesAC selectedObjects];
-		const int count = [sel count];
+		NSArray* const selectedObjects = [svnFilesAC selectedObjects];
+		const int count = [selectedObjects count];
 		if (count > 0)
 		{
 			NSMutableArray* files = [NSMutableArray arrayWithCapacity: count];
-			NSEnumerator* it = [sel objectEnumerator];
+			NSEnumerator* it = [selectedObjects objectEnumerator];
 			NSDictionary* dict;
 			while (dict = [it nextObject])
 				[files addObject: [dict objectForKey: @"fullPath"]];
@@ -279,7 +295,6 @@ makeCommandDict (NSString* command, NSString* destination)
 - (void) restoreSelection
 {
 //	NSLog(@"restoreSelection=%@ tree='%@'", savedSelection, [document outlineSelectedPath]);
-//	NSLog(@"restoreSelection=%@ tree='%@'\nsvnFiles=%@", savedSelection, [document outlineSelectedPath], [svnFilesAC arrangedObjects]);
 	if (savedSelection != nil)
 	{
 		NSArray* const wcFiles = [svnFilesAC arrangedObjects];
@@ -317,8 +332,9 @@ makeCommandDict (NSString* command, NSString* destination)
 #pragma mark IBActions
 //----------------------------------------------------------------------------------------
 
-- (IBAction)openAWorkingCopy:(id)sender;
+- (IBAction) openAWorkingCopy: (id) sender
 {
+	#pragma unused(sender)
     NSOpenPanel *oPanel = [NSOpenPanel openPanel];
 	
     [oPanel setAllowsMultipleSelection:NO];
@@ -332,8 +348,12 @@ makeCommandDict (NSString* command, NSString* destination)
 		];
 }
 
-- (void)openPanelDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+
+- (void) openPanelDidEnd: (NSOpenPanel*) sheet
+		 returnCode:      (int)          returnCode
+		 contextInfo:     (void*)        contextInfo
 {
+	#pragma unused(contextInfo)
 	if (returnCode == NSOKButton)
 	{
 		NSString* pathToFile = [[[sheet filenames] objectAtIndex:0] copy];
@@ -343,13 +363,18 @@ makeCommandDict (NSString* command, NSString* destination)
 	}
 }
 
+
 - (IBAction) refresh: (id) sender
 {
-	[document svnRefresh];
+	#pragma unused(sender)
+	if (!svnStatusPending)
+		[document svnRefresh];
 }
+
 
 - (IBAction) toggleView: (id) sender
 {
+	#pragma unused(sender)
 	//[[self document] setFlatMode:!([[self document] flatMode])];
 
 //	[self adjustOutlineView];
@@ -357,14 +382,14 @@ makeCommandDict (NSString* command, NSString* destination)
 
 
 //----------------------------------------------------------------------------------------
-// Add, Delete, Update, Revert, Resolved, Commit, Lock, Unlock
+// Add, Delete, Update, Revert, Resolved, Lock, Unlock, Commit
 
 static NSString* const gCommands[] = {
-	@"add", @"remove", @"update", @"revert", @"resolved", @"commit", @"lock", @"unlock"
+	@"add", @"remove", @"update", @"revert", @"resolved", @"lock", @"unlock", @"commit"
 };
 
 static NSString* const gVerbs[] = {
-	@"add", @"remove", @"update", @"revert", @"resolve", @"commit", @"lock", @"unlock"
+	@"add", @"remove", @"update", @"revert", @"resolve", @"lock", @"unlock", @"commit"
 };
 
 
@@ -375,22 +400,37 @@ static NSString* const gVerbs[] = {
 	const unsigned int action = [[sender selectedCell] tag];
 	if (action < sizeof(gCommands) / sizeof(gCommands[0]))
 	{
-		[self runAlertBeforePerformingAction:
-			[NSDictionary dictionaryWithObjectsAndKeys: gCommands[action], @"command", gVerbs[action], @"verb", nil]];
+		[self performSelector: @selector(runAlertBeforePerformingAction:)
+			  withObject: [NSDictionary dictionaryWithObjectsAndKeys: gCommands[action], @"command",
+																	  gVerbs[action], @"verb", nil]
+			  afterDelay: 0];
 	}
 }
 
 
 //----------------------------------------------------------------------------------------
+// If there is a single selected item then return it else return nil.
+// Private:
 
-
-- (void) doubleClickInTableView:(id)sender
+- (NSDictionary*) selectedItemOrNil
 {
-	if ([[svnFilesAC selectedObjects] count] == 1 )
+	NSArray* const selectedObjects = [svnFilesAC selectedObjects];
+	return ([selectedObjects count] == 1) ? [selectedObjects objectAtIndex: 0] : nil;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) doubleClickInTableView: (id) sender
+{
+	#pragma unused(sender)
+	NSDictionary* selection;
+	if (selection = [self selectedItemOrNil])
 	{
-		[[NSWorkspace sharedWorkspace] openFile:[[[svnFilesAC selectedObjects] objectAtIndex:0] objectForKey:@"fullPath"]];
+		[[NSWorkspace sharedWorkspace] openFile: [selection objectForKey: @"fullPath"]];
 	}
 }
+
 
 - (void) adjustOutlineView
 {
@@ -453,7 +493,7 @@ static NSString* const gVerbs[] = {
 {
 	[self startProgressIndicator];
 
-	[document fetchSvnStatus: ([[NSApp currentEvent] modifierFlags] & (NSAlternateKeyMask | NSShiftKeyMask)) != 0];
+	[document fetchSvnStatus: AltOrShiftPressed()];
 }
 
 
@@ -511,13 +551,16 @@ static NSString* const gVerbs[] = {
 
 //----------------------------------------------------------------------------------------
 
-- (IBAction)openRepository:(id)sender
+- (IBAction) openRepository: (id) sender
 {
+	#pragma unused(sender)
 	[[NSApp delegate] openRepository: [document repositoryUrl] user: [document user] pass: [document pass]];
 }
 
-- (IBAction)toggleSidebar:(id)sender
+
+- (IBAction) toggleSidebar: (id) sender
 {
+	#pragma unused(sender)
 	[sidebar toggle:sender];
 }
 
@@ -575,12 +618,26 @@ static NSString* const gVerbs[] = {
 
 
 //----------------------------------------------------------------------------------------
+
+- (void) setStatusMessage: (NSString*) message
+{
+	id obj = message ? (id) message : [document repositoryUrl];
+	if (obj)
+		[statusView setStringValue: message ? message : PathWithRevision(obj, [document revision])];
+	else
+		[self performSelector: @selector(setStatusMessage:) withObject: nil afterDelay: 0.5];	// try later
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark Split View delegate
 //----------------------------------------------------------------------------------------
 
-- (BOOL)splitView:(NSSplitView *)sender canCollapseSubview:(NSView *)subview
+- (BOOL) splitView:          (NSSplitView*) sender
+		 canCollapseSubview: (NSView*)      subview
 {
+	#pragma unused(sender)
 	NSView *leftView = [[splitView subviews] objectAtIndex:0];
 	
 	if ( subview == leftView )
@@ -589,46 +646,48 @@ static NSString* const gVerbs[] = {
 				   // Collasping a view is obviously not setting its width to 0 ONLY.
 				   // If I allow user collapsing here, I won't be able to expand the left view with the "toggle button"
 				   // (it will remain closed, in spite of a size.width > 0);
-	
-	} else
-	{
-		return NO;
 	}
+
+	return NO;
 }
 
-- (GCoord)splitView:(NSSplitView *)sender constrainMaxCoordinate:(GCoord)proposedMax ofSubviewAt:(int)offset
-{	
-	if ( offset == 0 )
-	{
-		if ( [document flatMode] ) return 0;
-	}	
-	return proposedMax;
-}
 
-- (GCoord)splitView:(NSSplitView *)sender constrainMinCoordinate:(GCoord)proposedMin ofSubviewAt:(int)offset
+- (GCoord) splitView:              (NSSplitView*) sender
+		   constrainMaxCoordinate: (GCoord)       proposedMax
+		   ofSubviewAt:            (int)          offset
 {
-	//NSView *leftView = [[splitView subviews] objectAtIndex:0];
-	if ( [document flatMode] ) return (GCoord)0;
-	
-	return (GCoord)140;
+	#pragma unused(sender)
+	return proposedMax * (offset ? 1.0 : 0.5);	// max tree width = .5 * window-width
 }
 
-- (void)splitView:(NSSplitView *)sender resizeSubviewsWithOldSize:(NSSize)oldSize
+
+- (GCoord) splitView:              (NSSplitView*) sender
+		   constrainMinCoordinate: (GCoord)       proposedMin
+		   ofSubviewAt:            (int)          offset
 {
-    // how to resize a horizontal split view so that the left frame stays a constant size
-    NSView *left = [[sender subviews] objectAtIndex:0];      // get the two sub views
-    NSView *right = [[sender subviews] objectAtIndex:1];
-    GCoord dividerThickness = [sender dividerThickness];		// and the divider thickness
-    NSRect newFrame = [sender frame];                           // get the new size of the whole splitView
-    NSRect leftFrame = [left frame];                            // current size of the left subview
-    NSRect rightFrame = [right frame];                          // ...and the right
-    leftFrame.size.height = newFrame.size.height;               // resize the height of the left
-    leftFrame.origin = NSMakePoint(0,0);                        // don't think this is needed
-    rightFrame.size.width = newFrame.size.width - leftFrame.size.width - dividerThickness;  // the rest of the width
-    rightFrame.size.height = newFrame.size.height;              // the whole height
-    rightFrame.origin.x = leftFrame.size.width + dividerThickness;  // 
-    [left setFrame:leftFrame];
-    [right setFrame:rightFrame];
+	#pragma unused(sender)
+	return offset ? proposedMin : 140;			// min tree width = 140
+}
+
+
+- (void) splitView:                 (NSSplitView*) sender
+		 resizeSubviewsWithOldSize: (NSSize)       oldSize
+{
+	#pragma unused(oldSize)
+	// how to resize a horizontal split view so that the left frame stays a constant size
+	NSView *left = [[sender subviews] objectAtIndex:0];			// get the two sub views
+	NSView *right = [[sender subviews] objectAtIndex:1];
+	GCoord dividerThickness = [sender dividerThickness];		// and the divider thickness
+	NSRect newFrame = [sender frame];							// get the new size of the whole splitView
+	NSRect leftFrame = [left frame];							// current size of the left subview
+	NSRect rightFrame = [right frame];							// ...and the right
+	leftFrame.size.height = newFrame.size.height;				// resize the height of the left
+	leftFrame.origin = NSMakePoint(0,0);						// don't think this is needed
+	rightFrame.size.width = newFrame.size.width - leftFrame.size.width - dividerThickness;  // the rest of the width
+	rightFrame.size.height = newFrame.size.height;				// the whole height
+	rightFrame.origin.x = leftFrame.size.width + dividerThickness;
+	[left setFrame:leftFrame];
+	[right setFrame:rightFrame];
 }
 
 
@@ -640,93 +699,87 @@ static NSString* const gVerbs[] = {
 //----------------------------------------------------------------------------------------
 #pragma mark	svn update
 
-- (void)svnUpdate:(id)sender
+- (void) svnUpdate: (id) sender
 {
-	[[NSAlert alertWithMessageText:[NSString stringWithFormat:@"Update this working copy to the latest revision?", @"update"]
-					 defaultButton:@"OK"
-				   alternateButton:@"Cancel"
-					   otherButton:nil
-		 informativeTextWithFormat:@""]
-		
-		beginSheetModalForWindow:[self window]
-				   modalDelegate:self
-				  didEndSelector:@selector(updateWorkingCopyPanelDidEnd:returnCode:contextInfo:)
-					 contextInfo:nil];					 
+	#pragma unused(sender)
+	[[NSAlert alertWithMessageText: @"Update this working copy to the latest revision?"
+					 defaultButton: @"OK"
+				   alternateButton: @"Cancel"
+					   otherButton: nil
+		 informativeTextWithFormat: @""]
+
+		beginSheetModalForWindow: [self window]
+				   modalDelegate: self
+				  didEndSelector: @selector(updateWorkingCopyPanelDidEnd:returnCode:contextInfo:)
+					 contextInfo: NULL];					 
 }
 
-- (void)updateWorkingCopyPanelDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void  *)contextInfo
-{	
+
+- (void) updateWorkingCopyPanelDidEnd: (NSAlert*) alert
+		 returnCode:                   (int)      returnCode
+		 contextInfo:                  (void*)    contextInfo
+{
+	#pragma unused(alert, contextInfo)
 	if ( returnCode == 0 ) return;
 
-	[document svnUpdate];
+	[document performSelector: @selector(svnUpdate) withObject: nil afterDelay: 0.1];
 }
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark	svn merge
+#pragma mark	svn diff
 
-- (void)fileHistoryOpenSheetForItem:(id)item;
+- (void) fileHistoryOpenSheetForItem: (id) item
 {
 	// close the sheet if it is already open
-	if ( [fileMergeController window] )
-		[NSApp endSheet:[fileMergeController window]];
-	
-	if ( [NSBundle loadNibNamed:@"svnFileMerge" owner:fileMergeController] )
-	{
-	//	NSLog(@"fileHistoryOpenSheetForItem: item=<%@>",
-	//			[[NSURL URLWithString: [item objectForKey: @"displayPath"] relativeToURL: [document repositoryUrl]] absoluteString]);
-	//	[fileMergeController setUrl:[self url]];
-		[fileMergeController setPath:[item objectForKey:@"fullPath"]];
-		[fileMergeController setSvnOptionsInvocation:[[self document] svnOptionsInvocation]];
-		[fileMergeController setSourceItem:item];
-		[fileMergeController setup]; 
+	if ([window attachedSheet])
+		[NSApp endSheet: [window attachedSheet]];
 
-		[NSApp beginSheet:[fileMergeController window]
-		   modalForWindow:[document windowForSheet]
-			modalDelegate:self
-		   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-			  contextInfo:nil];
-	}	
+	[MyFileMergeController runDiffSheet: document path: [item objectForKey: @"fullPath"]
+						   sourceItem: item];
 }
 
 
 - (void) svnFileMerge: (id) sender
 {
-	NSArray* selectedObjects = [svnFilesAC selectedObjects];
-
-	if (([[NSApp currentEvent] modifierFlags] & (NSAlternateKeyMask | NSShiftKeyMask)) != 0)
+	#pragma unused(sender)
+	if (AltOrShiftPressed())
 	{
-		if ( [selectedObjects count] != 1 )
+		NSDictionary* selection;
+		if (selection = [self selectedItemOrNil])
 		{
-			[self svnError:@"Please select exactly one item."];
-			return;
+			[self fileHistoryOpenSheetForItem: selection];
 		}
-
-		[self fileHistoryOpenSheetForItem:[selectedObjects objectAtIndex:0]];
+		else
+		{
+			[self svnError: @"Please select exactly one item."];
+		}
 	}
 	else
 	{
-		[[self document] fileMergeItems:[selectedObjects mutableArrayValueForKey:@"fullPath"]];
+		[document diffItems: [[svnFilesAC selectedObjects] valueForKey: @"fullPath"]];
 	}
 }
 
 
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
+- (void) sheetDidEnd: (NSWindow*) sheet
+		 returnCode:  (int)       returnCode
+		 contextInfo: (void*)     contextInfo
 {
-	[sheet orderOut:nil];
-	
+	[sheet orderOut: nil];
+
 	if ( returnCode == 1 )
 	{
 	}
-	
-	[fileMergeController unload];
+
+	[(MyFileMergeController*) contextInfo finished];
 }
 
 
 //----------------------------------------------------------------------------------------
 #pragma mark	svn rename
 
-- (void) requestSvnRenameSelectedItemTo:(NSString *)destination
+- (void) requestSvnRenameSelectedItemTo: (NSString*) destination
 {
 	[self runAlertBeforePerformingAction: makeCommandDict(@"rename", destination)];
 }
@@ -735,50 +788,61 @@ static NSString* const gVerbs[] = {
 //----------------------------------------------------------------------------------------
 #pragma mark	svn move
 
-- (void)requestSvnMoveSelectedItemsToDestination:(NSString *)destination
+- (void) requestSvnMoveSelectedItemsToDestination: (NSString*) destination
 {
 	NSMutableDictionary* action = makeCommandDict(@"move", destination);
 
-	if ( [[svnFilesAC selectedObjects] count] == 1 )
+	NSDictionary* selection;
+	if (selection = [self selectedItemOrNil])
 	{
-		[renamePanel setTitle:@"Move and rename"];
-		[renamePanelTextField setStringValue:[[[[svnFilesAC selectedObjects] objectAtIndex:0] valueForKey:@"path"] lastPathComponent]];
-		[NSApp beginSheet:renamePanel modalForWindow:[self window] modalDelegate:self
-			   didEndSelector:@selector(renamePanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
+		[renamePanel setTitle: @"Move and rename"];
+		[renamePanelTextField setStringValue: [[selection valueForKey: @"path"] lastPathComponent]];
+		[NSApp beginSheet:     renamePanel
+			   modalForWindow: [self window]
+			   modalDelegate:  self
+			   didEndSelector: @selector(renamePanelDidEnd:returnCode:contextInfo:)
+			   contextInfo:    [action retain]];
 	}
 	else
-		[self runAlertBeforePerformingAction:action];
+		[self runAlertBeforePerformingAction: action];
 }
 
 
 //----------------------------------------------------------------------------------------
 #pragma mark	svn copy
 
-- (void) requestSvnCopySelectedItemsToDestination:(NSString *)destination
+- (void) requestSvnCopySelectedItemsToDestination: (NSString*) destination
 {
 	NSMutableDictionary* action = makeCommandDict(@"copy", destination);
 
-	if ( [[svnFilesAC selectedObjects] count] == 1 )
+	NSDictionary* selection;
+	if (selection = [self selectedItemOrNil])
 	{
-		[renamePanel setTitle:@"Copy and rename"];
-		[renamePanelTextField setStringValue:[[[[svnFilesAC selectedObjects] objectAtIndex:0] valueForKey:@"path"] lastPathComponent]];
-		[NSApp beginSheet:renamePanel modalForWindow:[self window] modalDelegate:self
-			   didEndSelector:@selector(renamePanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
-	
-	} else
-		[self runAlertBeforePerformingAction:action];
+		[renamePanel setTitle: @"Copy and rename"];
+		[renamePanelTextField setStringValue: [[selection valueForKey: @"path"] lastPathComponent]];
+		[NSApp beginSheet:     renamePanel
+			   modalForWindow: [self window]
+			   modalDelegate:  self
+			   didEndSelector: @selector(renamePanelDidEnd:returnCode:contextInfo:)
+			   contextInfo:    [action retain]];
+	}
+	else
+		[self runAlertBeforePerformingAction: action];
 }
 
 
 //----------------------------------------------------------------------------------------
 #pragma mark	svn copy & svn move common 
 
-- (void)renamePanelDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void) renamePanelDidEnd: (NSWindow*) sheet
+		 returnCode:        (int)       returnCode
+		 contextInfo:       (void*)     contextInfo
 {
 	[sheet orderOut:nil];
 	NSMutableDictionary *action = contextInfo;
 	
-	[action setObject:[[(id) contextInfo objectForKey:@"destination"] stringByAppendingPathComponent:[renamePanelTextField stringValue]] forKey:@"destination"];
+	[action setObject:[[(id) contextInfo objectForKey:@"destination"]
+					stringByAppendingPathComponent:[renamePanelTextField stringValue]] forKey:@"destination"];
 	
 	if ( returnCode == 1 )
 	{
@@ -788,7 +852,8 @@ static NSString* const gVerbs[] = {
 	[action release];																					
 }
 
-- (IBAction)renamePanelValidate:(id)sender;
+
+- (IBAction) renamePanelValidate: (id) sender
 {
 	[NSApp endSheet:renamePanel returnCode:[sender tag]];
 }
@@ -807,9 +872,9 @@ static NSString* const gVerbs[] = {
 	NSMutableDictionary* action = makeCommandDict(@"switch", path);
 	[action setObject: revision forKey: @"revision"];
 
-	[switchPanelSourceTextField setStringValue:[NSString stringWithFormat:@"%@ [Rev. %@]", [document repositoryUrl], [document revision]]];
-	[switchPanelDestinationTextField setStringValue:[NSString stringWithFormat:@"%@ [Rev. %@]", path, revision]];
-	
+	[switchPanelSourceTextField setStringValue: PathWithRevision([document repositoryUrl], [document revision])];
+	[switchPanelDestinationTextField setStringValue: PathWithRevision(path, revision)];
+
 	[NSApp beginSheet:switchPanel modalForWindow:[self window] modalDelegate:self
 		   didEndSelector:@selector(switchPanelDidEnd:returnCode:contextInfo:) contextInfo:[action retain]];
 }
@@ -825,32 +890,27 @@ static NSString* const gVerbs[] = {
 		 returnCode:        (int)       returnCode
 		 contextInfo:       (void*)     contextInfo
 {
-	[sheet orderOut:nil];
-	NSMutableDictionary *action = contextInfo;
-	
-	if ( returnCode == 1 )
+	[sheet orderOut: nil];
+	NSMutableDictionary* action = contextInfo;
+
+	if (returnCode == 1)
 	{
-		if ( [switchPanelRelocateButton intValue] == 1 )//  --relocate
+		id objs[10];
+		int count = 0;
+		objs[count++] = @"-r";
+		objs[count++] = [action objectForKey: @"revision"];
+		if ([switchPanelRelocateButton intValue] == 1)	// --relocate
 		{
-			[document svnCommand:@"switch" options:[NSArray arrayWithObjects:@"-r",
-															[action objectForKey:@"revision"],
-															@"--relocate",
-															[[document repositoryUrl] absoluteString],
-															[action objectForKey:@"destination"],
-															[document workingCopyPath],
-															nil] info:nil];
+			objs[count++] = @"--relocate";
+			objs[count++] = [[document repositoryUrl] absoluteString];
 		}
-		else
-		{
-			[document svnCommand:@"switch" options:[NSArray arrayWithObjects:@"-r",
-															[action objectForKey:@"revision"],
-															[action objectForKey:@"destination"],
-															[document workingCopyPath],
-														//	[action objectForKey:@"source"],
-															nil] info:nil];
-		}
+		objs[count++] = [action objectForKey: @"destination"];
+		objs[count++] = [document workingCopyPath];
+		[document performSelector: @selector(svnSwitch:)
+					   withObject: [NSArray arrayWithObjects: objs count: count]
+					   afterDelay: 0.1];
 	}
-	
+
 	[action release];																					
 }
 
@@ -860,85 +920,100 @@ static NSString* const gVerbs[] = {
 #pragma mark	Common Methods
 //----------------------------------------------------------------------------------------
 
-- (void)runAlertBeforePerformingAction:(NSDictionary *)command
+- (void) runAlertBeforePerformingAction: (NSDictionary*) command
 {
-	if ( [[command objectForKey:@"command"] isEqualToString:@"commit"] )
+	if ([[command objectForKey: @"command"] isEqualToString: @"commit"])
 	{
-		[self startCommitMessage:@"selected"];
+		[self startCommitMessage: @"selected"];
 	}
 	else
 	{
-		[[NSAlert alertWithMessageText:[NSString stringWithFormat: @"Are you sure you want to %@ the selected items?",
-																   [command objectForKey:@"verb"]]
-			defaultButton:@"Yes"
-			alternateButton:@"No"
-			otherButton:nil
-			informativeTextWithFormat:@""]
-			
-			beginSheetModalForWindow:window
-						modalDelegate:self
-						didEndSelector:@selector(commandPanelDidEnd:returnCode:contextInfo:)
-						contextInfo:[command retain]];
+		NSString* message = [NSString stringWithFormat: @"Are you sure you want to %@ the selected items?",
+														[command objectForKey: @"verb"]];
+		NSAlert* alert = [NSAlert alertWithMessageText: message
+										 defaultButton: @"Yes"
+									   alternateButton: @"No"
+										   otherButton: nil
+							 informativeTextWithFormat: @""];
+		[alert beginSheetModalForWindow: window
+						  modalDelegate: self
+						 didEndSelector: @selector(commandPanelDidEnd:returnCode:contextInfo:)
+							contextInfo: [command retain]];
 	}
 }
 
 
-- (void)commandPanelDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void  *)contextInfo
+- (void) svnCommand: (id) action
 {
-	id action = contextInfo;
-	NSString *command = [action objectForKey:@"command"];
+	NSString* const command = [action objectForKey: @"command"];
 
-	if ( returnCode == 0 )
+	if ([command isEqualToString: @"rename"] ||
+		[command isEqualToString: @"move"] ||
+		[command isEqualToString: @"copy"])
 	{
-		[svnFilesAC discardEditing]; // cancel editing, useful to revert a row being renamed (see TableViewDelegate).
-		[action release];
-		return;
+		[document svnCommand: command options: [action objectForKey: @"options"] info: action];
 	}
-	
-	if ( [command isEqualToString:@"rename"] )
+	else if ([command isEqualToString: @"remove"])
 	{
-		[[self document] svnCommand:@"rename" options:[action objectForKey:@"options"] info:contextInfo];
+		[document svnCommand: command options: [NSArray arrayWithObject: @"--force"] info: nil];
 	}
-	else if ( [command isEqualToString:@"move"] )
+	else if ([command isEqualToString: @"commit"])
 	{
-		[[self document] svnCommand:@"move" options:[action objectForKey:@"options"] info:contextInfo];
-	}
-	else if ( [command isEqualToString:@"copy"] )
-	{
-		[[self document] svnCommand:@"copy" options:[action objectForKey:@"options"] info:contextInfo];
-	}
-	else if ( [command isEqualToString:@"remove"] )
-	{
-		[[self document] svnCommand:@"remove" options:[NSArray arrayWithObject:@"--force"] info:nil];
-	}
-	else if ( [command isEqualToString:@"commit"] )
-	{
-		[self startCommitMessage:@"selected"];
+		[self startCommitMessage: @"selected"];
 	}
 	else
 	{
-		[[self document] svnCommand:command options:nil info:nil];
+		[document svnCommand: command options: nil info: nil];
 	}
 
 	[action release];
 }
 
-- (void)startCommitMessage:(NSString *)selectedOrAll
+
+- (void) commandPanelDidEnd: (NSAlert*) alert
+		 returnCode:         (int)      returnCode
+		 contextInfo:        (void*)    contextInfo
 {
-	[NSApp beginSheet:commitPanel   modalForWindow:[self window]
-									modalDelegate:self
-									didEndSelector:@selector(commitPanelDidEnd:returnCode:contextInfo:)
-									contextInfo:[selectedOrAll retain]];
+	#pragma unused(alert)
+	id action = contextInfo;
+
+	if (returnCode == 1)
+	{
+		[self performSelector: @selector(svnCommand:) withObject: action afterDelay: 0.1];
+	}
+	else
+	{
+		[svnFilesAC discardEditing]; // cancel editing, useful to revert a row being renamed (see TableViewDelegate).
+		[action release];
+	}
 }
 
 
-- (void) commitPanelDidEnd: (NSWindow*) sheet returnCode: (int) returnCode contextInfo: (void*) contextInfo;
+//----------------------------------------------------------------------------------------
+
+- (void) startCommitMessage: (NSString*) selectedOrAll
 {
-	if ( returnCode == 1 )
+	[NSApp beginSheet:     commitPanel
+		   modalForWindow: [self window]
+		   modalDelegate:  self
+		   didEndSelector: @selector(commitPanelDidEnd:returnCode:contextInfo:)
+		   contextInfo:    [selectedOrAll retain]];
+}
+
+
+- (void) commitPanelDidEnd: (NSWindow*) sheet
+		 returnCode:        (int)       returnCode
+		 contextInfo:       (void*)     contextInfo
+{
+	if (returnCode == 1)
 	{
-		[document svnCommand: @"commit"
-				  options:    [NSArray arrayWithObjects: @"-m", [[commitPanelText string] normalizeEOLs], nil]
-				  info:       nil];
+#if 1
+		[document svnCommit: [[commitPanelText string] normalizeEOLs]];
+#else
+		[document performSelector: @selector(svnCommit:)
+				  withObject:      [[commitPanelText string] normalizeEOLs]
+				  afterDelay:      0.1];
+#endif
 	}
 	[(id) contextInfo release];	
 	[sheet close];
@@ -948,22 +1023,24 @@ static NSString* const gVerbs[] = {
 //----------------------------------------------------------------------------------------
 // Error Sheet
 
-- (void)svnError:(NSString*)errorString
+- (void) doSvnError: (NSString*) errorString
 {
-	// close any existing sheet that is not an svnError sheet (workaround a "double sheet" effect that can occur because svn info and svn status are launched simultaneously)
-	if ( !isDisplayingErrorSheet && [window attachedSheet] != nil ) [NSApp endSheet:[window attachedSheet]];
-	
+	// close any existing sheet that is not an svnError sheet (workaround a "double sheet" effect
+	// that can occur because svn info and svn status are launched simultaneously)
+	if ( !isDisplayingErrorSheet && [window attachedSheet] != nil )
+		[NSApp endSheet:[window attachedSheet]];
+
  	[self stopProgressIndicator];
 	
 	if ( !isDisplayingErrorSheet )
 	{
 		isDisplayingErrorSheet = YES;
 
-		NSAlert *alert = [NSAlert alertWithMessageText:@"Error"
-				defaultButton:@"OK"
-				alternateButton:nil
-				otherButton:nil
-				informativeTextWithFormat:errorString];
+		NSAlert* alert = [NSAlert alertWithMessageText: @"Error"
+										 defaultButton: @"OK"
+									   alternateButton: nil
+										   otherButton: nil
+							 informativeTextWithFormat: @"%@", errorString];
 
 		[alert setAlertStyle:NSCriticalAlertStyle];
 
@@ -974,43 +1051,64 @@ static NSString* const gVerbs[] = {
 	}
 }
 
-- (void)svnErrorSheetEnded:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo
+
+- (void) svnError: (NSString*) errorString
 {
+	[self performSelector: @selector(doSvnError:) withObject: errorString afterDelay: 0.1];
+}
+
+
+- (void) svnErrorSheetEnded: (NSAlert*) alert
+		 returnCode:         (int)      returnCode
+		 contextInfo:        (void*)    contextInfo
+{
+	#pragma unused(alert, returnCode, contextInfo)
 	isDisplayingErrorSheet = NO;
 }
 
 
 //----------------------------------------------------------------------------------------
 
-- (IBAction)commitPanelValidate:(id)sender
+- (IBAction) commitPanelValidate: (id) sender
 {
+	#pragma unused(sender)
 	[NSApp endSheet:commitPanel returnCode:1];
 }
 
-- (IBAction)commitPanelCancel:(id)sender
+
+- (IBAction) commitPanelCancel: (id) sender
 {
+	#pragma unused(sender)
 	[NSApp endSheet:commitPanel returnCode:0];
 }
 
-- (void)startProgressIndicator
+
+- (void) startProgressIndicator
 {
+	svnStatusPending = YES;
 	[progressIndicator startAnimation:self];
 }
-- (void)stopProgressIndicator
+
+
+- (void) stopProgressIndicator
 {
 	[progressIndicator stopAnimation:self];
 }
 
-//- (NSDictionary *)performActionMenusDict
-//{
-//	if ( performActionMenusDict == nil )
-//	{
-//		performActionMenusDict = [[NSDictionary dictionaryWithContentsOfFile:[[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"/Contents/Resources/" ]
-//								stringByAppendingPathComponent:@"performMenus.plist"]] retain];
-//	}
-//	
-//	return performActionMenusDict;
-//}
+
+#if 0
+- (NSDictionary*) performActionMenusDict
+{
+	if ( performActionMenusDict == nil )
+	{
+		performActionMenusDict = [[NSDictionary dictionaryWithContentsOfFile:
+						[[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"/Contents/Resources/"]
+								stringByAppendingPathComponent:@"performMenus.plist"]] retain];
+	}
+
+	return performActionMenusDict;
+}
+#endif
 
 
 //----------------------------------------------------------------------------------------
@@ -1018,30 +1116,37 @@ static NSString* const gVerbs[] = {
 #pragma mark	Convenience Accessors
 //----------------------------------------------------------------------------------------
 
--(MyWorkingCopy*)document
+- (MyWorkingCopy*) document
 {
 	return document;
 }
--(NSWindow*)window
+
+
+- (NSWindow*) window
 {
 	return window;
 }
 
 // Have the Finder show the parent folder for the selected files.
-///if no row in the list is selected then 
-///open the root directory of the project
-- (void)revealInFinder:(id)sender
+// if no row in the list is selected then open the root directory of the project
+
+- (void) revealInFinder: (id) sender
 {
+	#pragma unused(sender)
 	NSWorkspace *ws = [NSWorkspace sharedWorkspace];
-	
-	if([[svnFilesAC selectedObjects] count] <= 0) {
+	NSArray* const selectedObjects = [svnFilesAC selectedObjects];
+
+	if ([selectedObjects count] <= 0)
+	{
 		NSURL *fileURL = [NSURL fileURLWithPath:[document workingCopyPath]];
 		[ws selectFile:[fileURL path] inFileViewerRootedAtPath:nil];		
-	} else {
-		NSEnumerator *enumerator = [[svnFilesAC selectedObjects] objectEnumerator];
+	}
+	else
+	{
+		NSEnumerator *enumerator = [selectedObjects objectEnumerator];
 		id file;
 		
-		while(file = [enumerator nextObject]) 
+		while (file = [enumerator nextObject]) 
 		{
 			NSURL *fileURL = [NSURL fileURLWithPath:[file valueForKey:@"fullPath"]];
 			[ws selectFile:[fileURL path] inFileViewerRootedAtPath:nil];
@@ -1050,3 +1155,4 @@ static NSString* const gVerbs[] = {
 }
 
 @end
+

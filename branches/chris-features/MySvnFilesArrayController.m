@@ -1,12 +1,25 @@
 #import "MySvnFilesArrayController.h"
 #import "MyWorkingCopy.h"
 
+//----------------------------------------------------------------------------------------
+// Compare names alphabetically & case insensitively.
+
+static int
+compareNames (id obj1, id obj2, void* context)
+{
+	#pragma unused(context)
+	return [[obj1 objectForKey: @"displayPath"] caseInsensitiveCompare: [obj2 objectForKey: @"displayPath"]];
+}
+
+
+//----------------------------------------------------------------------------------------
+
 @implementation MySvnFilesArrayController
 
-- (void)search:(id)sender
+- (void) search: (id) sender
 {
-    [self setSearchString:[sender stringValue]];
-    [self rearrangeObjects];    
+	[self setSearchString:[sender stringValue]];
+	[self rearrangeObjects];    
 }
 
 
@@ -14,8 +27,8 @@
 {
     NSMutableArray* matchedObjects = [NSMutableArray arrayWithCapacity: [objects count]];
 
-	const int filterMode = [document filterMode];
-	const BOOL flatMode = [document flatMode];
+	const int filter = [document filterMode];
+	const BOOL treeMode = ![document flatMode];
 	NSString* const	selectedPath = [document outlineSelectedPath];
     NSString* const lowerSearch = (searchString != nil && [searchString length] > 0) ? [searchString lowercaseString] : nil;
 
@@ -26,43 +39,49 @@
 		NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 		BOOL test = TRUE;
 
-		if (filterMode != kFilterAll)
+		if (filter != kFilterAll)
 		{
-			const unichar ch = [[item objectForKey: @"col1"] characterAtIndex: 0];
+			const unichar c1 = [[item objectForKey: @"col1"] characterAtIndex: 0],
+						  c2 = [[item objectForKey: @"col2"] characterAtIndex: 0];
 
-			switch (filterMode)
+			switch (filter)
 			{
 				case kFilterModified:
-					test = (ch == 'M');
+					test = (c1 == 'M' || c2 == 'M');
 					break;
 
 				case kFilterNew:
-					test = (ch == '?');
+					test = (c1 == '?');
 					break;
 
 				case kFilterMissing:
-					test = (ch == '!');
+					test = (c1 == '!');
 					break;
 
 				case kFilterConflict:
-					test = (ch == 'C');
+					test = (c1 == 'C' || c2 == 'C');
 					break;
 
 				case kFilterChanged:	// Modified, added, deleted, replaced, conflict, missing, wrong kind
-					test = (ch == 'M' || ch == 'A' || ch == 'D' || ch == 'R' || ch == 'C' || ch == '!' || ch == '~');
+					test = (c1 == 'M' || c1 == 'A' || c1 == 'D' || c1 == 'R' || c1 == 'C' || c1 == '!' || c1 == '~');
+					if (!test)
+						test = (c2 == 'M' || c2 == 'C');		// Modified or conflict property
 					break;
 			}
 		}
 
-		if (test && !flatMode)
+		NSString* path = nil;
+		if (test && treeMode)
 		{
 			test = [[item objectForKey: @"dirPath"] isEqualToString: selectedPath] &&
-					![[item objectForKey: @"path"] isEqualToString: selectedPath];
+					![(path = [item objectForKey: @"path"]) isEqualToString: selectedPath];
 		}
 
 		if (test && lowerSearch)
 		{
-			test = ([[[item objectForKey: @"path"] lowercaseString] rangeOfString: lowerSearch].location != NSNotFound);
+			if (path == nil)
+				path = [item objectForKey: @"path"];
+			test = ([[path lowercaseString] rangeOfString: lowerSearch].location != NSNotFound);
 		}
 
 		if (test)
@@ -71,31 +90,40 @@
 		[pool release];
 	}
 
+#if 0
+	if (!treeMode && [matchedObjects count])
+	{
+		[matchedObjects sortUsingFunction: compareNames context: NULL];
+	}
+#endif
+
 	return [super arrangeObjects: matchedObjects];
 }
 
 
 //  - dealloc:
-- (void)dealloc
+- (void) dealloc
 {
-    [self setSearchString: nil];    
-    [super dealloc];
+	[self setSearchString: nil];    
+	[super dealloc];
 }
 
 
 // - searchString:
-- (NSString *)searchString
+- (NSString*) searchString
 {
 	return searchString;
 }
+
 // - setSearchString:
-- (void)setSearchString:(NSString *)newSearchString
+- (void) setSearchString: (NSString*) newSearchString
 {
-    if (searchString != newSearchString)
+	if (searchString != newSearchString)
 	{
-        [searchString autorelease];
-        searchString = [newSearchString copy];
-    }
+		[searchString autorelease];
+		searchString = [newSearchString copy];
+	}
 }
 
 @end
+

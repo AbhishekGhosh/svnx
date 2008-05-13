@@ -13,7 +13,7 @@ static NSString* const kDocType = @"workingCopy";
 
 @implementation FavoriteWorkingCopies
 
-- (id)init
+- (id) init
 {
 	self = [super init: @"wc"];
 	if (self)
@@ -35,12 +35,13 @@ static NSString* const kDocType = @"workingCopy";
 	return self;
 }
 
-- (void)dealloc
+
+- (void) dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
 	[[NSUserDefaultsController sharedUserDefaultsController] removeObserver: self];
 
-	[self setFavoriteWorkingCopies:nil];
+	[favoriteWorkingCopies release];
 	[super dealloc];
 }
 
@@ -57,21 +58,21 @@ static NSString* const kDocType = @"workingCopy";
 }
 
 
-- (void)awakeFromNib
+- (void) awakeFromNib
 {
 	tableView = workingCopiesTableView;
 
 	// Took me some time to find this one !!!
 	// There is no possibility to bind an ArrayController to an arbitrary object in Interface Builder... in Panther.
 	
-    [favoriteWorkingCopiesAC bind:@"contentArray" toObject:self  withKeyPath:@"favoriteWorkingCopies" options:nil];
+	[favoriteWorkingCopiesAC bind:@"contentArray" toObject:self  withKeyPath:@"favoriteWorkingCopies" options:nil];
 
-    [tableView registerForDraggedTypes:[NSArray arrayWithObjects:@"COPIED_ROWS_TYPE", @"MOVED_ROWS_TYPE", NSFilenamesPboardType, nil]];
-	
-//	[self addObserver:self forKeyPath:@"favoriteWorkingCopies" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
+	[tableView registerForDraggedTypes:
+					[NSArray arrayWithObjects:@"COPIED_ROWS_TYPE", @"MOVED_ROWS_TYPE", NSFilenamesPboardType, nil]];
 
 	// Notification for user creating a new working copy - now add item into favorites list.
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newWorkingCopyNotificationHandler:) name:@"newWorkingCopy" object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver: self 
+		selector: @selector(newWorkingCopyNotificationHandler:) name: @"newWorkingCopy" object: nil];
 
 	[[NSUserDefaultsController sharedUserDefaultsController]
 							addObserver: self
@@ -88,24 +89,28 @@ static NSString* const kDocType = @"workingCopy";
 		 change:                 (NSDictionary*) change
 		 context:                (void*)         context
 {
+	#pragma unused(keyPath, object, change, context)
 	[workingCopiesTableView setNeedsDisplay: TRUE];
 }
 
 
--(void)newWorkingCopyNotificationHandler:(NSNotification *)notification
+- (void) newWorkingCopyNotificationHandler: (NSNotification*) notification
 {
-	[self newWorkingCopyItemWithPath:[notification object]];
+	[self newWorkingCopyItemWithPath: [notification object]];
 	
-	[window makeKeyAndOrderFront:nil];
+	[window makeKeyAndOrderFront: nil];
 }
 
-- (IBAction)newWorkingCopyItem:(id)sender
+
+- (IBAction) newWorkingCopyItem: (id) sender
 {
-	[self newWorkingCopyItemWithPath:NSHomeDirectory()];
+	#pragma unused(sender)
+	[self newWorkingCopyItemWithPath: NSHomeDirectory()];
 }
+
 
 // Adds a new working copy with the given path.
-- (void)newWorkingCopyItemWithPath:(NSString *)workingCopyPath
+- (void) newWorkingCopyItemWithPath: (NSString*) workingCopyPath
 {
 	[favoriteWorkingCopiesAC addObject:
 		[NSMutableDictionary dictionaryWithObjectsAndKeys: @"My Project", @"name",
@@ -157,8 +162,9 @@ static NSString* const kDocType = @"workingCopy";
 }
 
 
-- (void)onDoubleClick:(id)sender
+- (void) onDoubleClick: (id) sender
 {
+	#pragma unused(sender)
 	if ( [[favoriteWorkingCopiesAC selectedObjects] count] != 0 )
 	{
 		const id selection = [favoriteWorkingCopiesAC valueForKey: @"selection"];
@@ -174,9 +180,10 @@ static NSString* const kDocType = @"workingCopy";
 }
 
 
-- (IBAction)openPath:(id)sender
+- (IBAction) openPath: (id) sender
 {
-    NSOpenPanel *oPanel = [NSOpenPanel openPanel];
+	#pragma unused(sender)
+	NSOpenPanel *oPanel = [NSOpenPanel openPanel];
 	NSString *selectionPath = [favoriteWorkingCopiesAC valueForKeyPath:@"selection.fullPath"];
 	
 	if (selectionPath == nil )
@@ -195,34 +202,40 @@ static NSString* const kDocType = @"workingCopy";
 		];
 }
 
-- (IBAction)onValidate:(id)sender
+
+- (IBAction) onValidate: (id) sender
 {
+	#pragma unused(sender)
 	[self saveFavoriteWorkingCopiesPrefs];
 }
 
-- (void)saveFavoriteWorkingCopiesPrefs
+
+- (void) saveFavoriteWorkingCopiesPrefs
 {
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
-	[prefs setObject: [NSArchiver archivedDataWithRootObject: [self favoriteWorkingCopies]] forKey: @"favoriteWorkingCopies"];
+	[prefs setObject: [NSArchiver archivedDataWithRootObject: favoriteWorkingCopies] forKey: @"favoriteWorkingCopies"];
 	[prefs setObject: NSBool([[self disclosureView] state]) forKey: @"wcEditShown"];
 	[prefs synchronize];
 }
 
 
-- (void)openPathDidEnd:(NSOpenPanel *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
- {
-    NSString *pathToFile = nil;
+- (void) openPathDidEnd: (NSOpenPanel*) sheet
+		 returnCode:     (int)          returnCode
+		 contextInfo:    (void*)        contextInfo
+{
+	#pragma unused(contextInfo)
+	NSString *pathToFile = nil;
 
-    if (returnCode == NSOKButton) {
-
-        pathToFile = [[[sheet filenames] objectAtIndex:0] copy];
+	if (returnCode == NSOKButton)
+	{
+		pathToFile = [[[sheet filenames] objectAtIndex:0] copy];
 		[favoriteWorkingCopiesAC setValue:pathToFile forKeyPath:@"selection.fullPath"];
 		[self saveFavoriteWorkingCopiesPrefs];
-
-    }
+	}
 }
 
-- (void)fileHistoryOpenSheetForItem:(NSString *)aPath
+
+- (void) fileHistoryOpenSheetForItem: (NSString*) aPath
 {
 	id bestMatchWc = nil;
 	int bestMatchScore = 0;
@@ -286,13 +299,13 @@ static NSString* const kDocType = @"workingCopy";
 #pragma mark Drag & drop
 //----------------------------------------------------------------------------------------
 
-- (BOOL)tableView:(NSTableView *)tv
-		writeRows:(NSArray*)rows
-	 toPasteboard:(NSPasteboard*)pboard
+- (BOOL) tableView:    (NSTableView*)  tv
+		 writeRows:    (NSArray*)      rows
+		 toPasteboard: (NSPasteboard*) pboard
 {
+	#pragma unused(tv)
 	// declare our own pasteboard types
     NSArray *typesArray = [NSArray arrayWithObjects:@"COPIED_ROWS_TYPE", @"MOVED_ROWS_TYPE", nil];
-
 
 	/*
 	 If the number of rows is not 1, then we only support our own types.
@@ -308,7 +321,7 @@ static NSString* const kDocType = @"workingCopy";
 	{
 		// Try to create an URL
 		// If we can, add NSURLPboardType to the declared types and write
-		//the URL to the pasteboard; otherwise declare existing types
+		// the URL to the pasteboard; otherwise declare existing types
 		int row = [[rows objectAtIndex:0] intValue];
 		NSString *urlString = [[[favoriteWorkingCopiesAC arrangedObjects] objectAtIndex:row] valueForKey:@"url"];
 		NSURL *url;
@@ -349,7 +362,7 @@ static NSString* const kDocType = @"workingCopy";
 				 proposedRow:(int)row
 	   proposedDropOperation:(NSTableViewDropOperation)op
 {
-    
+	#pragma unused(op)
     NSDragOperation dragOp = NSDragOperationCopy;
     
     // if drag source is self, it's a move
@@ -365,16 +378,17 @@ static NSString* const kDocType = @"workingCopy";
 }
 
 
-- (BOOL)tableView:(NSTableView*)tv
-	   acceptDrop:(id <NSDraggingInfo>)info
-			  row:(int)row
-	dropOperation:(NSTableViewDropOperation)op
+- (BOOL) tableView:     (NSTableView*)             tv
+		 acceptDrop:    (id<NSDraggingInfo>)       info
+		 row:           (int)                      row
+		 dropOperation: (NSTableViewDropOperation) op
 {
-    if (row < 0)
+	#pragma unused(tv, op)
+	if (row < 0)
 	{
 		row = 0;
 	}
-    
+
     // if drag source is self, it's a move
     if ([info draggingSource] == workingCopiesTableView)
     {
@@ -430,48 +444,6 @@ static NSString* const kDocType = @"workingCopy";
 		return YES;		
 	}
     return NO;
-}
-
-
-//----------------------------------------------------------------------------------------
-#pragma mark -
-#pragma mark Accessors
-//----------------------------------------------------------------------------------------
-
-///////  favoriteWorkingCopies  ///////
-
-- (unsigned int) countOfFavoriteWorkingCopies {
-    return [favoriteWorkingCopies count];
-}
-
-- (id) objectInFavoriteWorkingCopiesAtIndex: (unsigned int)index {
-    return [favoriteWorkingCopies objectAtIndex: index];
-}
-
-- (void) insertObject:(id)anObject inFavoriteWorkingCopiesAtIndex: (unsigned int)index {
-
-    [favoriteWorkingCopies insertObject: anObject atIndex: index];
-	[self saveFavoriteWorkingCopiesPrefs];
-}
-
-- (void) removeObjectFromFavoriteWorkingCopiesAtIndex: (unsigned int)index {
-    [favoriteWorkingCopies removeObjectAtIndex: index];
-	[self saveFavoriteWorkingCopiesPrefs];
-}
-
-- (void) replaceObjectInFavoriteWorkingCopiesAtIndex: (unsigned int)index withObject: (id)anObject {
-    [favoriteWorkingCopies replaceObjectAtIndex: index withObject: anObject];
-	[self saveFavoriteWorkingCopiesPrefs];	
-}
-
-// - favoriteWorkingCopies:
-- (NSArray *) favoriteWorkingCopies { return favoriteWorkingCopies; }
-
-// - setFavoriteWorkingCopies:
-- (void) setFavoriteWorkingCopies: (NSMutableArray *) aFavoriteWorkingCopies {
-    id old = [self favoriteWorkingCopies];
-    favoriteWorkingCopies = [aFavoriteWorkingCopies retain];
-    [old release];
 }
 
 

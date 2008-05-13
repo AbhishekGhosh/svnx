@@ -7,12 +7,6 @@
 #import "AppKit/NSGraphicsContext.h"
 #include "CommonUtils.h"
 
-#ifndef Assert
-#define	Assert(expr)	/*(expr)*/
-#endif
-#ifndef WarnIf
-#define	WarnIf(expr)	(expr)
-#endif
 
 enum {
 	SVNXCallbackSvnStatus,
@@ -28,7 +22,7 @@ enum {
 static BOOL
 useOldParsingMethod ()
 {
-	return [GetPreference(@"useOldParsingMethod") boolValue];
+	return GetPreferenceBool(@"useOldParsingMethod");
 }
 
 
@@ -43,8 +37,7 @@ struct ICEntry
 typedef struct ICEntry ICEntry;
 enum { kMaxIcons = 128 };
 static ICEntry gIconFolder = { NULL },
-			   gIconFile   = { NULL },
-			   gIconCache[kMaxIcons] = { NULL };
+			   gIconFile   = { NULL };
 
 
 //----------------------------------------------------------------------------------------
@@ -206,8 +199,7 @@ GenericFolderImage ()
 
 - (id) init
 {
-	self = [super init];
-	if (self)
+	if (self = [super init])
 	{
 		flatMode   =
 		smartMode  = TRUE;
@@ -219,7 +211,6 @@ GenericFolderImage ()
 		[self setSvnDirectories: [NSDictionary dictionary]];
 
 		[self setOutlineSelectedPath:@""];
-		[self setStatusInfo:@""];
 
 		// register self as an observer for bound variables
 		[self   addObserver:self forKeyPath:@"smartMode"
@@ -253,7 +244,7 @@ GenericFolderImage ()
 
 //----------------------------------------------------------------------------------------
 
-- (void)dealloc
+- (void) dealloc
 {
 	[self setUser: nil];
 	[self setPass: nil];
@@ -264,18 +255,19 @@ GenericFolderImage ()
 	[self setSvnDirectories: nil];
 	[self setOutlineSelectedPath: nil];
 	[self setRepositoryUrl: nil];
-	[self setStatusInfo: nil];
 	[self setDisplayedTaskObj: nil];
 
 	[super dealloc];
 }
 
-- (NSString *)windowNibName
+
+- (NSString*) windowNibName
 {
-    return @"MyWorkingCopy";
+	return @"MyWorkingCopy";
 }
 
-- (void)windowControllerDidLoadNib:(NSWindowController *) aController
+
+- (void) windowControllerDidLoadNib: (NSWindowController*) aController
 {
 	[aController setShouldCascadeWindows: NO];
 
@@ -302,6 +294,12 @@ GenericFolderImage ()
 	[controller cleanup];
 
 	[super close];
+}
+
+
+- (NSInvocation*) genericCompletedCallback
+{
+	return MakeCallbackInvocation(self, @selector(svnGenericCompletedCallback:));
 }
 
 
@@ -353,7 +351,7 @@ GenericFolderImage ()
 
 //----------------------------------------------------------------------------------------
 
--(void)svnStatusCompletedCallback:(NSMutableDictionary *)taskObj
+- (void) svnStatusCompletedCallback: (NSMutableDictionary*) taskObj
 {
 	if ( [[taskObj valueForKey:@"status"] isEqualToString:@"completed"] )
 	{
@@ -368,7 +366,7 @@ GenericFolderImage ()
 
 //----------------------------------------------------------------------------------------
 
-- (void)computesNewVerboseResultArray: (NSString*) xmlString
+- (void) computesNewVerboseResultArray: (NSString*) xmlString
 {
     NSError* err = nil;
 	NSXMLDocument* xmlDoc = [[NSXMLDocument alloc] initWithXMLString: xmlString
@@ -390,16 +388,14 @@ GenericFolderImage ()
 	// <target> node
 	NSXMLElement *targetElement = [[[xmlDoc rootElement] elementsForName:@"target"] objectAtIndex:0];
 
-	NSString* statusMsg = @"";
 	// <against revision=""> node
 	NSArray *againstElements = [targetElement elementsForName:@"against"];
 	if ( [againstElements count] > 0 )
 	{
 		NSXMLElement *against = [againstElements objectAtIndex:0];
-		statusMsg = [NSString stringWithFormat: @"Status against revision: %@",
-												[[against attributeForName: @"revision"] stringValue]];
+		[controller setStatusMessage: [NSString stringWithFormat: @"Status against revision: %@",
+																  [[against attributeForName: @"revision"] stringValue]]];
 	}
-	[self setStatusInfo: statusMsg];
 
 	NSString* const targetPath = [[targetElement attributeForName: @"path"] stringValue];
 	const int targetPathLength = [targetPath length];
@@ -424,12 +420,12 @@ GenericFolderImage ()
 		NSXMLElement *wc_status = nil;
 		NSString *itemStatus = @"";
 		NSString *propStatus = nil; 
-		NSString *copiedStatus;
-		NSString *switchedStatus;
+		NSString* copiedStatus = nil;
+		NSString* switchedStatus = nil;
 		
 		// wcLockedStatus has nothing to do with lockInWc
 		// <http://svnbook.red-bean.com/nightly/en/svn.advanced.locking.html#svn.advanced.locking.meanings>
-		NSString *wcLockedStatus;
+		NSString* wcLockedStatus = nil;
 		NSString* wc_lock = nil;
 		
 		// <wc-status> node
@@ -472,8 +468,8 @@ GenericFolderImage ()
 		NSXMLElement *repos_status = nil;
 		NSArray *repos_status_elements = [entry elementsForName:@"repos-status"];
 		
-		NSString *reposItemStatus;
-		NSString *reposPropStatus;
+		NSString* reposItemStatus = nil;
+		NSString* reposPropStatus = nil;
 		NSString* repos_lock = nil;
 		
 		if ( [repos_status_elements count] > 0 )
@@ -840,7 +836,7 @@ GenericFolderImage ()
 		{
 			if ( [[itemString substringToIndex:24] isEqualToString:@"Status against revision:"] )
 			{
-				[self setStatusInfo:itemString];
+				[controller setStatusMessage:itemString];
 				continue;
 			}
 		}
@@ -1062,6 +1058,7 @@ GenericFolderImage ()
 	{
 		[self computesNewVerboseResultArray: svnStatusText];
 	}
+	[controller setStatusMessage: nil];
 	[controller restoreSelection];
 }
 
@@ -1070,7 +1067,7 @@ GenericFolderImage ()
 #pragma mark	svn info
 //----------------------------------------------------------------------------------------
 
-- (void)fetchSvnInfo
+- (void) fetchSvnInfo
 {
 	[MySvn    genericCommand: @"info"
 				   arguments: [NSArray arrayWithObject:[self workingCopyPath]]
@@ -1081,7 +1078,10 @@ GenericFolderImage ()
 					taskInfo: [self documentNameDict]];
 }
 
-- (void)svnInfoCompletedCallback:(id)taskObj
+
+//----------------------------------------------------------------------------------------
+
+- (void) svnInfoCompletedCallback: (id) taskObj
 {
 	if ( [[taskObj valueForKey:@"status"] isEqualToString:@"completed"] )
 	{
@@ -1131,23 +1131,101 @@ GenericFolderImage ()
 
 
 //----------------------------------------------------------------------------------------
+#pragma mark	svn commit
+
+- (void) svnCommit:    (NSArray*)      itemsPaths
+		 message:      (NSString*)     message
+		 callback:     (NSInvocation*) callback
+		 callbackInfo: (id)            callbackInfo
+{
+	Assert([[itemsPaths objectAtIndex: 0] isKindOfClass: [NSDictionary class]]);
+
+	// Cannot non-recursively commit a directory deletion, i.e. must not use --non-recursive
+	// when committing a directory deletion, but we want to use it if possible to prevent
+	// commiting files in a dir if only a prop-change commit was requested on the dir.
+	BOOL nonRecusive = TRUE;
+//	if ([[itemsPaths objectAtIndex: 0] isKindOfClass: [NSDictionary class]])
+	{
+		NSFileManager* const fileManager = [NSFileManager defaultManager];
+		BOOL isDir;
+		NSEnumerator* iter = [itemsPaths objectEnumerator];
+		NSDictionary* item;
+		while (item = [iter nextObject])
+		{
+			if ([[item objectForKey: @"deleted"] boolValue] &&
+				[fileManager fileExistsAtPath: [item objectForKey: @"fullPath"] isDirectory: &isDir] &&
+				isDir)
+			{
+				nonRecusive = FALSE;
+				break;
+			}
+		}
+
+		itemsPaths = [itemsPaths valueForKey: @"fullPath"];
+	}
+
+	NSArray* options = [NSArray arrayWithObjects: @"-m", message,
+												  (nonRecusive ? @"--non-recursive" : nil),
+												  nil];
+	id taskObj = [MySvn genericCommand: @"commit"
+							 arguments: itemsPaths
+						generalOptions: [self svnOptionsInvocation]
+							   options: options
+							  callback: callback
+						  callbackInfo: callbackInfo
+							  taskInfo: [self documentNameDict]];
+	[self setDisplayedTaskObj: taskObj];
+}
+
+
+- (void) svnCommit: (NSString*) message
+{
+	[self svnCommit:    [svnFilesAC selectedObjects] 
+		  message:      message
+		  callback:     [self genericCompletedCallback]
+		  callbackInfo: nil];
+}
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	svn switch
+
+- (void) svnSwitch: (NSArray*) options
+{
+	// it would be much more clean to use a specific [MySvn switch:...] command.
+	id taskObj = [MySvn genericCommand: @"switch"
+							 arguments: [NSArray array]
+						generalOptions: [self svnOptionsInvocation]
+							   options: options
+							  callback: [self genericCompletedCallback]
+						  callbackInfo: nil
+							  taskInfo: [self documentNameDict]];
+	[self setDisplayedTaskObj: taskObj];
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark	svn generic command
 
-- (void)svnCommand:(NSString *)command options:(NSArray *)options info:(NSDictionary *)info
+- (void) svnCommand: (NSString*)     command
+		 options:    (NSArray*)      options
+		 info:       (NSDictionary*) info
 {
-	NSMutableArray *itemsPaths = [NSMutableArray arrayWithArray:[[svnFilesAC selectedObjects] mutableArrayValueForKey:@"fullPath"]];
-	if ( options == nil ) options = [NSArray array];
+	NSArray* itemsPaths = [[svnFilesAC selectedObjects] valueForKey: @"fullPath"];
+	if (options == nil)
+		options = [NSArray array];
 
 	[controller startProgressIndicator];
-	NSInvocation* const callback = [self makeCallbackInvocation: @selector(svnGenericCompletedCallback:)];
+	NSInvocation* const callback = [self genericCompletedCallback];
 	NSDictionary* const taskInfo = [self documentNameDict];
 
 	if ( [command isEqualToString:@"rename"] )
 	{
-		[itemsPaths addObject:[info objectForKey:@"destination"]];
+		NSMutableArray* srcAndDst = [NSMutableArray arrayWithArray: itemsPaths];
+		[srcAndDst addObject: [info objectForKey: @"destination"]];
 
 		[MySvn   genericCommand: @"move"
-					  arguments: itemsPaths
+					  arguments: srcAndDst
                  generalOptions: [self svnOptionsInvocation]
 						options: options
 					   callback: callback
@@ -1174,36 +1252,22 @@ GenericFolderImage ()
 				   callbackInfo: nil
 					   taskInfo: taskInfo];
 	}
-	else if ( [command isEqualToString:@"switch"] )
+	else // ...
 	{
-		// it would be much more clean to use a specific [MySvn switch:... command.
-		[self setDisplayedTaskObj:
-			[MySvn   genericCommand: command
-						  arguments: [NSArray array]
-					 generalOptions: [self svnOptionsInvocation]
-							options: options
-						   callback: callback
-					   callbackInfo: nil
-						   taskInfo: taskInfo]
-		];
-	}
-	else // commit & ...
-	{
-		id taskObj =
-			[MySvn   genericCommand: command
-						  arguments: itemsPaths
-					 generalOptions: [self svnOptionsInvocation]
-							options: options
-						   callback: callback
-					   callbackInfo: nil
-						   taskInfo: taskInfo];
-
-		if ( [command isEqualToString:@"commit"] )
-			[self setDisplayedTaskObj: taskObj];
+		Assert(![command isEqualToString: @"switch"]);
+		Assert(![command isEqualToString: @"commit"]);
+		[MySvn   genericCommand: command
+					  arguments: itemsPaths
+				 generalOptions: [self svnOptionsInvocation]
+						options: options
+					   callback: callback
+				   callbackInfo: nil
+					   taskInfo: taskInfo];
 	}
 }
 
-- (void)svnGenericCompletedCallback:(id)taskObj
+
+- (void) svnGenericCompletedCallback: (id) taskObj
 {
 	[controller stopProgressIndicator];
 
@@ -1219,7 +1283,7 @@ GenericFolderImage ()
 //----------------------------------------------------------------------------------------
 #pragma mark	svn update
 
--(void) svnUpdate
+- (void) svnUpdate
 {
 	[controller startProgressIndicator];
 	
@@ -1227,12 +1291,13 @@ GenericFolderImage ()
 		[MySvn updateAtWorkingCopyPath: [self workingCopyPath]
 					    generalOptions: [self svnOptionsInvocation]
 							   options: nil
-							  callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnUpdate]
+							  callback: MakeCallbackInvocation(self, @selector(svnUpdateCompletedCallback:))
 						  callbackInfo: nil
 							  taskInfo: [self documentNameDict]]];
 }
 
--(void)svnUpdateCompletedCallback:(id)taskObj
+
+- (void) svnUpdateCompletedCallback: (id) taskObj
 {
 	[controller stopProgressIndicator];
 
@@ -1246,19 +1311,28 @@ GenericFolderImage ()
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark	svn merge
+#pragma mark	svn diff
 
--(void) fileMergeItems:(NSArray *)items
+- (void) diffItems:    (NSArray*)      items
+		 callback:     (NSInvocation*) callback
+		 callbackInfo: (id)            callbackInfo
 {
-	[MySvn	   fileMergeItems: items
-			   generalOptions: [self svnOptionsInvocation]
-					  options: nil
-					 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
-				 callbackInfo: nil
-					 taskInfo: [self documentNameDict]];
+	[MySvn	diffItems: items
+	   generalOptions: [self svnOptionsInvocation]
+			  options: nil
+			 callback: callback
+		 callbackInfo: callbackInfo
+			 taskInfo: [self documentNameDict]];
 }
 
--(void)fileMergeCallback:(id)taskObj
+
+- (void) diffItems: (NSArray*) items
+{
+	[self diffItems: items callback: MakeCallbackInvocation(self, @selector(fileMergeCallback:)) callbackInfo: nil];
+}
+
+
+- (void) fileMergeCallback: (id) taskObj
 {
 	if ( [[taskObj valueForKey:@"status"] isEqualToString:@"completed"] )
 		;
@@ -1271,38 +1345,27 @@ GenericFolderImage ()
 #pragma mark	-
 #pragma mark	Helpers
 
-- (NSMutableDictionary *)getSvnOptions
+- (NSMutableDictionary*) getSvnOptions
 {
 	return [NSMutableDictionary dictionaryWithObjectsAndKeys:[self user], @"user", [self pass], @"pass", nil ];
 }
 
-- (NSInvocation *) makeSvnOptionInvocation
+
+- (NSInvocation*) makeSvnOptionInvocation
 {
-	SEL getSvnOptions = @selector(getSvnOptions);
-	
-	NSInvocation *svnOptionsInvocation = [NSInvocation invocationWithMethodSignature:
-												[MyWorkingCopy instanceMethodSignatureForSelector:getSvnOptions]];
-	[svnOptionsInvocation setSelector:getSvnOptions];
-	[svnOptionsInvocation setTarget:self];
-	
-	return svnOptionsInvocation;
+	return MakeCallbackInvocation(self, @selector(getSvnOptions));
 }
 
 
 - (NSInvocation*) makeCallbackInvocation: (SEL) selector
 {
-	NSInvocation* callback = [NSInvocation invocationWithMethodSignature:
-									[MyWorkingCopy instanceMethodSignatureForSelector: selector]];
-	[callback setSelector: selector];
-	[callback setTarget: self];	
-
-	return callback;
+	return MakeCallbackInvocation(self, selector);
 }
 
 
 - (NSInvocation*) makeCallbackInvocationOfKind: (int) callbackKind
 {
-	SEL callbackSelector;
+	SEL callbackSelector = nil;
 
 	switch ( callbackKind )
 	{
@@ -1327,7 +1390,7 @@ GenericFolderImage ()
 			break;
 	}
 
-	return [self makeCallbackInvocation: callbackSelector];
+	return MakeCallbackInvocation(self, callbackSelector);
 }
 
 
@@ -1338,6 +1401,7 @@ GenericFolderImage ()
 		 change:                 (NSDictionary*) change
 		 context:                (void*)         context
 {
+	#pragma unused(object, change, context)
 //	NSLog(@"WC:observe: '%@'", keyPath);
 	BOOL doRefresh = false,
 		 doRearrange = false;
@@ -1513,7 +1577,7 @@ GenericFolderImage ()
 
 //----------------------------------------------------------------------------------------
 
--(id) controller
+- (id) controller
 {
 	return controller;
 }
@@ -1529,16 +1593,6 @@ GenericFolderImage ()
     [old release];
 }
 
-
-// get/set statusInfo
-- (NSString*) statusInfo { return statusInfo; }
-
-- (void) setStatusInfo: (NSString*) aStatusInfo
-{
-    id old = [self statusInfo];
-    statusInfo = [aStatusInfo retain];
-    [old release];
-}
 
 @end
 

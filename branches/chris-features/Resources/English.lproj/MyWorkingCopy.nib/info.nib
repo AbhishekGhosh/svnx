@@ -25,6 +25,8 @@
 	<array>
 		<integer>5</integer>
 	</array>
+	<key>IBOldestOS</key>
+	<integer>4</integer>
 	<key>IBOpenObjects</key>
 	<array>
 		<integer>527</integer>

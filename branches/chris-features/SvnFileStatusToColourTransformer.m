@@ -1,23 +1,25 @@
 
 #import "SvnFileStatusToColourTransformer.h"
-#import "MyApp.h"
+#include "CommonUtils.h"
 
 
 @implementation SvnFileStatusToColourTransformer
 
 
-+ (Class)transformedValueClass
++ (Class) transformedValueClass
 {
-    return [NSColor class];
+	return [NSColor class];
 }
 
-+ (BOOL)allowsReverseTransformation
+
++ (BOOL) allowsReverseTransformation
 {
-    return NO;
+	return NO;
 }
 
-- (id)transformedValue:(id)aString
-{	
+
+- (id) transformedValue: (id) aString
+{
 	//int priority = [aNumber intValue];
 
 	if ([aString length] == 1)
@@ -33,7 +35,7 @@
 			return [NSUnarchiver unarchiveObjectWithData: GetPreference(prefKey)];
 	}
 
-    return [NSColor blackColor];
+	return [NSColor blackColor];
 }
 
 

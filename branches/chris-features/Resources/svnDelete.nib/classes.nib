@@ -13,7 +13,7 @@
         }, 
         {
             ACTIONS = {addItems = id; validate = id; }; 
-            CLASS = MySvnCopyController; 
+            CLASS = MySvnOperationController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 arrayController = NSArrayController; 

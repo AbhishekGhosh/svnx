@@ -2,9 +2,12 @@
 // SvnLogReport.m
 //
 
-#import "SvnLogReport.h"
-#import "MySvn.h"
-#import <WebKit/WebKit.h>
+#include "SvnLogReport.h"
+#include "CommonUtils.h"
+#include "MySvn.h"
+#include "NSString+MyAdditions.h"
+#include "Tasks.h"
+#include <WebKit/WebKit.h>
 #include <unistd.h>
 
 
@@ -146,70 +149,47 @@
 
 @implementation SvnLogReport
 
-- (SvnLogReport*) initWithURL: (NSString*) fileURL revision: (NSString*) revision
+- (void) taskCompleted: (Task*) task object: (id) object
 {
-	if ((self = [super init]) != nil)
-	{
-	//	NSLog(@"SvnLogReport r%@ '%@'", revision, fileURL);
-		fFileURL  = fileURL;
-		fRevision = revision;
-	}
-
-	return self;
-}
-
-
-//----------------------------------------------------------------------------------------
-
-- (NSTask*) launchTask: (NSString*) taskLaunchPath
-			 arguments: (NSArray*) arguments
-			 stdOutput: (NSString*) stdOutput
-{
-	NSTask* task = [[NSTask alloc] init];
-	NSMutableDictionary* environment = [[NSMutableDictionary alloc] initWithDictionary:
-												[[NSProcessInfo processInfo] environment]];
-
-	[environment setObject: @"YES"         forKey: @"NSUnbufferedIO"];
-	[environment setObject: @"en_US.UTF-8" forKey: @"LC_ALL"];
-//	[environment setObject: @"en_US.UTF-8" forKey: @"LC_CTYPE"];
-//	[environment setObject: @"en_US.UTF-8" forKey: @"LANG"];
-	[task setEnvironment: environment];
-
-	[task setLaunchPath: taskLaunchPath];
-	[task setArguments: arguments];
-
-	if (stdOutput != nil)
-	{
-		[@"?" writeToFile: stdOutput atomically: false];
-		NSFileHandle* file = [NSFileHandle fileHandleForWritingAtPath: stdOutput];
-	//	NSLog(@"launchTask: %@", file);
-		[task setStandardOutput: file];
-	}
-
-	[task launch];
-
-//	NSLog(@"launchTask: %@", task);
-	return task;
-}
-
-
-//----------------------------------------------------------------------------------------
-
-- (void) begin: (MySvnView*) svnView verbose: (BOOL) verbose
-{
-	if (fWindow == NULL || fLogView == NULL)
-	{
-		NSLog(@"SvnLogReport.begin fWindow=%@ fLogView=%@", fWindow, fLogView);
+	#pragma unused(task)
+	if (![fWindow isVisible])
 		return;
-	}
 
-	if (fWindow)
+	if (object != nil)	// svn task
 	{
-		[fWindow setTitle: [NSString stringWithFormat: @"%@ r%@", fFileURL, fRevision]];
-		[fWindow makeKeyAndOrderFront: nil];
-	}
+	//	NSString* const tmpHtmlPath = [object objectForKey: @"html"];
+	//	NSArray* const arguments = [object objectForKey: @"arguments"];
 
-//	NSLog(@"svn log --xml -v -r %@ '%@'", fRevision, fFileURL);
+		Task* task = [[Task alloc] initWithDelegate: self object: nil];
+	//	[task launch: @"/usr/bin/xsltproc" arguments: arguments stdOutput: tmpHtmlPath];
+		[task launch:    @"/usr/bin/xsltproc"
+			  arguments: [object objectForKey: @"arguments"]
+			  stdOutput: [object objectForKey: @"html"]];
+	}
+	else				// xsltproc task
+	{
+		[[fLogView mainFrame] reload];
+	//	[fBusyIndicator stopAnimation: self];
+	//	[fBusyIndicator setHidden: YES];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) createReport: (NSString*) fileURL
+		 revision:     (NSString*) revision
+		 verbose:      (BOOL)      verbose
+{
+	Assert(fWindow != nil);
+	Assert(fLogView != nil);
+
+	[fWindow setTitle: PathWithRevision(fileURL, revision)];
+	[fWindow makeKeyAndOrderFront: nil];
+
+//	[fBusyIndicator setHidden: NO];
+//	[fBusyIndicator startAnimation: self];
+//	NSLog(@"svn log --xml -v -r %@ '%@'", revision, fileURL);
 	const pid_t pid = getpid();
 	static unsigned int uid = 0;
 	++uid;
@@ -220,28 +200,26 @@
 	NSString* const srcXslPath = [bundle pathForResource: @"svnlog" ofType: @"xsl"];
 //	NSString* const srcCssPath = [bundle pathForResource: @"svnlog" ofType: @"css"];
 
-	NSString* svnCmd = [[MySvn svnPath] stringByAppendingPathComponent: @"svn"];
-	NSString* svnRev = [NSString stringWithFormat: @"-r%@:1", fRevision];
-	NSArray* arguments = [NSArray arrayWithObjects: @"log", @"--xml", svnRev, fFileURL,
+	NSString* svnRev = [NSString stringWithFormat: @"-r%@:1", revision];
+	NSArray* arguments = [NSArray arrayWithObjects: @"log", @"--xml", svnRev,
+													PathPegRevision(fileURL, revision),
 													(verbose ? @"-v" : nil), nil];
-	NSTask* task = [self launchTask: svnCmd arguments: arguments stdOutput: tmpXmlPath];
-	if (task)
-		[task waitUntilExit];
 
-	if (task)
-	{
-		arguments = [NSArray arrayWithObjects: @"--stringparam", @"file", fFileURL,
-											   @"--stringparam", @"revision", fRevision,
-											   @"--stringparam", @"base", [bundle resourcePath],
-											   srcXslPath, tmpXmlPath, nil];
-		task = [self launchTask: @"/usr/bin/xsltproc" arguments: arguments stdOutput: tmpHtmlPath];
-		if (task)
-			[task waitUntilExit];
-	}
+	NSArray* args2 = [NSArray arrayWithObjects: @"--stringparam", @"file", fileURL,
+												@"--stringparam", @"revision", revision,
+												@"--stringparam", @"base", [bundle resourcePath],
+												srcXslPath, tmpXmlPath, nil];
+	// TO_DO: store task & kill it if window closes before completion
+	Task* task = [[Task alloc] initWithDelegate: self
+							   object: [NSDictionary dictionaryWithObjectsAndKeys:
+															tmpHtmlPath, @"html",
+															args2, @"arguments", nil]];
+	[@"?" writeToFile: tmpXmlPath atomically: false];
+	[task launch: SvnCmdPath() arguments: arguments stdOutput: tmpXmlPath];
 
-	if (task)
-		[[fLogView mainFrame] loadRequest: [NSURLRequest requestWithURL:
-												[NSURL fileURLWithPath: tmpHtmlPath]]];
+	[@"Working..." writeToFile: tmpHtmlPath atomically: false];
+	[[fLogView mainFrame] loadRequest: [NSURLRequest requestWithURL:
+											[NSURL fileURLWithPath: tmpHtmlPath]]];
 }
 
 
@@ -302,6 +280,20 @@ NSString* const SearchDocToolbarItemIdentifier = @"svnX.search";
 - (NSWindow*) window
 {
 	return fWindow;
+}
+
+
+//----------------------------------------------------------------------------------------
+
++ (void) svnLogReport: (NSString*) fileURL
+		 revision:     (NSString*) revision
+		 verbose:      (BOOL)      verbose
+{
+	SvnLogReport* report = [[SvnLogReport alloc] init];
+	if ([NSBundle loadNibNamed: @"BrowseLog" owner: report])
+		[report createReport: fileURL revision: revision verbose: verbose];
+	else
+		[report release];
 }
 
 

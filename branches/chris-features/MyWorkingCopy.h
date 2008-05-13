@@ -9,7 +9,7 @@ enum {
 	kFilterChanged	=	5
 };
 
-@class MyWorkingCopyController, MySvnFilesArrayController;
+@class WCTreeEntry, MyWorkingCopyController, MySvnFilesArrayController;
 
 /*" Model of the working copy browser "*/
 @interface MyWorkingCopy : NSDocument
@@ -32,9 +32,8 @@ enum {
 	NSDictionary*	svnDirectories;
 
 	BOOL			flatMode, smartMode;
-	BOOL			showUpdates; // svn status -u
+	BOOL			showUpdates;	// svn status -u
 	int				filterMode;
-	NSString*		statusInfo;
 
 	NSMutableDictionary *displayedTaskObj;
 }
@@ -49,10 +48,22 @@ enum {
 
 - (void) fetchSvnInfo;
 - (void) svnUpdate;
-- (void) fileMergeItems: (NSArray*) items;
+- (void) diffItems:    (NSArray*)      items
+		 callback:     (NSInvocation*) callback
+		 callbackInfo: (id)            callbackInfo;
+- (void) diffItems: (NSArray*) items;
 - (void) fetchSvnStatus: (BOOL) showUpdates;
 - (void) fetchSvnInfoReceiveDataFinished: (NSString*) result;
 - (void) computesVerboseResultArray: (NSString*) svnStatusText;
+
+- (void) svnCommit:    (NSArray*)      itemsPaths
+		 message:      (NSString*)     message
+		 callback:     (NSInvocation*) callback
+		 callbackInfo: (id)            callbackInfo;
+
+- (void) svnCommit: (NSString*) message;
+
+- (void) svnSwitch: (NSArray*) options;
 
 - (void) svnCommand: (NSString*)     command
 		 options:    (NSArray*)      options
@@ -95,8 +106,5 @@ enum {
 - (NSString*) outlineSelectedPath;
 - (void) setOutlineSelectedPath: (NSString*) anOutlineSelectedPath;
 
-- (NSString*) statusInfo;
-- (void) setStatusInfo: (NSString*) aStatusInfo;
-
-
 @end
+

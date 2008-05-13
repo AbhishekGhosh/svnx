@@ -7,7 +7,7 @@
 
 }
 
-+ (NSMutableDictionary*) fileMergeItems: (NSArray*)      itemsPaths
++ (NSMutableDictionary*) diffItems:      (NSArray*)      itemsPaths
 						 generalOptions: (NSInvocation*) generalOptions
 						 options:        (NSArray*)      options
 						 callback:       (NSInvocation*) callback
@@ -105,6 +105,14 @@
 						 callbackInfo:   (id)            callbackInfo
 						 taskInfo:       (id)            taskInfo;
 
++ (NSMutableDictionary*) blame:          (NSArray*)      files
+						 revision:       (NSString*)     revision
+						 generalOptions: (NSInvocation*) generalOptions
+						 options:        (NSArray*)      options
+						 callback:       (NSInvocation*) callback
+						 callbackInfo:   (id)            callbackInfo
+						 taskInfo:       (id)            taskInfo;
+
 + (NSMutableDictionary*) statusAtWorkingCopyPath: (NSString*)     path
 						 generalOptions:          (NSInvocation*) generalOptions
 						 options:                 (NSArray*)      options
@@ -121,9 +129,6 @@
 
 + (NSArray*) optionsFromSvnOptionsInvocation: (NSInvocation*) invocation;
 
-+ (NSString*) joinedOptions: (NSArray*) options1
-			  andOptions:    (NSArray*) options2;
-
 + (NSMutableDictionary*) launchTask:         (NSString*)     taskLaunchPath
 						 arguments:          (NSArray*)      arguments
 						 callback:           (NSInvocation*) callback
@@ -136,9 +141,7 @@
 
 + (NSString*) cachePathForKey: (NSString*) key;
 
-// CLASS VARIABLES ACCESSORS
-+ (NSString*) bundleScriptPath: (NSString*) script;
-+ (NSString*) svnPath;
-+ (NSString*) svnCmdPath;
-
 @end
+
+NSString* SvnCmdPath ();
+

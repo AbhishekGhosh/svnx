@@ -7,7 +7,7 @@
 //
 
 #import "SvnDateTransformer.h"
-#import "MyApp.h"
+#import "CommonUtils.h"
 
 
 static NSDateFormatter* gDateFormatter = nil;

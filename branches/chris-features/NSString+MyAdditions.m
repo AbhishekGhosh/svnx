@@ -29,6 +29,57 @@ ToUTF8 (NSString* string, char* buf, unsigned int bufSize)
 
 
 //----------------------------------------------------------------------------------------
+// Returns "<path>  [Rev. <revision>]"
+
+NSString*
+PathWithRevision (id path, id revision)
+{
+	assert(path != nil);
+
+	if ([path isKindOfClass: [NSURL class]])
+		path = [path absoluteString];
+	if (revision == nil)
+		return path;
+//	if ([revision isKindOfClass: [NSNumber class]])
+//		revision = [path absoluteString];
+
+	return [NSString stringWithFormat: @"%@  [Rev. %@]", path, revision];
+}
+
+
+//----------------------------------------------------------------------------------------
+// Returns "<path>@<revision>"
+
+NSString*
+PathPegRevision (id path, id revision)
+{
+	assert(path != nil);
+
+	if ([path isKindOfClass: [NSURL class]])
+		path = [path absoluteString];
+	if (revision == nil)
+		return path;
+
+	return [NSString stringWithFormat: @"%@@%@", path, revision];
+}
+
+
+//----------------------------------------------------------------------------------------
+// Returns "<path>@<revision>"
+
+NSString*
+PathPegRevNum (id path, unsigned int revision)
+{
+	assert(path != nil);
+
+	if ([path isKindOfClass: [NSURL class]])
+		path = [path absoluteString];
+
+	return [NSString stringWithFormat: @"%@@%u", path, revision];
+}
+
+
+//----------------------------------------------------------------------------------------
 
 @implementation NSString (MyAdditions)
 
@@ -88,6 +139,18 @@ ToUTF8 (NSString* string, char* buf, unsigned int bufSize)
 		 options: NSLiteralSearch range: NSMakeRange(0, [str length])];
 
 	return str;
+}
+
+
+//----------------------------------------------------------------------------------------
+// Returns "<self>  [Rev. <revision>]"
+
+- (NSString*) withRevision: (NSString*) revision
+{
+	if (revision == nil)
+		return self;
+
+	return [NSString stringWithFormat: @"%@  [Rev. %@]", self, revision];
 }
 
 

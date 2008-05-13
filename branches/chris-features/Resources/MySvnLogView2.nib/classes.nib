@@ -1,6 +1,12 @@
 {
     IBClasses = (
-        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = CTableView; LANGUAGE = ObjC; SUPERCLASS = NSTableView; }, 
+        {
+            ACTIONS = {"" = id; }; 
+            CLASS = FirstResponder; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
         {
             CLASS = MyRadioButtonTableColumn; 
             LANGUAGE = ObjC; 
@@ -24,10 +30,13 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 "_view" = id; 
+                logTable = NSTableView; 
                 logsAC = NSArrayController; 
                 logsACSelection = NSArrayController; 
                 progress = NSProgressIndicator; 
                 refetch = id; 
+                searchPaths = NSSearchField; 
+                splitView = id; 
             }; 
             SUPERCLASS = NSView; 
         }

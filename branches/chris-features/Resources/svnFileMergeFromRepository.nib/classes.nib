@@ -8,8 +8,6 @@
             OUTLETS = {
                 objectController = NSObjectController; 
                 svnLogView = MySvnLogView; 
-                svnLogView1 = MySvnLogView; 
-                svnLogView2 = MySvnLogView2; 
                 svnSheet = NSWindow; 
             }; 
             SUPERCLASS = NSObject; 

@@ -4,26 +4,19 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class WebView, MySvnView;
+@class WebView;
+@protocol TaskDelegate;
 
-@interface SvnLogReport : NSResponder
+@interface SvnLogReport : NSResponder<TaskDelegate>
 {
 	IBOutlet NSWindow*	fWindow;
 	IBOutlet WebView*	fLogView;
-
-@private
-	NSString*	fFileURL;
-	NSString*	fRevision;
 }
 
++ (void) svnLogReport: (NSString*) fileURL
+		 revision:     (NSString*) revision
+		 verbose:      (BOOL)      verbose;
 
-- (SvnLogReport*) initWithURL: (NSString*) fileURL
-				  revision:    (NSString*) revision;
-- (NSTask*) launchTask: (NSString*) taskLaunchPath
-			 arguments: (NSArray*) arguments
-			 stdOutput: (NSString*) stdOutput;
-- (void) begin:   (MySvnView*) svnView
-		 verbose: (BOOL)       verbose;
 - (void) textSmaller: (id) sender;
 - (void) textBigger: (id) sender;
 - (void) printDocument: (id) sender;

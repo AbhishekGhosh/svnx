@@ -28,19 +28,8 @@
 
 - (void)onDoubleClick:(id)sender;
 
-
-///////  favoriteWorkingCopies  ///////
-
-- (NSArray *) favoriteWorkingCopies;
-- (void) setFavoriteWorkingCopies: (NSMutableArray *) aFavoriteWorkingCopies;
-
-- (unsigned int) countOfFavoriteWorkingCopies;
-- (id) objectInFavoriteWorkingCopiesAtIndex: (unsigned int)index;
-- (void) insertObject: (id)anObject inFavoriteWorkingCopiesAtIndex: (unsigned int)index;
-- (void) removeObjectFromFavoriteWorkingCopiesAtIndex: (unsigned int)index;
-- (void) replaceObjectInFavoriteWorkingCopiesAtIndex: (unsigned int)index withObject: (id)anObject;
-
 // Adds a new working copy with the given path.
 - (void)newWorkingCopyItemWithPath:(NSString *)workingCopyPath;
 
 @end
+

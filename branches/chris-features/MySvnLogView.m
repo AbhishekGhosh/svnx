@@ -1,7 +1,9 @@
 #import "MySvnLogView.h"
+#import "MySvnLogAC.h"
 #import "MySvnLogParser.h"
 #import "MyRepository.h"
 #import "MyApp.h"
+#include "NSString+MyAdditions.h"
 #include "CommonUtils.h"
 
 
@@ -22,9 +24,10 @@ getRevisionAtIndex (NSArray* array, int index)
 	self = [super initWithFrame: frameRect];
 	if (self != nil)
 	{
-		NSString* nibName = [self isVerbose] ? @"MySvnLogView2" : @"MySvnLogView";
+		isVerbose = YES;
+		fIsAdvanced = YES;
 
-		if ([NSBundle loadNibNamed:nibName owner:self])
+		if ([NSBundle loadNibNamed: @"MySvnLogView2" owner: self])
 		{
 			[_view setFrame: [self bounds]];
 			[self addSubview: _view];
@@ -33,13 +36,14 @@ getRevisionAtIndex (NSArray* array, int index)
 		//			options:(NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld) context:nil];
 		}
 
-		[self setMostRecentRevision:1];
+		[self setMostRecentRevision: 1];
 	}
 
 	return self;
 }
 
-- (void)dealloc
+
+- (void) dealloc
 {
 //	NSLog(@"dealloc logview");
 	[self setPath: nil];
@@ -50,7 +54,8 @@ getRevisionAtIndex (NSArray* array, int index)
 	[super dealloc];
 }
 
-- (void)unload
+
+- (void) unload
 {
 	// the nib is responsible for releasing its top-level objects
 //	[_view release];	// this is done by super
@@ -64,7 +69,18 @@ getRevisionAtIndex (NSArray* array, int index)
 	[super unload];
 }
 
-- (void)resetUrl:(NSURL *)anUrl
+
+- (void) awakeFromNib
+{
+	if (isVerbose)
+	{
+		[self setAdvanced: [GetPreference(@"defaultLogViewKindIsAdvanced") boolValue]];
+	}
+	[splitView setDelegate: self];	// allow us to keep the paths pane hidden during window resize
+}
+
+
+- (void) resetUrl: (NSURL*) anUrl
 {
 	[self setUrl:anUrl];
 	[self setMostRecentRevision:0];
@@ -73,18 +89,41 @@ getRevisionAtIndex (NSArray* array, int index)
 
 
 //----------------------------------------------------------------------------------------
+// <sender> is splitView with paths in lower pane
+
+- (void) splitView:                 (NSSplitView*) sender
+		 resizeSubviewsWithOldSize: (NSSize)       oldSize
+{
+	if (!fIsAdvanced)
+	{
+		const NSSize newSize = [sender bounds].size;
+		NSView* const view0 = [[sender subviews] objectAtIndex: 0];
+		NSRect frame = [view0 frame];
+		frame.size.width  = newSize.width;
+		frame.size.height = newSize.height - [sender dividerThickness];
+		[view0 setFrame: frame];
+	}
+	[sender adjustSubviews];
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark	-
 #pragma mark	svn related methods
 
 
-- (void) doSvnLog: (NSString*) aPath
+- (void) doSvnLog:    (NSString*) aPath
+		 pegRevision: (NSString*) pegRev
 {
-	NSMutableDictionary* taskInfo =
-				[MySvn		log: aPath
+	if (pegRev)
+		aPath = PathPegRevision(aPath, pegRev);
+	else
+		pegRev = @"HEAD";
+	id taskInfo = [MySvn	log: aPath
 				 generalOptions: [self svnOptionsInvocation]
 						options: [NSArray arrayWithObjects: @"--xml", 
-										[NSString stringWithFormat: @"-rHEAD:%d", [self mostRecentRevision]],
-										[self isVerbose] ? @"-v" : nil,
+										[NSString stringWithFormat: @"-r%@:%d", pegRev, [self mostRecentRevision]],
+										isVerbose ? @"-v" : nil,
 										nil]
 					   callback: [self makeCallbackInvocationOfKind: 0]
 				   callbackInfo: nil
@@ -93,14 +132,14 @@ getRevisionAtIndex (NSArray* array, int index)
 }
 
 
-- (void)fetchSvnLog
+- (void) fetchSvnLog
 {
 	[self fetchSvn];
 }
 
 
-- (void)fetchSvn
-/* Triggers the fetching */
+// Triggers the fetching
+- (void) fetchSvn
 {
 	[super fetchSvn];
 
@@ -113,7 +152,7 @@ getRevisionAtIndex (NSArray* array, int index)
 }
 
 
-- (void)fetchSvnLogForUrl
+- (void) fetchSvnLogForUrl
 {
 	NSDictionary* cacheDict = nil;
 	BOOL useCache = [GetPreference(@"cacheSvnQueries") boolValue];
@@ -136,13 +175,13 @@ getRevisionAtIndex (NSArray* array, int index)
 		[self setLogArray:[cacheDict objectForKey:@"logArray"]];
 	}
 
-	[self doSvnLog: [[self url] absoluteString]];
+	[self doSvnLog: [[self url] absoluteString] pegRevision: [self revision]];
 }
 
 
-- (void)fetchSvnLogForPath
+- (void) fetchSvnLogForPath
 {
-	[self doSvnLog: [self path]];
+	[self doSvnLog: [self path] pegRevision: nil];
 }
 
 
@@ -209,12 +248,11 @@ getRevisionAtIndex (NSArray* array, int index)
 	   objectValueForTableColumn: (NSTableColumn*) aTableColumn
 	   row:                       (int)            rowIndex
 {
-	if ( [[aTableColumn identifier] isEqualToString: @"currentRevision"] ) // should be always the case
+	if ([[aTableColumn identifier] isEqualToString: @"currentRevision"])	// should be always the case
 	{
-		if ( [getRevisionAtIndex([logsAC arrangedObjects], rowIndex) isEqualToString: currentRevision] )
-			return @"1";
+		return NSBool([getRevisionAtIndex([logsAC arrangedObjects], rowIndex) isEqualToString: currentRevision]);
 	}
-	
+
 	return nil;
 }
 
@@ -225,14 +263,14 @@ getRevisionAtIndex (NSArray* array, int index)
 		 row:            (int)            rowIndex
 {
 	// The tableview is driven by the bindings, except for the first column !
-	if ( [[ aTableColumn identifier] isEqualToString:@"currentRevision"] ) // should be always the case
+	if ([[aTableColumn identifier] isEqualToString: @"currentRevision"])	// should be always the case
 	{
 		NSString* newRevision = getRevisionAtIndex([logsAC arrangedObjects], rowIndex);
 
 		if (currentRevision == nil || ![currentRevision isEqualToString: newRevision])
 		{
 			[self setCurrentRevision:newRevision];
-			[aTableView setNeedsDisplay:YES];
+			[aTableView setNeedsDisplay: YES];
 		}
 	}
 }
@@ -281,16 +319,6 @@ getRevisionAtIndex (NSArray* array, int index)
 }
 
 
-// - isVerbose:
-- (BOOL) isVerbose { return isVerbose; }
-
-// - setIsVerbose:
-- (void) setIsVerbose: (BOOL) flag
-{
-	isVerbose = flag;
-}
-
-
 // - logArray:
 - (NSMutableArray*) logArray { return logArray; }
 
@@ -313,9 +341,63 @@ getRevisionAtIndex (NSArray* array, int index)
 }
 
 
+//----------------------------------------------------------------------------------------
+
+- (BOOL) advanced
+{
+	return fIsAdvanced;
+}
+
+
+- (void) setAdvanced: (BOOL) isAdvanced
+{
+	if (fIsAdvanced == isAdvanced)
+		return;
+	fIsAdvanced = isAdvanced;
+
+	// Hide or show Paths search field
+	[searchPaths setHidden: !isAdvanced];
+	if (!isAdvanced && [[searchPaths stringValue] length])
+	{
+		[searchPaths setStringValue: @""];
+		[logsAC clearSearchPaths];
+	}
+
+	// Hide or show pathsCount column
+	NSTableColumn* col = [logTable tableColumnWithIdentifier: @"pathsCount"];
+	Assert(col);
+	const GCoord colWidth = isAdvanced ? 30 : -4;
+	[col setMinWidth: colWidth];
+	[col setWidth: colWidth];
+
+	// Collapse or expand paths table
+	const id subViews = [splitView subviews];
+	NSView* pathsView = [subViews objectAtIndex: 1];
+	Assert(pathsView);
+	GCoord splitterSize = [splitView dividerThickness];
+	if (isAdvanced)
+		splitterSize = -splitterSize;
+	NSRect frame = [splitView frame];
+	frame.origin.y -= splitterSize;
+	frame.size.height += splitterSize;
+	[splitView setFrame: frame];
+
+	frame = [pathsView frame];
+	frame.size.height = isAdvanced ? 100 : 0;
+	[pathsView setFrame: frame];
+	[pathsView setHidden: !isAdvanced];
+
+	[splitView adjustSubviews];
+	[splitView setNeedsDisplay: YES];
+	[[subViews objectAtIndex: 0] setNeedsDisplay: YES];
+}
+
+
+//----------------------------------------------------------------------------------------
+
 - (NSString*) getCachePath
 {
-	NSString* logName = [self isVerbose] ? @" log_verbose" : @" log";
+	NSString* logName = isVerbose ? @" log_verbose" : @" log";
 	return [MySvn cachePathForKey: [[[self url] absoluteString] stringByAppendingString: logName]];
 }
 

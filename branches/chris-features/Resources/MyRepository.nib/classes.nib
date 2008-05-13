@@ -26,18 +26,11 @@
             OUTLETS = {
                 commitTextView = NSTextView; 
                 drawerLogView = DrawerLogView; 
-                fileMergeController = MyFileMergeController; 
                 fileNameTextField = NSTextField; 
                 importCommitPanel = NSPanel; 
                 sidebar = NSDrawer; 
                 svnBrowserView = MySvnRepositoryBrowserView; 
-                svnCopyController = MySvnCopyController; 
-                svnDeleteController = MySvnDeleteController; 
-                svnLogView1 = MySvnLogView; 
-                svnLogView2 = MySvnLogView2; 
-                svnMkdirController = MySvnMkdirController; 
-                svnMoveController = MySvnMoveController; 
-                svnOperationController = MySvnOperationController; 
+                svnLogView = MySvnLogView; 
                 urlTextView = NSTextView; 
             }; 
             SUPERCLASS = NSDocument; 

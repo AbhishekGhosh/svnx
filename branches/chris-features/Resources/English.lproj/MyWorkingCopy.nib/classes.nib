@@ -82,7 +82,6 @@
                 commitPanelText = id; 
                 document = MyWorkingCopy; 
                 drawerLogView = DrawerLogView; 
-                fileMergeController = MyFileMergeController; 
                 filterView = NSView; 
                 modeView = NSView; 
                 outliner = id; 
@@ -91,16 +90,15 @@
                 renamePanelTextField = NSTextField; 
                 sidebar = NSDrawer; 
                 splitView = id; 
+                statusView = NSView; 
                 svnFilesAC = MySvnFilesArrayController; 
                 switchPanel = NSPanel; 
                 switchPanelDestinationTextField = NSTextField; 
                 switchPanelRelocateButton = NSButton; 
                 switchPanelSourceTextField = NSTextField; 
                 tableResult = id; 
-                textResult = id; 
                 toolbar = id; 
                 window = id; 
-                workingCopyPath = id; 
             }; 
             SUPERCLASS = NSObject; 
         }, 
@@ -110,11 +108,9 @@
             OUTLETS = {
                 controller = MyWorkingCopyController; 
                 filterView = id; 
-                flatModeView = id; 
                 modeView = id; 
                 refreshView = id; 
                 searchView = id; 
-                smartModeView = id; 
                 window = id; 
                 workingCopyPathView = id; 
             }; 

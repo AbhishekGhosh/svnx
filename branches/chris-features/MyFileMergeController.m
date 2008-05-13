@@ -1,100 +1,166 @@
+//
+// MyFileMergeController.m - Controller for UI sheet for Subversion diff using selection(s) from log
+//
+
 #import "MyFileMergeController.h"
 #import "MySvn.h"
 #import "MySvnLogView.h"
+#import "MyWorkingCopy.h"
+#import "NSString+MyAdditions.h"
+#include "CommonUtils.h"
 
-#define SVNXCallbackFileMerge 4
 
 @implementation MyFileMergeController
 
-//- (void)dealloc {
-//	NSLog(@"FileMergeController dealloc'ed");
-//    [super dealloc];
-//}
+//----------------------------------------------------------------------------------------
+// Private:
 
--(void)awakeFromNib
+- (void) setupWithOptions: (NSInvocation*) options
+		 sourceItem:       (NSDictionary*) sourceItem
+		 descPath:         (id)            descPath
+		 descRev:          (NSString*)     descRev
 {
-	svnLogView = svnLogView1;
-}
-
-- (void)setup
-{	
+    if (svnOptionsInvocation != options)
+	{
+		[svnOptionsInvocation release];
+		svnOptionsInvocation = [options retain];
+	}
+	[objectController setValue: sourceItem forKeyPath: @"content.sourceItem"];
+	[objectController setValue: PathWithRevision(descPath, descRev) forKeyPath: @"content.desc"];
+	[svnLogView setRevision: descRev];
+	[svnLogView setSvnOptionsInvocation: options];
 	[svnLogView fetchSvnLog];
 }
 
-- (void)unload
+
+//----------------------------------------------------------------------------------------
+
+- (void) setupUrl:   (NSURL*)        url
+		 options:    (NSInvocation*) options
+		 sourceItem: (NSDictionary*) sourceItem
 {
-	[svnLogView1 unload];
-	[svnLogView2 unload];
+//	NSLog(@"MyFileMergeController::setupUrl(url=<%@> sourceItem=%@) objectController=0x%X", url, sourceItem, objectController);
+	[svnLogView setUrl: url];
+	[objectController setValue: url forKeyPath: @"content.itemUrl"];
+	[self setupWithOptions: options sourceItem: sourceItem
+		  descPath: url descRev: [sourceItem objectForKey: @"revision"]];
+}
+
+
+//----------------------------------------------------------------------------------------
+// Private:
+
+- (id) initDiffSheet: (MyWorkingCopy*) workingCopy
+	   path:          (NSString*)      path
+	   sourceItem:    (NSDictionary*)  sourceItem
+{
+	if (self = [super init])
+	{
+		svnOperation = kSvnDiff;	// kSvnWCDiff?
+		if ([NSBundle loadNibNamed: @"svnFileMerge" owner: self])
+		{
+			[svnLogView setPath: path];
+			[objectController setValue: path forKeyPath: @"content.itemPath"];
+			[self setupWithOptions: [workingCopy svnOptionsInvocation] sourceItem: sourceItem
+				  descPath: path descRev: [sourceItem objectForKey: @"revisionCurrent"]];
+
+			[NSApp beginSheet:     svnSheet
+				   modalForWindow: [workingCopy windowForSheet]
+				   modalDelegate:  [workingCopy controller]
+				   didEndSelector: @selector(sheetDidEnd:returnCode:contextInfo:)
+				   contextInfo:    self];
+		}	
+		else if (qDebug)
+			NSLog(@"initDiffSheet: loadNibNamed FAILED");
+	}
+
+	return self;
+}
+
+
+//----------------------------------------------------------------------------------------
+
++ (void) runDiffSheet: (MyWorkingCopy*) workingCopy
+		 path:         (NSString*)      path
+		 sourceItem:   (NSDictionary*)  sourceItem
+{
+	[[self alloc] initDiffSheet: workingCopy path: path sourceItem: sourceItem];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) finished
+{
+	[svnLogView unload];
 	
 	// the owner has to release its top level nib objects 
 	[svnSheet release];
 	[objectController release];
+
+	[self release];
 }
 
-- (IBAction)validate:(id)sender
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) validate: (id) sender
 {
 	id callback = [objectController valueForKeyPath: @"content.sourceItem.callback"];
 	if (callback)	// see singleFileInspector
 	{
 	//	[callback closeCallback];
 	}
-	
-	[NSApp endSheet:svnSheet returnCode:[sender tag]];
-}
 
--(void)setUrl:(NSURL *)url
-{
-	[svnLogView setUrl:url];
-//	[targetBrowser setUrl:url];
-	[objectController setValue:url forKeyPath:@"content.itemUrl"];
-}
-
--(void)setPath:(NSString *)path
-{
-	[svnLogView setPath:path];
-	[objectController setValue:path forKeyPath:@"content.itemPath"];
-}
-
--(void)setSourceItem:(NSDictionary *)item
-{
-	[objectController setValue:item forKeyPath:@"content.sourceItem"];
-//	[targetName setStringValue:[[item objectForKey:@"path"] lastPathComponent]];
+	[NSApp endSheet: svnSheet returnCode: [sender tag]];
 }
 
 
 //----------------------------------------------------------------------------------------
-# pragma mark	FileMerge
+#pragma mark	-
+#pragma mark	FileMerge
+//----------------------------------------------------------------------------------------
+// Private:
 
-- (IBAction)compare:(id)sender
+- (void) comparePath:   (NSString*) path
+		 toWorkingCopy: (BOOL)      toWorkingCopy
 {
-	NSString* revOption = ([sender tag ] == 0) ? @"-r%@"		// Compare working copy to selected
-											   : @"-r%@:%@";	// Compare marked to selected
+	NSString* revOption = toWorkingCopy ? @"-r%@"			// Compare selected to working copy
+										: @"-r%@:%@";		// Compare selected to marked
 
-	[MySvn fileMergeItems: [NSArray arrayWithObject:[objectController valueForKeyPath:@"content.sourceItem.fullPath"]]
-		   generalOptions: [self svnOptionsInvocation]
-				  options: [NSArray arrayWithObject:[NSString stringWithFormat:revOption,
+	[MySvn      diffItems: [NSArray arrayWithObject: path]
+		   generalOptions: svnOptionsInvocation
+				  options: [NSArray arrayWithObject: [NSString stringWithFormat: revOption,
 														[svnLogView selectedRevision], [svnLogView currentRevision]]]
-				 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
+				 callback: MakeCallbackInvocation(self, @selector(fileMergeCallback:))
 			 callbackInfo: nil
-				 taskInfo: [NSDictionary dictionaryWithObject: [self documentName] forKey: @"documentName"]];
+				 taskInfo: [NSDictionary dictionaryWithObject: @"svnDiff" forKey: @"documentName"]];
 }
 
 
-// used by svnFileMergeFromRepository
+//----------------------------------------------------------------------------------------
+// used by fileHistoryOpenSheetForItem from MyWorkingCopyController
 
-- (IBAction)compareUrl:(id)sender
+- (IBAction) compare: (id) sender
 {
-	[MySvn fileMergeItems: [NSArray arrayWithObject:[[objectController valueForKeyPath:@"content.sourceItem.url"] absoluteString]]
-		   generalOptions: [self svnOptionsInvocation]
-				  options: [NSArray arrayWithObject:[NSString stringWithFormat:@"-r%@:%@",
-														[svnLogView selectedRevision], [svnLogView currentRevision]]]
-				 callback: [self makeCallbackInvocationOfKind:SVNXCallbackFileMerge]
-			 callbackInfo: nil
-				 taskInfo: [NSDictionary dictionaryWithObject: [self documentName] forKey: @"documentName"]];
+	[self comparePath:   [objectController valueForKeyPath: @"content.sourceItem.fullPath"]
+		  toWorkingCopy: ([sender tag] == 0)];
 }
 
 
--(void)fileMergeCallback:(id)taskObj
+//----------------------------------------------------------------------------------------
+// used by svnFileMerge from MyRepository
+
+- (IBAction) compareUrl: (id) sender
+{
+	NSString* path = [[objectController valueForKeyPath: @"content.sourceItem.url"] absoluteString];
+	[self comparePath: PathPegRevision(path, [svnLogView revision]) toWorkingCopy: NO];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) fileMergeCallback: (id) taskObj
 {
 	if ( [[taskObj valueForKey:@"status"] isEqualToString:@"completed"] )
 	{
@@ -104,83 +170,6 @@
 	{
 		[svnLogView svnError: [taskObj valueForKey: @"stderr"]];
 	}
-}
-
-
-//----------------------------------------------------------------------------------------
-#pragma mark	-
-#pragma mark	Tab View delegate
-
-- (void)tabView:(NSTabView *)tabView willSelectTabViewItem:(NSTabViewItem *)tabViewItem
-{
-	BOOL isFileMergeFromRepository = ( [svnLogView url] != nil );
-
-	svnLogView = [[[tabViewItem view] subviews] objectAtIndex:0];
-
-	[svnLogView setSvnOptionsInvocation:[self svnOptionsInvocation]];
-
-	if ( isFileMergeFromRepository )
-	{
-		[svnLogView setUrl:[objectController valueForKeyPath:@"content.itemUrl"]];
-	}
-	else // This was invoked from a working copy window
-	{
-		// with FileMerge operation, logView doesn't need and URL and a revision... just a path
-		[svnLogView setPath:[objectController valueForKeyPath:@"content.itemPath"]];
-	}
-
-	[svnLogView fetchSvnLog];
-}
-
-
-//----------------------------------------------------------------------------------------
-#pragma mark	-
-#pragma mark	Helpers
-
-- (NSInvocation *)makeCallbackInvocationOfKind:(int)callbackKind
-{
-	SEL callbackSelector;
-
-	switch ( callbackKind )
-	{
-		case SVNXCallbackFileMerge:
-			callbackSelector = @selector(fileMergeCallback:);
-			break;
-	}
-
-	NSInvocation* callback = [NSInvocation invocationWithMethodSignature:
-									[MyFileMergeController instanceMethodSignatureForSelector:callbackSelector]];
-	[callback setSelector:callbackSelector];
-	[callback setTarget:self];
-
-	return callback;
-}
-
-
-//----------------------------------------------------------------------------------------
-#pragma mark	-
-#pragma mark	Accessors
-
-- (NSWindow *)window
-{
-	return svnSheet;
-}
-
-- (NSString *)documentName
-{
-	return @"fileMerge";
-}
-
-
-- (NSInvocation*) svnOptionsInvocation { return svnOptionsInvocation; }
-
-- (void) setSvnOptionsInvocation: (NSInvocation*) aSvnOptionsInvocation
-{
-    id old = [self svnOptionsInvocation];
-    svnOptionsInvocation = [aSvnOptionsInvocation retain];
-    [old release];
-
-	[svnLogView setSvnOptionsInvocation:aSvnOptionsInvocation];	
 }
 
 

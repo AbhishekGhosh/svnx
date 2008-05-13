@@ -6,7 +6,7 @@
 
 - (void) awakeFromNib
 {
-    items = [[NSMutableDictionary alloc] init];
+	items = [[NSMutableDictionary alloc] init];
 
 	[self createItem: @"svnCopy" label: @"Copy" help: @"Copy selected item within the repository."];
 	[self createItem: @"svnMove" label: @"Move" help: @"Move selected item within the repository."];
@@ -15,6 +15,7 @@
 	[self createItem: @"svnCheckout" label: @"Checkout" help: @"Checkout items from the repository." image: @"checkout2"];
 	[self createItem: @"svnExport" label: @"Export" help: @"Export items from the repository." image: @"export"];
 	[self createItem: @"svnFileMerge" label: @"Diff" help: @"Compare revisions of an item in the repository." image: @"FileMerge"];
+	[self createItem: @"svnBlame" label: @"Blame" help: @"Show the content of files with revision and author information in-line."];
 	[self createItem: @"toggleSidebar" label: @"Output" help: @"Show/Hide output of main operations." image: @"sidebar"];
 
 	NSToolbar* toolbar = [[NSToolbar alloc] initWithIdentifier: @"RepositoryToolBar2"];
@@ -25,8 +26,6 @@
 	[toolbar setSizeMode: NSToolbarSizeModeDefault];
 	[window setToolbar: toolbar];
 	[toolbar release];
-
-	[window makeKeyAndOrderFront:nil];
 }
 
 
@@ -34,7 +33,7 @@
 
 - (void) dealloc
 {
-    [items release];
+	[items release];
 	[super dealloc];
 }
 
@@ -76,18 +75,19 @@
 				   itemForItemIdentifier:     (NSString*)  itemIdentifier
 				   willBeInsertedIntoToolbar: (BOOL)       flag
 {
-    return [items objectForKey: itemIdentifier];
+	return [items objectForKey: itemIdentifier];
 }
 
 
 - (NSArray*) toolbarDefaultItemIdentifiers: (NSToolbar*) toolbar
 {
-    return [NSArray arrayWithObjects:
+	return [NSArray arrayWithObjects:
 					@"svnCopy",
 					@"svnMove",
 					@"svnMkdir",
 					@"svnDelete",
 					@"svnFileMerge",
+					@"svnBlame",
 					NSToolbarFlexibleSpaceItemIdentifier,
 					@"svnCheckout",
 					@"svnExport",
@@ -98,7 +98,7 @@
 
 - (NSArray*) toolbarAllowedItemIdentifiers: (NSToolbar*) toolbar
 {
-    return [NSArray arrayWithObjects:
+	return [NSArray arrayWithObjects:
 					NSToolbarSeparatorItemIdentifier,
 					NSToolbarSpaceItemIdentifier,
 					NSToolbarFlexibleSpaceItemIdentifier,
@@ -106,9 +106,10 @@
 					@"svnMove",
 					@"svnMkdir",
 					@"svnDelete",
+					@"svnFileMerge",
+					@"svnBlame",
 					@"svnCheckout",
 					@"svnExport",					
-					@"svnFileMerge",
 					@"toggleSidebar",
 					nil];
 }

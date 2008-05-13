@@ -171,10 +171,11 @@ static int gLogLevel = kLogLevelAll;
 
 	// see file://localhost/Developer/ADC%20Reference%20Library/documentation/Cocoa/Conceptual/DistrObjects/Tasks/invocations.html
 	[callback setArgument:&taskObj atIndex:2]; // index 2 because of the two hidden default arguments (see NSInvocation doc).
-	
+
 	if ( [callback target] )
 	{
 		[callback invoke]; // target may have been cancelled by cancelCallbacksOnTarget
+		[callback setTarget: nil];
 	}
 }
 
@@ -228,8 +229,8 @@ static int gLogLevel = kLogLevelAll;
 - (void) newTaskWithDictionary: (NSMutableDictionary*) taskObj
 {
 	NSTask *task = [taskObj objectForKey:@"task"];
-    NSFileHandle *handle = [taskObj objectForKey:@"handle"];
-    NSFileHandle *errorHandle = [taskObj objectForKey:@"errorHandle"];
+	NSFileHandle *handle = [taskObj objectForKey:@"handle"];
+	NSFileHandle *errorHandle = [taskObj objectForKey:@"errorHandle"];
 
 	[taskObj setValue:[NSMutableString string] forKey:@"stdout"];
 	[taskObj setValue:[NSString string] forKey:@"newStdout"];		// will contain the incoming chunk to be appended to stdout
@@ -247,9 +248,12 @@ static int gLogLevel = kLogLevelAll;
 	[tasksAC addObject:taskObj];
 
 	NSNotificationCenter* notifier = [NSNotificationCenter defaultCenter];
-    [notifier addObserver: self selector: @selector(stdoutDataAvailable:) name: NSFileHandleReadCompletionNotification object: handle];
-    [notifier addObserver: self selector: @selector(stderrDataAvailable:) name: NSFileHandleReadCompletionNotification object: errorHandle];
-    [notifier addObserver: self selector: @selector(taskCompleted:)       name: NSTaskDidTerminateNotification         object: task];
+	[notifier addObserver: self selector: @selector(stdoutDataAvailable:)
+								name: NSFileHandleReadCompletionNotification object: handle];
+	[notifier addObserver: self selector: @selector(stderrDataAvailable:)
+								name: NSFileHandleReadCompletionNotification object: errorHandle];
+	[notifier addObserver: self selector: @selector(taskCompleted:)
+								name: NSTaskDidTerminateNotification         object: task];
 
 //	[activityWindow makeKeyAndOrderFront:self];
 //	[logDrawer open];
@@ -257,21 +261,24 @@ static int gLogLevel = kLogLevelAll;
 	[handle readInBackgroundAndNotify];
 	[errorHandle readInBackgroundAndNotify];
 
-	NS_DURING
+	@try
+	{
 		[task launch];
-	NS_HANDLER
-		if ( [localException name] == NSInvalidArgumentException )
+	}
+	@catch (id exception)
+	{
+		if ([exception name] == NSInvalidArgumentException)
 		{
 			[taskObj setValue: [NSString stringWithFormat: @"Problem launching svn binary.\n"
-															"Make sure svn binary is present at path:\n"
-															"%@.\nIs Subversion client installed?"
+															"Make sure an svn binary is present at path:\n"
+															"'%@'.\nIs Subversion client installed?"
 															" If so, make sure the path is properly set in the preferences.",
 															[task launchPath]]
 					forKey: @"stderr"];
 			[taskObj setValue:@"error" forKey:@"status"];			
 			[self invokeCallBackForTask:taskObj];
 		}
-	NS_ENDHANDLER
+	}
 }
 
 
@@ -474,5 +481,113 @@ UCS Code (Hex)	Binary UTF-8 Format			Legal UTF-8 Values (Hex)
 }
 
 
-@end
+@end	// Tasks
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+//----------------------------------------------------------------------------------------
+
+@implementation Task
+
+- (id) initWithDelegate: (id<TaskDelegate>) target
+	   object:           (id)               object
+{
+	if (self = [super init])
+	{
+		fTask     = [[[NSTask alloc] init] retain];
+		fDelegate = [target retain];
+		fObject   = [object retain];
+
+		NSMutableDictionary* env = [[NSMutableDictionary alloc] initWithDictionary:
+													[[NSProcessInfo processInfo] environment]];
+	//	[env setObject: @"YES"         forKey: @"NSUnbufferedIO"];
+		[env setObject: @"en_US.UTF-8" forKey: @"LC_ALL"];
+		[fTask setEnvironment: env];
+
+		[[NSNotificationCenter defaultCenter]
+				addObserver: self selector: @selector(completed:)
+				name: NSTaskDidTerminateNotification object: fTask];
+	}
+
+	return self;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) dealloc
+{
+	[fObject   release];
+	[fDelegate release];
+	[fTask     release];
+
+	[super dealloc];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (NSTask*) task
+{
+	return fTask;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) launch:    (NSString*) path
+		 arguments: (NSArray*)  arguments
+{
+
+	[fTask setLaunchPath: path];
+	[fTask setArguments: arguments];
+
+	[fTask launch];
+//	NSLog(@"launch: %@", fTask);
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) launch:    (NSString*) path
+		 arguments: (NSArray*)  arguments
+		 stdOutput: (NSString*) stdOutput
+{
+	if (stdOutput != nil)
+		[fTask setStandardOutput: [NSFileHandle fileHandleForWritingAtPath: stdOutput]];
+
+	[self launch: path arguments: arguments];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) setStandardOutput: (id) file
+{
+	[fTask setStandardOutput: file];
+}
+
+
+//----------------------------------------------------------------------------------------
+// Calls [fDelegate taskCompleted: (Task*) self object: (id) fObject]
+
+- (void) completed: (NSNotification*) aNotification
+{
+	id delegate = fDelegate;
+	if (delegate)
+	{
+		Assert([delegate respondsToSelector: @selector(taskCompleted:object:)]);
+		id object = fObject;
+		fDelegate = nil;
+		fObject   = nil;
+		[delegate taskCompleted: self object: object];
+		[object   release];
+		[delegate release];
+	}
+	[self release];
+}
+
+
+@end	// Task
 

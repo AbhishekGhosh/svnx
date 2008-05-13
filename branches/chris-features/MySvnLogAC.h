@@ -4,10 +4,13 @@
 
 @interface MySvnLogAC : NSArrayController
 {
-	NSString *searchString;
+	NSString*	searchMessages;
+	NSString*	searchPaths;
 }
 
 
-- (void) setSearchString: (NSString*) newSearchString;
+- (void) search:    (id) sender;
+- (void) rearrange: (id) sender;
+- (void) clearSearchPaths;
 
 @end

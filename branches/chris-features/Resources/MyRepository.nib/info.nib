@@ -18,11 +18,11 @@
 		<integer>273</integer>
 	</array>
 	<key>IBOldestOS</key>
-	<integer>3</integer>
+	<integer>4</integer>
 	<key>IBOpenObjects</key>
 	<array>
-		<integer>5</integer>
 		<integer>276</integer>
+		<integer>5</integer>
 	</array>
 	<key>IBSystem Version</key>
 	<string>8J135</string>

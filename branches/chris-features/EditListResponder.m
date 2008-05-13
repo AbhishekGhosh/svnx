@@ -45,7 +45,7 @@
 
 	// Hide the Edit views if the prefs dictate & then set the window frame
 	NSString* keyEditShown = [keyPrefix stringByAppendingString: @"EditShown"];
-	if ([[NSUserDefaults standardUserDefaults] objectForKey: keyEditShown] == (id) kCFBooleanFalse)
+	if ([[NSUserDefaults standardUserDefaults] objectForKey: keyEditShown] == kNSFalse)
 	{
 		[[self disclosureView] setState: 0];
 		[self toggleEdit: nil];		// hide it
@@ -154,7 +154,7 @@
 //----------------------------------------------------------------------------------------
 // subclass to implement
 
-- (NSArray*)  dataArray
+- (NSArray*) dataArray
 {
 	return nil;
 }

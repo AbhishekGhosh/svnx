@@ -1,32 +1,27 @@
 #import <Cocoa/Cocoa.h>
 
-@class MyWorkingCopy;
-@class MySvnFilesArrayController, DrawerLogView;
-@class MyFileMergeController;
+@class MyWorkingCopy, MySvnFilesArrayController, DrawerLogView;
 
 /*" Controller of the working copy browser "*/
 @interface MyWorkingCopyController : NSResponder
 {
-    IBOutlet MyWorkingCopy *document;
-	
-	IBOutlet id window;
-	IBOutlet id splitView;
-	IBOutlet id workingCopyPath;
-	IBOutlet id progressIndicator;
-	IBOutlet id textResult;
-	IBOutlet id tableResult;
-    IBOutlet id outliner;
+	IBOutlet MyWorkingCopy*				document;
+	IBOutlet MySvnFilesArrayController*	svnFilesAC;
+
+	IBOutlet id				window;
+	IBOutlet id				splitView;
+	IBOutlet id				progressIndicator;
+	IBOutlet NSControl*		statusView;
+	IBOutlet id				tableResult;
+    IBOutlet id				outliner;
 
 	IBOutlet NSControl*		modeView;
 	IBOutlet NSPopUpButton*	filterView;
 
-	IBOutlet id commitPanel;
-	IBOutlet id commitPanelText;
-	IBOutlet id toolbar;
-	IBOutlet NSDrawer *sidebar;
-
-	IBOutlet MySvnFilesArrayController *svnFilesAC;
-	IBOutlet MyFileMergeController *fileMergeController;
+	IBOutlet id				commitPanel;
+	IBOutlet id				commitPanelText;
+	IBOutlet id				toolbar;
+	IBOutlet NSDrawer*		sidebar;
 
 	IBOutlet DrawerLogView *drawerLogView;
 
@@ -61,6 +56,7 @@
 - (IBAction) changeMode:     (id) sender;
 - (int)      currentMode;
 - (void)     setCurrentMode: (int) mode;
+- (void)     setStatusMessage: (NSString*) message;
 
 - (IBAction) commitPanelValidate: (id) sender;
 - (IBAction) commitPanelCancel:   (id) sender;

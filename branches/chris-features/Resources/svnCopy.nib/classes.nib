@@ -13,7 +13,7 @@
         }, 
         {
             ACTIONS = {validate = id; }; 
-            CLASS = MySvnCopyController; 
+            CLASS = MySvnOperationController; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 commitMessage = NSTextView; 

@@ -1,5 +1,5 @@
 #import "FilePathCleanUpTransformer.h"
-#import "MyApp.h"
+#include "CommonUtils.h"
 
 
 @implementation FilePathCleanUpTransformer

@@ -1,25 +1,49 @@
 #import "MySvnLogAC.h"
-#import "MyApp.h"
+#include "CommonUtils.h"
+
 
 @implementation MySvnLogAC
 
-- (void)search:(id)sender
+- (void) search: (id) sender
 {
-    [self setSearchString:[sender stringValue]];
-    [self rearrangeObjects];    
+	enum {
+		vSearchMsgs		=	404,
+		vSearchPaths	=	405
+	};
+
+	NSString** searchString = ([sender tag] == vSearchPaths) ? &searchPaths : &searchMessages;
+	NSString* newSearchString = [sender stringValue];
+//	if (!*searchString != newSearchString)
+	if (![*searchString isEqualToString: newSearchString])
+	{
+		[*searchString autorelease];
+		*searchString = [newSearchString length] ? [newSearchString copy] : nil;
+
+		[self rearrangeObjects];
+	}
 }
 
-- (void)rearrange:(id)sender
+
+- (void) rearrange: (id) sender
 {
-    [self rearrangeObjects];    
+	[self rearrangeObjects];
 }
+
+
+- (void) clearSearchPaths
+{
+	[searchPaths autorelease];
+	searchPaths = nil;
+	[self rearrangeObjects];
+}
+
 
 - (NSArray*) arrangeObjects: (NSArray*) objects
 {
-	if (searchString != nil && [searchString length] != 0)
+	if (searchMessages || searchPaths)
 	{
-		const BOOL searchInPaths = [GetPreference(@"shouldSearchPathsOrMessages") boolValue];
-		NSString* const lowerSearch = [searchString lowercaseString];
+		NSString* const lowerSearchMsgs  = [searchMessages lowercaseString];
+		NSString* const lowerSearchPaths = [searchPaths lowercaseString];
 		NSMutableArray* const matchedObjects = [NSMutableArray arrayWithCapacity: [objects count]];
 
 		NSEnumerator* oEnum = [objects objectEnumerator];
@@ -27,10 +51,17 @@
 		while (item = [oEnum nextObject])
 		{
 			NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-			BOOL test = FALSE;
+			BOOL test = TRUE;
 
-			if (searchInPaths)
+			if (lowerSearchMsgs)
 			{
+				NSString* text = [item objectForKey: @"msg"];
+				test = ([[text lowercaseString] rangeOfString: lowerSearchMsgs].location != NSNotFound);
+			}
+
+			if (test && lowerSearchPaths)
+			{
+				test = FALSE;
 				NSArray* paths = [item objectForKey: @"paths"];
 				if (paths != nil)
 				{
@@ -42,14 +73,16 @@
 				//		NSAutoreleasePool* pool2 = [[NSAutoreleasePool alloc] init];
 
 						NSString* text = [pathDict objectForKey: @"path"];
-						if (text != nil && [[text lowercaseString] rangeOfString: lowerSearch].location != NSNotFound)
+						if (text != nil && [[text lowercaseString]
+													rangeOfString: lowerSearchPaths].location != NSNotFound)
 						{
 							test = TRUE;
 							break;
 						}
 
 						text = [pathDict objectForKey: @"copyfrompath"];
-						if (text != nil && [[text lowercaseString] rangeOfString: lowerSearch].location != NSNotFound)
+						if (text != nil && [[text lowercaseString]
+													rangeOfString: lowerSearchPaths].location != NSNotFound)
 						{
 							test = TRUE;
 							break;
@@ -59,12 +92,6 @@
 					}
 				}
 			}
-			else
-			{
-				NSString* text = [item objectForKey: @"msg"];
-				if ([[text lowercaseString] rangeOfString: lowerSearch].location != NSNotFound)
-					test = TRUE;
-			}
 
 			if (test)
 				[matchedObjects addObject: item];
@@ -72,35 +99,22 @@
 			[pool release];
 		}
 
-	    objects = matchedObjects;
+		objects = matchedObjects;
 	}
 
 	return [super arrangeObjects: objects];
 }
 
 
-//  - dealloc:
-- (void)dealloc
+// - dealloc:
+- (void) dealloc
 {
-    [self setSearchString: nil];    
-    [super dealloc];
-}
+	[searchMessages autorelease];
+	[searchPaths autorelease];
 
-
-// - searchString:
-- (NSString *)searchString
-{
-	return searchString;
-}
-// - setSearchString:
-- (void)setSearchString:(NSString *)newSearchString
-{
-    if (searchString != newSearchString)
-	{
-        [searchString autorelease];
-        searchString = [newSearchString copy];
-    }
+	[super dealloc];
 }
 
 
 @end
+

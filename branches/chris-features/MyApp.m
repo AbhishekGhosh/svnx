@@ -6,15 +6,6 @@
 
 //----------------------------------------------------------------------------------------
 
-id
-GetPreference (NSString* prefKey)
-{
-	return [[[NSUserDefaultsController sharedUserDefaultsController] values] valueForKey: prefKey];
-}
-
-
-//----------------------------------------------------------------------------------------
-
 static void
 addTransform (Class itsClass, NSString* itsName)
 {
@@ -30,7 +21,7 @@ addTransform (Class itsClass, NSString* itsName)
 @class SvnFileStatusToColourTransformer, SvnDateTransformer, ArrayCountTransformer, SvnFilePathTransformer,
 	   FilePathCleanUpTransformer, FilePathWorkingCopy, TrimNewLinesTransformer, TaskStatusToColorTransformer;
 
-+ (MyApp *)myApp
++ (MyApp*) myApp
 {
     static id controller = nil;
     
@@ -42,7 +33,7 @@ addTransform (Class itsClass, NSString* itsName)
 }
 
 
-+ (void)initialize
++ (void) initialize
 {
 	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
 	NSData *svnFileStatusModifiedColor = [NSArchiver archivedDataWithRootObject:[NSColor blackColor]];
@@ -63,6 +54,7 @@ addTransform (Class itsClass, NSString* itsName)
 
 	[dictionary setObject: kNSTrue forKey: @"abbrevWCFilePaths"];
 	[dictionary setObject: kNSTrue forKey: @"expandWCTree"];
+	[dictionary setObject: kNSFalse forKey: @"autoRefreshWC"];
 
 	[dictionary setObject: [NSNumber numberWithInt: 99] forKey: @"loggingLevel"];
 
@@ -80,7 +72,7 @@ addTransform (Class itsClass, NSString* itsName)
 }
 
 
-- (bool)checkSVNExistence:(bool)warn
+- (bool) checkSVNExistence: (bool) warn
 {
 	NSString* svnPath = GetPreference(@"svnBinariesFolder");
 	NSFileManager* fm = [NSFileManager defaultManager];
@@ -108,12 +100,13 @@ addTransform (Class itsClass, NSString* itsName)
 
 - (void) initUI: (NSNotification*) note
 {
+	#pragma unused(note)
 	[repositoriesController showWindow];
 	[favoriteWorkingCopies showWindow];
 }
 
 
-- (void)awakeFromNib
+- (void) awakeFromNib
 {
 	[self checkSVNExistence:true];
 
@@ -124,8 +117,9 @@ addTransform (Class itsClass, NSString* itsName)
 }
 
 
-- (IBAction)test:(id)sender
+- (IBAction) test: (id) sender
 {
+	#pragma unused(sender)
 //	[self fileHistoryOpenSheetForItem:@"/Users/dom/Sites/alahup/flash/_classes/com/lachoseinteractive/SmartEdit/Inspector_text.as"];
 }
 
@@ -136,20 +130,24 @@ addTransform (Class itsClass, NSString* itsName)
 }
 
 
-- (IBAction)openPreferences:(id)sender
+- (IBAction) openPreferences: (id) sender
 {
+	#pragma unused(sender)
 	[preferencesWindow makeKeyAndOrderFront:self];
 }
 
-- (IBAction)closePreferences:(id)sender
+
+- (IBAction) closePreferences: (id) sender
 {
-    [preferencesWindow close];
+	#pragma unused(sender)
+	[preferencesWindow close];
 }
 
 
 - (BOOL) applicationShouldHandleReopen: (NSApplication*) theApplication
 		 hasVisibleWindows:             (BOOL)           visibleWindows
 {
+	#pragma unused(theApplication)
 	if (!visibleWindows)
 	{
 		[favoriteWorkingCopies showWindow];
@@ -161,6 +159,7 @@ addTransform (Class itsClass, NSString* itsName)
 
 - (BOOL) applicationShouldOpenUntitledFile: (NSApplication*) sender 
 {
+	#pragma unused(sender)
 	return NO;
 }
 
@@ -168,6 +167,7 @@ addTransform (Class itsClass, NSString* itsName)
 - (BOOL) application: (NSApplication*) theApplication
 		 openFile:    (NSString*)      filename
 {
+	#pragma unused(theApplication)
 	[self fileHistoryOpenSheetForItem: filename];
 
 	return YES;

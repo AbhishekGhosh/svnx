@@ -3,6 +3,7 @@
 //
 
 #import "MySvnRepositoryBrowserView.h"
+#import "MyDragSupportMatrix.h"
 #import "MyApp.h"
 #import "MySvn.h"
 #import "MyRepository.h"
@@ -10,10 +11,6 @@
 #import "SvnLogReport.h"
 #import "NSString+MyAdditions.h"
 #include "CommonUtils.h"
-
-#ifndef Assert
-#define	Assert(expr)	/*(expr)*/
-#endif
 
 
 @class IconCache;
@@ -145,29 +142,31 @@ makeMiniIcon (NSImage* image)
 
 @implementation MySvnRepositoryBrowserView
 
-- (id)initWithFrame:(NSRect)frameRect
+- (id) initWithFrame: (NSRect) frameRect
 {
 	if (gFont == nil)
-		gFont = [[NSFont fontWithName: @"Lucida Grande" size: 10] retain];
+		gFont = [[NSFont labelFontOfSize: [NSFont labelFontSize]] retain];
 
 	if (gIconCache == nil)
 		gIconCache = [[IconCache alloc] init];
 	else
 		[gIconCache retain];
 
-	if ((self = [super initWithFrame:frameRect]) != nil)
+	if (self = [super initWithFrame: frameRect])
 	{
+		showRoot = YES;
 		if ([NSBundle loadNibNamed:@"MySvnRepositoryBrowserView" owner:self])
 		{
-		  [_view setFrame:[self bounds]];
-		  [self addSubview:_view];
+			[_view setFrame:[self bounds]];
+			[self addSubview:_view];
 		}
 	}
 
 	return self;
 }
 
-- (void)dealloc
+
+- (void) dealloc
 {
 //	NSLog(@"dealloc repository browser view");
 	[self setBrowserPath: nil];
@@ -176,7 +175,8 @@ makeMiniIcon (NSImage* image)
 	[super dealloc];
 }
 
-- (void)unload
+
+- (void) unload
 {
 	// the nib is responsible for releasing its top-level objects
 //	[_view release];	// this is done by super
@@ -192,21 +192,16 @@ makeMiniIcon (NSImage* image)
 
 - (void) onDoubleClick: (id) sender
 {
-	if (!disallowLeaves)
+	if (!isSubBrowser)
 	{
-		const BOOL optionPressed = ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask) != 0;
 		NSArray* items = [self selectedItems];
 		if (items != nil && [items count] > 0)
 		{
 			NSDictionary* dict = [items objectAtIndex: 0];
-			NSURL* furl = [dict objectForKey: @"url"];
 
-			SvnLogReport* logReport = [SvnLogReport alloc];
-			[logReport initWithURL: [furl absoluteString] revision: [self revision]];
-			if ([NSBundle loadNibNamed: @"BrowseLog" owner: logReport])
-			{
-				[logReport begin: self verbose: !optionPressed];
-			}
+			[SvnLogReport svnLogReport: [[dict objectForKey: @"url"] absoluteString]
+						  revision:     [self revision]
+						  verbose:      !AltOrShiftPressed()];
 		}
 	}
 }
@@ -216,8 +211,9 @@ makeMiniIcon (NSImage* image)
 #pragma mark	-
 #pragma mark	public methods
 
--(NSMutableArray *)selectedItems
-/* Returns a array of the selected represented objects */
+// Returns a array of the selected represented objects
+
+- (NSMutableArray*) selectedItems
 {
 	NSEnumerator *en = [[browser selectedCells] objectEnumerator];
 	NSCell *cell;
@@ -231,20 +227,28 @@ makeMiniIcon (NSImage* image)
 	return arr;
 }
 
-- (void)setAllowsEmptySelection:(BOOL)flag
-{
-	[browser setAllowsEmptySelection:flag];
-}
 
-- (void)setAllowsMultipleSelection:(BOOL)flag
-{
-	[browser setAllowsMultipleSelection:flag];
-}
-
-- (void)reset
+- (void) reset
 {
 	[self setBrowserPath:nil];
 	[browser setPath:@"/"];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) setupForSubBrowser:      (BOOL) showRoot_
+		 allowsLeaves:            (BOOL) allowsLeaves
+		 allowsMultipleSelection: (BOOL) allowsMultiSel
+{
+	isSubBrowser = YES;
+	showRoot = showRoot_;
+	disallowLeaves = !allowsLeaves;
+	[self setRevision: @"HEAD"];
+	[browser setAllowsEmptySelection: NO];
+	[browser setAllowsMultipleSelection: allowsMultiSel];
+
+	[self fetchSvn];
 }
 
 
@@ -258,17 +262,20 @@ makeMiniIcon (NSImage* image)
 {
 	if ( [self revision] == nil ) return; 
 
+	if (isSubBrowser)
+		[(MyDragSupportMatrix*) matrix setupForSubBrowser];
 	if ( [matrix numberOfRows] != 0 )
 	{
 	}
-	else if (column == 0 && [self showRoot])
+	else if (column == 0 && showRoot)
 	{
 		NSBrowserCell *cell = [[NSBrowserCell alloc] initTextCell:@"root"];
 		NSDictionary *txtDict = [NSDictionary dictionaryWithObjectsAndKeys:
 										gFont, NSFontAttributeName,
 										[NSNumber numberWithFloat:0.4], NSObliquenessAttributeName,
 										nil];
-		NSAttributedString *attrStr = [[[NSAttributedString alloc] initWithString:@"root" attributes:txtDict] autorelease];
+		NSAttributedString *attrStr = [[[NSAttributedString alloc]
+											initWithString:@"root" attributes:txtDict] autorelease];
 		[cell setAttributedStringValue:attrStr];
 
 		[self setIsFetching:NO];
@@ -300,32 +307,30 @@ makeMiniIcon (NSImage* image)
 #pragma mark	-
 #pragma mark	svn related methods
 
+// Triggers the fetching
 
-- (void)fetchSvn
-/* Triggers the fetching */
+- (void) fetchSvn
 {
 	[self setBrowserPath:[browser path]];
 
 	[super fetchSvn];
-	
-	if ( [self showRoot] )
+
+	[browser reloadColumn: 0];
+	if (showRoot)
 	{
-		[browser reloadColumn:0];
 		[browser selectRow:0 inColumn:0];
 		[browser setWidth:50 ofColumn:0];
-		
-	} else
-	{
-		[browser reloadColumn:0];
 	}
 }
 
 
-- (void)fetchSvnListForUrl:(NSString *)theURL column:(int)column matrix:(NSMatrix *)matrix
+- (void) fetchSvnListForUrl: (NSString*) theURL
+		 column:             (int)       column
+		 matrix:             (NSMatrix*) matrix
 {
 	NSString* url2 = theURL;
 	
-	if ( [self showRoot] )
+	if (showRoot)
 		url2 = [url2 substringFromIndex:5]; // get rid of "root" prefix
 
 	NSURL *cleanUrl = [NSURL URLWithString:[[url2 trimSlashes] escapeURL] relativeToURL:[self url]];
@@ -350,7 +355,9 @@ makeMiniIcon (NSImage* image)
 				 options: [NSArray arrayWithObjects:@"--xml", @"-r", [self revision], nil]
                 callback: [self makeCallbackInvocationOfKind:10]
 			callbackInfo: [NSDictionary dictionaryWithObjectsAndKeys:
-								matrix, @"matrix", [NSNumber numberWithInt:column], @"column", cleanUrl, @"url", nil]
+												matrix, @"matrix",
+												[NSNumber numberWithInt:column], @"column",
+												cleanUrl, @"url", nil]
 			    taskInfo: [self documentNameDict]]
 		];
 	}
@@ -360,7 +367,7 @@ makeMiniIcon (NSImage* image)
 - (NSString*) pathToColumn: (int) column
 {
 	NSString* result = [browser pathToColumn: column];
-	if ([self showRoot])
+	if (showRoot)
 	{
 		result = [result substringFromIndex: 5];	// don't keep the "root" prefix
 	}
@@ -369,7 +376,7 @@ makeMiniIcon (NSImage* image)
 }
 
 
-- (void)fetchSvnReceiveDataFinished:(id)taskObj
+- (void) fetchSvnReceiveDataFinished: (id) taskObj
 {
 	[super fetchSvnReceiveDataFinished:taskObj];
 
@@ -443,13 +450,12 @@ makeMiniIcon (NSImage* image)
 		NSString* const authorStr   = [row objectForKey: @"author"];
 		NSString* const dateStr     = [row objectForKey: @"date"];
 		NSString* const timeStr     = [row objectForKey: @"time"];
-		NSString* const helpStr = (isDir) ? [NSString stringWithFormat:
-													@"Revision: %@\nAuthor: %@\nDate: %@\nTime: %@",
-													revisionStr, authorStr, dateStr, timeStr]
-										  : [NSString stringWithFormat:
-													@"Revision: %@\nAuthor: %@\nSize: %@ bytes\nDate: %@\nTime: %@",
-													revisionStr, authorStr, [row objectForKey: @"size"],
-													dateStr, timeStr];
+		NSString* const helpStr     = isDir
+			? [NSString stringWithFormat: @"Revision: %@\nAuthor: %@\nDate: %@\nTime: %@",
+										  revisionStr, authorStr, dateStr, timeStr]
+			: [NSString stringWithFormat: @"Revision: %@\nAuthor: %@\nSize: %@ bytes\nDate: %@\nTime: %@",
+										  revisionStr, authorStr, [row objectForKey: @"size"],
+										  dateStr, timeStr];
 		[matrix setToolTip: helpStr forCell: cell];
 
 		[matrix putCell: cell atRow: i column: 0];
@@ -471,26 +477,6 @@ makeMiniIcon (NSImage* image)
 #pragma mark	-
 #pragma mark	Accessors
 
-// - showRoot:
-- (BOOL) showRoot { return showRoot; }
-
-// - setShowRoot:
-- (void) setShowRoot: (BOOL) flag
-{
-	showRoot = flag;
-}
-
-
-// - disallowLeaves:
-- (BOOL) disallowLeaves { return disallowLeaves; }
-
-// - setDisallowLeaves:
-- (void) setDisallowLeaves: (BOOL) flag
-{
-	disallowLeaves = flag;
-}
-
-
 // - browserPath:
 - (NSString*) browserPath { return browserPath; }
 
@@ -508,6 +494,7 @@ makeMiniIcon (NSImage* image)
 	return [MySvn cachePathForKey: [NSString stringWithFormat: @"%@::%@ list",
 															   [theURL absoluteString], [self revision]]];
 }
+
 
 @end
 
