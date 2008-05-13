@@ -8,6 +8,8 @@
 #import "MySvnLogView.h"
 #import "NSString+MyAdditions.h"
 #include "CommonUtils.h"
+#include "DbgUtils.h"
+#include "SvnInterface.h"
 
 enum {
 	SVNXCallbackExtractedToFileSystem,
@@ -263,15 +265,101 @@ TrimSlashes (id obj)
 #pragma mark	svn info
 //----------------------------------------------------------------------------------------
 
+struct SvnInfoEnv
+{
+	SvnRevNum		fRevision;
+	char			fURL[2048];
+};
+
+typedef struct SvnInfoEnv SvnInfoEnv;
+
+
+//----------------------------------------------------------------------------------------
+// Repo 'svn info' callback.  Sets <revision> and <url>.
+
+static SvnError
+svnInfoReceiver (void*       baton,
+				 const char* path,
+				 SvnInfo     info,
+				 SvnPool     pool)
+{
+	#pragma unused(path, pool)
+	SvnInfoEnv* env = (SvnInfoEnv*) baton;
+	env->fRevision = info->rev;
+	strncpy(env->fURL, info->repos_root_URL, sizeof(env->fURL));
+//	strncpy(env->fUUID, info->repos_UUID, sizeof(env->fUUID));
+
+	return SVN_NO_ERROR;
+}
+
+
+//----------------------------------------------------------------------------------------
+// svn info of <url> via SvnInterface (called by separate thread)
+
+- (void) svnDoInfo
+{
+	#pragma unused(ignored)
+	[self retain];
+	NSAutoreleasePool* autoPool = [[NSAutoreleasePool alloc] init];
+	SvnPool pool = svn_pool_create(NULL);	// Create top-level memory pool.
+	@try
+	{
+		SvnClient ctx = SvnSetupClient(self, pool);
+
+		char path[2048];
+		if (ToUTF8([url absoluteString], path, sizeof(path)))
+		{
+			int len = strlen(path);
+			if (len > 0 && path[len - 1] == '/')
+				path[len - 1] = 0;
+			const svn_opt_revision_t rev_opt = { svn_opt_revision_head };
+			SvnInfoEnv env;
+			env.fURL[0] = 0;
+
+			// Retrive HEAD revision info from repository root.
+			SvnThrowIf(svn_client_info(path, &rev_opt, &rev_opt,
+									   svnInfoReceiver, &env, !kSvnRecurse,
+									   ctx, pool));
+
+			[rootUrl release];
+			rootUrl = (NSURL*) CFURLCreateWithBytes(kCFAllocatorDefault,
+													(const UInt8*) env.fURL, strlen(env.fURL),
+													kCFStringEncodingUTF8, NULL);
+			[self performSelectorOnMainThread: @selector(displayUrlTextView) withObject: nil waitUntilDone: NO];
+		}
+	}
+	@catch (SvnException* ex)
+	{
+		SvnReportCatch(ex);
+		[self performSelectorOnMainThread: @selector(svnError:) withObject: [ex message] waitUntilDone: NO];
+	}
+	@finally
+	{
+		svn_pool_destroy(pool);
+		[autoPool release];
+		[self release];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
 - (void) fetchSvnInfo
 {
-	[MySvn    genericCommand: @"info"
-				   arguments: [NSArray arrayWithObject:[[self url] absoluteString]]
-              generalOptions: [self svnOptionsInvocation]
-					 options: nil
-					callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnInfo]
-				callbackInfo: nil
-					taskInfo: [self documentNameDict]];
+	if (GetPreferenceBool(@"useOldParsingMethod") || !SvnInitialize())
+	{
+		[MySvn    genericCommand: @"info"
+					   arguments: [NSArray arrayWithObject:[url absoluteString]]
+				  generalOptions: [self svnOptionsInvocation]
+						 options: nil
+						callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnInfo]
+					callbackInfo: nil
+						taskInfo: [self documentNameDict]];
+	}
+	else
+	{
+		[NSThread detachNewThreadSelector: @selector(svnDoInfo) toTarget: self withObject: nil];
+	}
 }
 
 

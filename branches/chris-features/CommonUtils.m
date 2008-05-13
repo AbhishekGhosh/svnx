@@ -6,6 +6,7 @@
 
 #include <Cocoa/Cocoa.h>
 #include "CommonUtils.h"
+#include "DbgUtils.h"
 
 
 //----------------------------------------------------------------------------------------
@@ -51,6 +52,8 @@ MakeCallbackInvocation (id target, SEL selector)
 {
 #if qDebug
 	NSMethodSignature* methodSig = [[target class] instanceMethodSignatureForSelector: selector];
+	if (methodSig == nil)
+		dprintf("(%@ '@%s'): ERROR: no method found", target, sel_getName(selector));
 	Assert(methodSig != nil);
 	NSInvocation* callback = [NSInvocation invocationWithMethodSignature: methodSig];
 #else

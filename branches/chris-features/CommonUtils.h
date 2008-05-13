@@ -8,13 +8,6 @@
 
 #include <Foundation/Foundation.h>
 
-#ifndef Assert
-#define	Assert(expr)	/*(expr)*/
-#endif
-#ifndef WarnIf
-#define	WarnIf(expr)	(expr)
-#endif
-
 
 typedef const char*			ConstCStr;
 #if __LP64__

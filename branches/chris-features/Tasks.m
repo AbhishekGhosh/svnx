@@ -2,6 +2,7 @@
 #import "Tasks.h"
 #import "NSString+MyAdditions.h"
 #include "CommonUtils.h"
+#include "DbgUtils.h"
 
 
 // This file was patched by Yuichi Fujishige to provide better support for  UTF-16 filenames. (0.9.6)
@@ -267,6 +268,7 @@ static int gLogLevel = kLogLevelAll;
 	}
 	@catch (id exception)
 	{
+		dprintf("%@ %@\n    CAUGHT %@", [task launchPath], [task arguments], exception);
 		if ([exception name] == NSInvalidArgumentException)
 		{
 			[taskObj setValue: [NSString stringWithFormat: @"Problem launching svn binary.\n"

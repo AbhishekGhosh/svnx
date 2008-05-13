@@ -3,7 +3,7 @@
 //
 
 #include "SvnLogReport.h"
-#include "CommonUtils.h"
+#include "DbgUtils.h"
 #include "MySvn.h"
 #include "NSString+MyAdditions.h"
 #include "Tasks.h"

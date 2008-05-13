@@ -11,6 +11,7 @@
 #import "SvnLogReport.h"
 #import "NSString+MyAdditions.h"
 #include "CommonUtils.h"
+#include "DbgUtils.h"
 
 
 @class IconCache;

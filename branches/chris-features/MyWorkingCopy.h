@@ -29,7 +29,7 @@ enum {
 	IBOutlet MySvnFilesArrayController*	svnFilesAC;	
 	
     NSArray*		svnFiles;
-	NSDictionary*	svnDirectories;
+	WCTreeEntry*	svnDirectories;
 
 	BOOL			flatMode, smartMode;
 	BOOL			showUpdates;	// svn status -u
@@ -55,6 +55,9 @@ enum {
 - (void) fetchSvnStatus: (BOOL) showUpdates;
 - (void) fetchSvnInfoReceiveDataFinished: (NSString*) result;
 - (void) computesVerboseResultArray: (NSString*) svnStatusText;
+
+- (void) svnInfo: (const struct svn_info_t*) info
+		 forPath: (const char*)              path;
 
 - (void) svnCommit:    (NSArray*)      itemsPaths
 		 message:      (NSString*)     message
@@ -86,8 +89,8 @@ enum {
 - (NSArray*) svnFiles;
 - (void) setSvnFiles: (NSArray*) aSvnFiles;
 
-- (NSDictionary*) svnDirectories;
-- (void) setSvnDirectories: (NSDictionary*) aSvnDirectories;
+- (WCTreeEntry*) svnDirectories;
+- (void) setSvnDirectories: (WCTreeEntry*) aSvnDirectories;
 
 - (NSString*) windowTitle;
 - (void) setWindowTitle: (NSString*) aWindowTitle;
@@ -103,8 +106,36 @@ enum {
 - (NSURL*) repositoryUrl;
 - (void) setRepositoryUrl: (NSURL*) aRepositoryUrl;
 
+- (NSImage*) iconForFile: (NSString*) relPath;
+- (NSString*) treeSelectedFullPath;
 - (NSString*) outlineSelectedPath;
 - (void) setOutlineSelectedPath: (NSString*) anOutlineSelectedPath;
 
-@end
+@end	// MyWorkingCopy
+
+
+//----------------------------------------------------------------------------------------
+
+@interface WCTreeEntry : NSObject
+{
+	NSMutableArray*	children;
+	NSString*		name;
+	NSString*		path;
+	NSImage*		icon;
+	BOOL			sorted;
+}
+
+- (void) dealloc;
+- (id) initWithChildren: (NSMutableArray*) itsChildren
+	   name:             (NSString*)       itsName
+	   path:             (NSString*)       itsPath
+	   icon:             (NSImage*)        itsIcon;
+- (int) childCount;
+- (id) childAtIndex: (int) index;
+- (NSMutableArray*) children;
+- (NSString*) name;
+- (NSString*) path;
+- (NSImage*) icon: (MyWorkingCopy*) workingCopy;
+
+@end	// WCTreeEntry
 

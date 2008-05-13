@@ -18,12 +18,14 @@
 		831A7ABB0D7B0F86006A81F0 /* ModeTree.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7AB80D7B0F86006A81F0 /* ModeTree.png */; };
 		831A7ABC0D7B0F86006A81F0 /* ModeSmart.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7AB90D7B0F86006A81F0 /* ModeSmart.png */; };
 		831A7ABD0D7B0F86006A81F0 /* ModeFlat.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7ABA0D7B0F86006A81F0 /* ModeFlat.png */; };
+		833B71E20D91ABB3006E242E /* SvnInterface.m in Sources */ = {isa = PBXBuildFile; fileRef = 833B71E00D91ABB3006E242E /* SvnInterface.m */; };
 		836CEA220DD930E600DB72C8 /* Refresh.png in Resources */ = {isa = PBXBuildFile; fileRef = 836CEA210DD930E600DB72C8 /* Refresh.png */; };
 		83909D4D0DA4C94C00C3DAE5 /* FileMerge.png in Resources */ = {isa = PBXBuildFile; fileRef = 83909D4C0DA4C94C00C3DAE5 /* FileMerge.png */; };
 		83909D510DA4CA0F00C3DAE5 /* Repository.png in Resources */ = {isa = PBXBuildFile; fileRef = 83909D500DA4CA0F00C3DAE5 /* Repository.png */; };
 		8394A96B0DA5E702007EDB92 /* PlusTopRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 8394A96A0DA5E702007EDB92 /* PlusTopRight.png */; };
 		83CCCE390D78D7E900237C1E /* EditListResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = 83CCCE370D78D7E900237C1E /* EditListResponder.m */; };
 		83D61C160DBA4C5000D8E74E /* Advanced.icns in Resources */ = {isa = PBXBuildFile; fileRef = 83D61C150DBA4C5000D8E74E /* Advanced.icns */; };
+		83E5B93C0D905C130024AA50 /* DbgUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 83E5B93A0D905C130024AA50 /* DbgUtils.m */; };
 		83E863AA0DB674E4004CE070 /* CommonUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 83E863A90DB674E4004CE070 /* CommonUtils.m */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
@@ -147,6 +149,8 @@
 		831A7AB80D7B0F86006A81F0 /* ModeTree.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeTree.png; sourceTree = "<group>"; };
 		831A7AB90D7B0F86006A81F0 /* ModeSmart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeSmart.png; sourceTree = "<group>"; };
 		831A7ABA0D7B0F86006A81F0 /* ModeFlat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeFlat.png; sourceTree = "<group>"; };
+		833B71DF0D91ABB3006E242E /* SvnInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SvnInterface.h; sourceTree = "<group>"; };
+		833B71E00D91ABB3006E242E /* SvnInterface.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SvnInterface.m; sourceTree = "<group>"; };
 		836CEA210DD930E600DB72C8 /* Refresh.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Refresh.png; sourceTree = "<group>"; };
 		83909D4C0DA4C94C00C3DAE5 /* FileMerge.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = FileMerge.png; sourceTree = "<group>"; };
 		83909D500DA4CA0F00C3DAE5 /* Repository.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Repository.png; sourceTree = "<group>"; };
@@ -155,6 +159,8 @@
 		83CCCE370D78D7E900237C1E /* EditListResponder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditListResponder.m; sourceTree = "<group>"; };
 		83CCCE380D78D7E900237C1E /* EditListResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditListResponder.h; sourceTree = "<group>"; };
 		83D61C150DBA4C5000D8E74E /* Advanced.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Advanced.icns; sourceTree = "<group>"; };
+		83E5B9390D905C130024AA50 /* DbgUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DbgUtils.h; sourceTree = "<group>"; };
+		83E5B93A0D905C130024AA50 /* DbgUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DbgUtils.m; sourceTree = "<group>"; };
 		83E863A90DB674E4004CE070 /* CommonUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CommonUtils.m; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Info.plist; path = ../Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -376,6 +382,10 @@
 			children = (
 				83C5137E0DA7B07F00A238DD /* CommonUtils.h */,
 				83E863A90DB674E4004CE070 /* CommonUtils.m */,
+				83E5B9390D905C130024AA50 /* DbgUtils.h */,
+				83E5B93A0D905C130024AA50 /* DbgUtils.m */,
+				833B71DF0D91ABB3006E242E /* SvnInterface.h */,
+				833B71E00D91ABB3006E242E /* SvnInterface.m */,
 				F20524300A5D3C9A003F966A /* GetEthernetAddrSample.c */,
 				F20524310A5D3C9A003F966A /* GetEthernetAddrSample.h */,
 				F20524020A5D3945003F966A /* SUUpdater.h */,
@@ -775,6 +785,8 @@
 				F20524320A5D3C9A003F966A /* GetEthernetAddrSample.c in Sources */,
 				83CCCE390D78D7E900237C1E /* EditListResponder.m in Sources */,
 				8314E66A0D79165C005538EF /* SvnLogReport.m in Sources */,
+				83E5B93C0D905C130024AA50 /* DbgUtils.m in Sources */,
+				833B71E20D91ABB3006E242E /* SvnInterface.m in Sources */,
 				83E863AA0DB674E4004CE070 /* CommonUtils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -830,9 +842,25 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_VALUE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"/usr/local/apr/include/apr-0",
+					"$(inherited)",
+				);
+				OTHER_LDFLAGS = (
+					"-weak_library",
+					"$SVN_LIBS/libsvn_client-1.dylib",
+					"-weak_library",
+					"$SVN_LIBS/libsvn_subr-1.dylib",
+					"-weak_library",
+					"$SVN_LIBS/libsvn_fs-1.dylib",
+					"-weak_library",
+					"$SVN_LIBS/libapr-1.dylib",
+				);
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 				STRIP_INSTALLED_PRODUCT = NO;
+				SVN_LIBS = /opt/subversion/lib;
+				USER_HEADER_SEARCH_PATHS = "/usr/local/include/subversion-1 $(inherited)";
 			};
 			name = Debug;
 		};
@@ -856,6 +884,7 @@
 					"$(inherited)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(SVN_LIBS)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/i386\"";
 				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/ppc\"";
