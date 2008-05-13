@@ -364,6 +364,12 @@ GenericFolderImage ()
 }
 
 
+- (int*) reviewCount
+{
+	return &reviewCount;
+}
+
+
 - (void) close
 {
 	// tell the task center to cancel pending callbacks to prevent crash

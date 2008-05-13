@@ -34,6 +34,7 @@ enum {
 	BOOL			flatMode, smartMode;
 	BOOL			showUpdates;	// svn status -u
 	int				filterMode;
+	int				reviewCount;	// number of active ReviewContollers
 
 	NSMutableDictionary *displayedTaskObj;
 }
@@ -101,6 +102,7 @@ enum {
 - (void) setSmartMode: (BOOL) flag;
 - (int)  filterMode;
 - (void) setFilterMode: (int) aFilterMode;
+- (int*) reviewCount;
 
 - (id) controller;
 - (NSURL*) repositoryUrl;

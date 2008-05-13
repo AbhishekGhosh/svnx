@@ -7,7 +7,7 @@
 //
 
 #import "SvnDateTransformer.h"
-#import "CommonUtils.h"
+#include "CommonUtils.h"
 
 
 static NSDateFormatter* gDateFormatter = nil;
@@ -24,6 +24,14 @@ static NSDateFormatter* gDateFormatter = nil;
 + (BOOL)allowsReverseTransformation
 {
     return NO;
+}
+
+
+//----------------------------------------------------------------------------------------
+
++ (NSDateFormatter*) formatter
+{
+    return gDateFormatter;
 }
 
 

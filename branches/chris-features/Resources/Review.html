@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style type="text/css">
+/* Styles for Tabular & Unified diffs */
+.D ul { clear: both; margin: 0; padding: 0 }
+.D li { background: #f7f7f7; position: relative; width: 100%; }
+.D h2 { border: 1px solid #ddd; font-size: 13px; letter-spacing: normal;
+		margin: 0 auto; padding: 1px 0 3px 7px; }
+.D h2 .switch { float: right; font-size: 11px; line-height: 1.6; }
+.D h2 .switch span { border-left: 1px solid #ccc; cursor: pointer; padding: 3px 9px 5px; }
+.D h2 .switch span.active { background: #83bcf9; cursor: default; }
+
+/* Tabular/Inline diff view */
+.D table { border: 1px solid #ddd; border-spacing: 0; border-top: 0; empty-cells: show;
+		   font-size: 12px; line-height: 130%; padding: 0; margin: 0 auto; table-layout: fixed;
+		   width: 100%; }
+.D table col.N { width: 4em }
+.D table th { border-right: 1px solid #ddd; border-bottom: 1px solid #998; font-size: 11px; }
+.D table tr.rev th { background: #eee; color: #a00; text-align: center; }
+.D table tbody th { background: #eed; color: #443; font-weight: normal; padding: 0 .5em;
+					text-align: right; vertical-align: top; }
+.D table tbody td { background: #fff; font: normal 11px monospace; overflow: visible;
+					padding: 1px 2px; vertical-align: top; }
+.D td ins, .D td del { text-decoration: none; }
+
+/* Inline diff view */
+.D td.L { background: #fdd; border-color: #c00; border-style: solid; border-width: 0 1px 0 1px; }
+.D td.R { background: #dfd; border-color: #0a0; border-style: solid; border-width: 0 1px 0 1px; }
+.D tr.A td.L, .D tr.A td.R { border-top-width: 1px }
+.D tr.B td.L, .D tr.B td.R { border-bottom-width: 1px }
+.D td del { background: #e99; color: #000; }
+.D td ins { background: #9e9; color: #000; }
+
+/* Unified diff view */
+.D pre { background: #ffe; border: 1px solid #ddd; border-top-width: 0; font-size: 11px; margin: 0; }
+</style></head>
+
+<body><script type="text/javascript">//<![CDATA[
+
+String.prototype.beginswith = function(str) { return this.indexOf(str) == 0; }
+
+function esc(text)
+{
+	text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+	text = text.replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	text = text.replace(/\t/g, "&nbsp; &nbsp; ").replace(/  /g, "&nbsp; ");
+	return (text.charCodeAt(0) == 32) ? '&nbsp;' + text.substring(1) : text;
+}
+
+function esc1(text)
+{
+	return esc(text.substring(1));
+}
+
+function rev(s)
+{
+	var tmp = s.match(/([0-9]+)\)$|(copy)\)$/);
+	if (tmp[2])
+		return "Work";
+	else if (tmp[1])
+		return "r" + tmp[1];
+	return "";
+}
+
+function diff(text)
+{
+	var lines = text.split('\n'),
+		i = 0, S = "", title = "", rA = "", rB = "", m = "";
+
+	if (lines[i].beginswith("Index: "))
+		title = esc(lines[i++].substring(7));
+
+	if (lines[i].beginswith("===="))
+		++i;
+
+	if (lines[i].beginswith("--- "))
+		rA = rev(lines[i++]);
+	else if (lines[i].beginswith("Cannot display:"))	// file marked as a binary type.
+		m = lines[i++].concat('<br/>', lines[i++]);
+
+	if (lines[i].beginswith("+++ "))
+		rB = rev(lines[i++]);
+
+	S += '<div class="D"><ul><li>\n';
+	S += '<h2><span class="switch"><span class="active" onclick="tab(this,0)">Tabular</span>';
+	S += '<span onclick="tab(this,1)">Unified</span></span>';
+	S += title;
+	S += '</h2>\n';
+
+	S += '<table summary="diff" cellspacing="0">\n';
+	S += '<colgroup><col class="N"/><col class="N"/><col/></colgroup>\n';
+	S += '<tr class="rev"><th>'.concat(rA, '</th><th>', rB, '</th><td>', m, '</td></tr>\n');
+
+	var cFirst = "<tr class='A'>",
+		cLast  = "<tr class='B'>",
+		cOnly  = "<tr class='A B'>",
+		cOther = "<tr>",
+		lnumRE = /^@@ -([0-9]+),([0-9]+) \+([0-9]+),([0-9]+) @@$/,
+	    linCount = lines.length;
+	var numA = 0, numB = 0, lin, nums, tr,
+		prevTyp, typ = -1, nextTyp = (i < linCount) ? lines[i].charCodeAt(0) : -2;
+
+	while (i < linCount)
+	{
+		lin = lines[i++];
+		prevTyp = typ;
+		typ = nextTyp;
+		nextTyp = (i < linCount) ? lines[i].charCodeAt(0) : 0;
+		var isFirst = (typ != prevTyp),
+			isLast  = (typ != nextTyp);
+		switch (typ)
+		{
+		case 64:		// '@'
+			nums = lin.match(lnumRE);
+			numA = parseInt(nums[1]);
+			numB = parseInt(nums[3]);
+			break;
+		case 43:	// '+'
+			if (isFirst) S += "<tbody>\n";
+			var first = isFirst && prevTyp != 45;
+			S += first ? (isLast ? cOnly : cFirst) : (isLast ? cLast : cOther);
+			S += "<th></th><th>".concat(numB++, "</th><td class='R'>");
+			S += esc1(lin);
+			S += "</td></tr>\n";
+			if (isLast) S += "</tbody>\n";
+			break;
+		case 45:	// '-'
+			if (isFirst) S += "<tbody>\n";
+			var last = isLast && nextTyp != 43;
+			S += isFirst ? (last ? cOnly : cFirst) : (last ? cLast : cOther);
+			S += "<th>".concat(numA++, "</th><th></th><td class='L'>");
+			S += esc1(lin);
+			S += "</td></tr>\n";
+			if (isLast) S += "</tbody>\n";
+			break;
+		case 32:	// ' '
+			if (isFirst) S += "<tbody>\n";
+			S += "<tr><th>".concat(numA++, "</th><th>", numB++, "</th><td>");
+			S += esc1(lin);
+			S += "</td></tr>\n";
+			if (isLast) S += "</tbody>\n";
+			break;
+		}
+	}
+	S += "</table><pre style='display:none'>";
+	S += text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	S += "</pre></li></ul></div>\n";
+
+	return S;
+}
+
+function tab(me, uni)
+{
+	me[uni ? 'previousSibling' : 'nextSibling'].className = "";
+	me.className = "active";
+	var unified = me.parentNode.parentNode.parentNode.lastChild;
+	unified.style.display = uni ? "" : "none";
+	unified.previousSibling.style.display = uni ? "none" : "";
+}
+
+function diffAll()
+{
+	var list = document.getElementsByTagName("textarea");
+	for (var n, i = 0; (n = list.item(i)) != null; ++i)
+	{
+		var node = document.createElement("div");
+		node.innerHTML = diff(n.value);
+		document.body.appendChild(node);
+	}
+}
+
+window.onload = diffAll;
+//]]></script>
+

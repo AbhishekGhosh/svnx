@@ -25,8 +25,13 @@
 		8394A96B0DA5E702007EDB92 /* PlusTopRight.png in Resources */ = {isa = PBXBuildFile; fileRef = 8394A96A0DA5E702007EDB92 /* PlusTopRight.png */; };
 		83CCCE390D78D7E900237C1E /* EditListResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = 83CCCE370D78D7E900237C1E /* EditListResponder.m */; };
 		83D61C160DBA4C5000D8E74E /* Advanced.icns in Resources */ = {isa = PBXBuildFile; fileRef = 83D61C150DBA4C5000D8E74E /* Advanced.icns */; };
+		83DBD3400DBF7CB400264348 /* ReviewCommit.nib in Resources */ = {isa = PBXBuildFile; fileRef = 83DBD33D0DBF7CB400264348 /* ReviewCommit.nib */; };
+		83DBD3410DBF7CB400264348 /* review.sh in Resources */ = {isa = PBXBuildFile; fileRef = 83DBD33E0DBF7CB400264348 /* review.sh */; };
+		83DBD3420DBF7CB400264348 /* Review.html in Resources */ = {isa = PBXBuildFile; fileRef = 83DBD33F0DBF7CB400264348 /* Review.html */; };
+		83DBD3910DBF7F9500264348 /* ReviewCommit.m in Sources */ = {isa = PBXBuildFile; fileRef = 83DBD38F0DBF7F9500264348 /* ReviewCommit.m */; };
 		83E5B93C0D905C130024AA50 /* DbgUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 83E5B93A0D905C130024AA50 /* DbgUtils.m */; };
 		83E863AA0DB674E4004CE070 /* CommonUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 83E863A90DB674E4004CE070 /* CommonUtils.m */; };
+		83EE48880DD226C100542832 /* ViewUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 83EE48860DD226C100542832 /* ViewUtils.m */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.rtf */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
 		8D15AC320486D014006FF6A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4B0FDCFA73011CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
@@ -159,11 +164,18 @@
 		83CCCE370D78D7E900237C1E /* EditListResponder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditListResponder.m; sourceTree = "<group>"; };
 		83CCCE380D78D7E900237C1E /* EditListResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditListResponder.h; sourceTree = "<group>"; };
 		83D61C150DBA4C5000D8E74E /* Advanced.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Advanced.icns; sourceTree = "<group>"; };
+		83DBD33D0DBF7CB400264348 /* ReviewCommit.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = ReviewCommit.nib; sourceTree = "<group>"; };
+		83DBD33E0DBF7CB400264348 /* review.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = review.sh; sourceTree = "<group>"; };
+		83DBD33F0DBF7CB400264348 /* Review.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Review.html; sourceTree = "<group>"; };
+		83DBD38F0DBF7F9500264348 /* ReviewCommit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReviewCommit.m; sourceTree = "<group>"; };
+		83DBD3900DBF7F9500264348 /* ReviewCommit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReviewCommit.h; sourceTree = "<group>"; };
 		83E5B9390D905C130024AA50 /* DbgUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DbgUtils.h; sourceTree = "<group>"; };
 		83E5B93A0D905C130024AA50 /* DbgUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DbgUtils.m; sourceTree = "<group>"; };
 		83E863A90DB674E4004CE070 /* CommonUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CommonUtils.m; sourceTree = "<group>"; };
+		83EE48860DD226C100542832 /* ViewUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewUtils.m; sourceTree = "<group>"; };
+		83EE48870DD226C100542832 /* ViewUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewUtils.h; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Info.plist; path = ../Info.plist; sourceTree = "<group>"; };
-		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F20521BE0A5D2159003F966A /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = ../../build/Release/Sparkle.framework; sourceTree = "<group>"; };
 		F20524020A5D3945003F966A /* SUUpdater.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SUUpdater.h; path = ../../build/Release/Sparkle.framework/Versions/A/Headers/SUUpdater.h; sourceTree = SOURCE_ROOT; };
 		F20524300A5D3C9A003F966A /* GetEthernetAddrSample.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = GetEthernetAddrSample.c; sourceTree = "<group>"; };
@@ -384,6 +396,8 @@
 				83E863A90DB674E4004CE070 /* CommonUtils.m */,
 				83E5B9390D905C130024AA50 /* DbgUtils.h */,
 				83E5B93A0D905C130024AA50 /* DbgUtils.m */,
+				83EE48860DD226C100542832 /* ViewUtils.m */,
+				83EE48870DD226C100542832 /* ViewUtils.h */,
 				833B71DF0D91ABB3006E242E /* SvnInterface.h */,
 				833B71E00D91ABB3006E242E /* SvnInterface.m */,
 				F20524300A5D3C9A003F966A /* GetEthernetAddrSample.c */,
@@ -450,6 +464,9 @@
 				F29E410B069F0D22007CE672 /* MyRepository.nib */,
 				F27AA4B106AEC5F8001A1B05 /* MySvnLogView2.nib */,
 				F2EE0FF106A9571400C08125 /* MySvnRepositoryBrowserView.nib */,
+				83DBD33D0DBF7CB400264348 /* ReviewCommit.nib */,
+				83DBD33E0DBF7CB400264348 /* review.sh */,
+				83DBD33F0DBF7CB400264348 /* Review.html */,
 				8D15AC360486D014006FF6A4 /* Info.plist */,
 				F2BBEF6A076B738B002160EB /* svnX.scriptSuite */,
 				F2BBEF6B076B738B002160EB /* svnX.scriptTerminology */,
@@ -532,6 +549,8 @@
 				F2C20624060136D0004C843B /* TableViewDelegate.m */,
 				F2997D8E0609E60C00E0DA4A /* SplitViewDelegate.m */,
 				F22964D206B2617700441FA8 /* MyWorkingCopyToolbar.m */,
+				83DBD38F0DBF7F9500264348 /* ReviewCommit.m */,
+				83DBD3900DBF7F9500264348 /* ReviewCommit.h */,
 			);
 			name = WorkingCopies;
 			sourceTree = "<group>";
@@ -698,6 +717,9 @@
 				8314B1A60DB9769900C6F545 /* svnBlame.png in Resources */,
 				8314B22E0DB9A0CD00C6F545 /* svnblame.sh in Resources */,
 				83D61C160DBA4C5000D8E74E /* Advanced.icns in Resources */,
+				83DBD3400DBF7CB400264348 /* ReviewCommit.nib in Resources */,
+				83DBD3410DBF7CB400264348 /* review.sh in Resources */,
+				83DBD3420DBF7CB400264348 /* Review.html in Resources */,
 				836CEA220DD930E600DB72C8 /* Refresh.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -788,6 +810,8 @@
 				83E5B93C0D905C130024AA50 /* DbgUtils.m in Sources */,
 				833B71E20D91ABB3006E242E /* SvnInterface.m in Sources */,
 				83E863AA0DB674E4004CE070 /* CommonUtils.m in Sources */,
+				83DBD3910DBF7F9500264348 /* ReviewCommit.m in Sources */,
+				83EE48880DD226C100542832 /* ViewUtils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -829,6 +853,74 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		834DE4110D9C317100E6F26B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(FRAMEWORK_SEARCH_PATHS)",
+					"$(SRCROOT)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
+				);
+				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Release\"";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = svnX_Prefix.pch;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+					"$(SVN_LIBS)",
+				);
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/i386\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/ppc\"";
+				PRODUCT_NAME = svnX;
+			};
+			name = Release;
+		};
+		834DE4120D9C317100E6F26B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				DEAD_CODE_STRIPPING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_FAST_OBJC_DISPATCH = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_PREPROCESSOR_DEFINITIONS = "qDebug=0";
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"/usr/local/apr/include/apr-0",
+					"$(inherited)",
+				);
+				OTHER_LDFLAGS = (
+					"-weak_library",
+					"$SVN_LIBS/libsvn_client-1.dylib",
+					"-weak_library",
+					"$SVN_LIBS/libsvn_subr-1.dylib",
+					"-weak_library",
+					"$SVN_LIBS/libsvn_fs-1.dylib",
+					"-weak_library",
+					"$SVN_LIBS/libapr-1.dylib",
+				);
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SVN_LIBS = /opt/subversion/lib;
+				USER_HEADER_SEARCH_PATHS = "/usr/local/include/subversion-1 $(inherited)";
+			};
+			name = Release;
+		};
 		F2EF3C3B0CD296C6000FBD9D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -899,6 +991,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F2EF3C3C0CD296C6000FBD9D /* Debug */,
+				834DE4110D9C317100E6F26B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -907,6 +1000,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F2EF3C3B0CD296C6000FBD9D /* Debug */,
+				834DE4120D9C317100E6F26B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

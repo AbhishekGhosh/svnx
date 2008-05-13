@@ -56,6 +56,10 @@ addTransform (Class itsClass, NSString* itsName)
 	[dictionary setObject: kNSTrue forKey: @"expandWCTree"];
 	[dictionary setObject: kNSFalse forKey: @"autoRefreshWC"];
 
+	id obj = [NSDictionary dictionaryWithObjectsAndKeys: @"Simple File List", @"name",
+														 @"Files:\n\t(<FILES><SEP-BEGIN>)\n\t(<SEP-END>)\n", @"body", nil];
+	[dictionary setObject: [NSArray arrayWithObject: obj] forKey: @"msgTemplates"];
+
 	[dictionary setObject: [NSNumber numberWithInt: 99] forKey: @"loggingLevel"];
 
 	[[NSUserDefaultsController sharedUserDefaultsController] setInitialValues:dictionary];

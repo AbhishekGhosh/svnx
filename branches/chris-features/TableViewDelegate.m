@@ -11,13 +11,39 @@ static NSString* const colKeys[kNumColumns + 1]  = {
 };
 
 
+//----------------------------------------------------------------------------------------
+
+NSString*
+helpTagForWCFile (NSDictionary* wcFileInfo)
+{
+	assert(helpTags[1]);
+	NSMutableString* help = [NSMutableString string];
+	int i;
+	for (i = kFirstColumn; i <= kNumColumns; ++i)
+	{
+		NSString* key = [wcFileInfo objectForKey: colKeys[i]];
+		if ([key isEqualToString: @" "])
+			continue;
+		NSString* str = [helpTags[i] objectForKey: key];
+		if (str)
+		{
+			if ([help length])
+				[help appendString: @"\n"];
+			[help appendString: str];
+		}
+	}
+	return help;
+}
+
+
+//----------------------------------------------------------------------------------------
+
 @implementation TableViewDelegate
 
-- init
+- (id) init
 {
-	if (helpTags[1] == NULL)
+	if (helpTags[1] == nil)
 	{
-	//	NSLog(@"TableViewDelegate -init");
 		// Item changes
 		helpTags[1] = [NSDictionary dictionaryWithObjectsAndKeys:
 			@"No modifications.", @" ", 
@@ -64,24 +90,24 @@ static NSString* const colKeys[kNumColumns + 1]  = {
 
 		// Lock
 		helpTags[6] = [NSDictionary dictionaryWithObjectsAndKeys:
-			@"File is not locked in this working copy.", @" ", 
-			@"File is locked in this working copy.", @"K",
-			@"File is locked either by another user or in another working copy.", @"O",
-			UTF8("File was locked in this working copy, but the lock has been \xE2\x80\x98"
+			@"Item is not locked in this working copy.", @" ", 
+			@"Item is locked in this working copy.", @"K",
+			@"Item is locked either by another user or in another working copy.", @"O",
+			UTF8("Item was locked in this working copy, but the lock has been \xE2\x80\x98"
 				 "stolen\xE2\x80\x99 and is invalid. The file is currently locked in the repository."), @"T",
-			UTF8("File was locked in this working copy, but the lock has been \xE2\x80\x98"
+			UTF8("Item was locked in this working copy, but the lock has been \xE2\x80\x98"
 				 "broken\xE2\x80\x99 and is invalid. The file is no longer locked."), @"B",
 			nil];
 
 		// Out-of-date information
 		helpTags[7] = [NSDictionary dictionaryWithObjectsAndKeys:
 			@"Item is up-to-date.", @" ",
-			@"A newer revision of the item exists on the server.", @"*",
+			@"A newer revision of the item exists in the repository.", @"*",
 			nil];
 
 		helpTags[8] = [NSDictionary dictionaryWithObjectsAndKeys:
-			@"File has properties", @"P",
-			@"File doesn't have any properties.", @" ",
+			@"Item has properties", @"P",
+			UTF8("Item doesn\xE2\x80\x99t have any properties."), @" ",
 			nil];
 
 		int i;
@@ -93,55 +119,39 @@ static NSString* const colKeys[kNumColumns + 1]  = {
 }
 
 
-- (BOOL) tableView: (NSTableView*) tableView writeRows: (NSArray*) rows toPasteboard: (NSPasteboard*) pboard
-{
-	NSMutableArray *filePaths = [NSMutableArray arrayWithCapacity: [rows count]];
-	NSEnumerator *en = [rows objectEnumerator];
-#if 1
-	id object, types[2];
-	int typesCount = 0;
+//----------------------------------------------------------------------------------------
 
+- (BOOL) tableView:            (NSTableView*)  tableView
+		 writeRowsWithIndexes: (NSIndexSet*)   rowIndexes
+		 toPasteboard:         (NSPasteboard*) pboard
+{
+	NSArray* filePaths;
+	id types[2];
+	int typesCount = 0;
+#if 1
 	if ([document flatMode])
 	{
 		// Don't require items to be selected in order to drag them
-		NSArray* const wcFiles = [svnFilesAC arrangedObjects];
-
-		while (object = [en nextObject])
-		{
-			[filePaths addObject: [[wcFiles objectAtIndex: [object intValue]] objectForKey: @"fullPath"]];
-		}
+		filePaths = [[[svnFilesAC arrangedObjects] objectsAtIndexes: rowIndexes] valueForKey: @"fullPath"];
 	}
 	else
 	{
 		// Let's prevent the user from dragging non selected items
-		while (object = [en nextObject])
+		unsigned int index;
+		for (index = [rowIndexes firstIndex]; index != NSNotFound;
+			 index = [rowIndexes indexGreaterThanIndex: index])
 		{
-			if ( ![tableView isRowSelected:[object intValue]] )
-				return FALSE;
+			if (![tableView isRowSelected: index])
+				return NO;
 		}
 
-		NSArray *selectedObjects = [svnFilesAC selectedObjects];
-		NSEnumerator *pathsEnumerator = [selectedObjects objectEnumerator];
-		while ( object = [pathsEnumerator nextObject] )
-		{
-			[filePaths addObject:[object objectForKey:@"fullPath"]];
-		}
-
+		filePaths = [[svnFilesAC selectedObjects] valueForKey: @"fullPath"];
 		types[typesCount++] = @"svnX";
 	}
 #elif 1
 	// FIX_ME: In Tree Mode this does svn mv on the selected items (not the dragged items)
 	// Don't require items to be selected in order to drag them
-	NSArray* const wcFiles = [svnFilesAC arrangedObjects];
-	id object;
-
-	while (object = [en nextObject])
-	{
-		[filePaths addObject: [[wcFiles objectAtIndex: [object intValue]] objectForKey: @"fullPath"]];
-	}
-
-	id types[2];
-	int typesCount = 0;
+	filePaths = [[[svnFilesAC arrangedObjects] objectsAtIndexes: rowIndexes] valueForKey: @"fullPath"];
 
 	if (![document flatMode])
 		types[typesCount++] = @"svnX";
@@ -149,19 +159,25 @@ static NSString* const colKeys[kNumColumns + 1]  = {
 
 	types[typesCount++] = NSFilenamesPboardType;
 	[pboard declareTypes: [NSArray arrayWithObjects: types count: typesCount] owner: nil];
-    [pboard setPropertyList:filePaths forType:NSFilenamesPboardType];
+    [pboard setPropertyList: filePaths forType: NSFilenamesPboardType];
 	
 	return YES;
 }
 
 
-- (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor
+//----------------------------------------------------------------------------------------
+
+- (BOOL) control:              (NSControl*) control
+		 textShouldEndEditing: (NSText*)    fieldEditor
 {
 	[[document controller] requestSvnRenameSelectedItemTo:
 		[ [[document workingCopyPath] stringByAppendingPathComponent:[document outlineSelectedPath]]
 								stringByAppendingPathComponent:[fieldEditor string]]];
 	return FALSE;
 }
+
+
+//----------------------------------------------------------------------------------------
 
 - (NSString*) tableView:      (NSTableView*)   aTableView
 			  toolTipForCell: (NSCell*)        aCell
@@ -170,6 +186,7 @@ static NSString* const colKeys[kNumColumns + 1]  = {
 			  row:            (int)            row
 			  mouseLocation:  (NSPoint)        mouseLocation
 {
+	#pragma unused(aTableView, aCell, rect, mouseLocation)
 	const int colID = [[aTableColumn identifier] intValue];
 
 	if (colID >= kFirstColumn && colID <= kNumColumns)
@@ -180,33 +197,20 @@ static NSString* const colKeys[kNumColumns + 1]  = {
 	}
 	else if ([[aTableColumn identifier] isEqualToString: @"path"])
 	{
-		NSMutableString* help = [NSMutableString stringWithCapacity: 0];
-		NSDictionary* rowDict = [[svnFilesAC arrangedObjects] objectAtIndex: row];
-		int i;
-		for (i = kFirstColumn; i <= kNumColumns; ++i)
-		{
-			NSString* key = [rowDict objectForKey: colKeys[i]];
-			if ([key isEqualToString: @" "])
-				continue;
-			NSString* str = [helpTags[i] objectForKey: [rowDict objectForKey: colKeys[i]]];
-			if (str)
-			{
-				if ([help length])
-					[help appendFormat: @"\n%@", str];
-				else
-					[help appendString: str];
-			}
-		}
-		return help;
+		return helpTagForWCFile([[svnFilesAC arrangedObjects] objectAtIndex: row]);
 	}
 
 	return @"";
 }
 
--(id)document
+
+//----------------------------------------------------------------------------------------
+
+- (id) document
 {
 	return document;
 }
 
 
 @end
+

@@ -100,13 +100,4 @@ AltOrShiftPressed ()
 
 
 //----------------------------------------------------------------------------------------
-
-@interface CTableView : NSTableView
-@end
-
-@implementation CTableView
-@end
-
-
-//----------------------------------------------------------------------------------------
 // End of CommonUtils.m

@@ -4,6 +4,7 @@
 #import "MyFileMergeController.h"
 #import "DrawerLogView.h"
 #import "NSString+MyAdditions.h"
+#include "ReviewCommit.h"
 #include "CommonUtils.h"
 
 
@@ -165,6 +166,17 @@ makeCommandDict (NSString* command, NSString* destination)
 {
 	#pragma unused(notification)
 	[self savePrefs];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (BOOL) windowShouldClose: (id) sender
+{
+	const BOOL shouldClose = (*[document reviewCount] == 0);
+	if (!shouldClose)
+		NSBeep();
+	return shouldClose;
 }
 
 
@@ -382,14 +394,14 @@ makeCommandDict (NSString* command, NSString* destination)
 
 
 //----------------------------------------------------------------------------------------
-// Add, Delete, Update, Revert, Resolved, Lock, Unlock, Commit
+// Add, Delete, Update, Revert, Resolved, Lock, Unlock, Commit, Review
 
 static NSString* const gCommands[] = {
-	@"add", @"remove", @"update", @"revert", @"resolved", @"lock", @"unlock", @"commit"
+	@"add", @"remove", @"update", @"revert", @"resolved", @"lock", @"unlock", @"commit", @"review"
 };
 
 static NSString* const gVerbs[] = {
-	@"add", @"remove", @"update", @"revert", @"resolve", @"lock", @"unlock", @"commit"
+	@"add", @"remove", @"update", @"revert", @"resolve", @"lock", @"unlock", @"commit", @"review"
 };
 
 
@@ -398,7 +410,12 @@ static NSString* const gVerbs[] = {
 - (IBAction) performAction: (id) sender
 {
 	const unsigned int action = [[sender selectedCell] tag];
-	if (action < sizeof(gCommands) / sizeof(gCommands[0]))
+	enum { kReview = 8 };
+	if (action == kReview)
+	{
+		[ReviewController performSelector: @selector(openForDocument:) withObject: document afterDelay: 0];
+	}
+	else if (action < sizeof(gCommands) / sizeof(gCommands[0]))
 	{
 		[self performSelector: @selector(runAlertBeforePerformingAction:)
 			  withObject: [NSDictionary dictionaryWithObjectsAndKeys: gCommands[action], @"command",
