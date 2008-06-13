@@ -16,12 +16,12 @@
 	<key>IBLockedObjects</key>
 	<array>
 		<integer>273</integer>
+		<integer>5</integer>
 	</array>
 	<key>IBOldestOS</key>
 	<integer>4</integer>
 	<key>IBOpenObjects</key>
 	<array>
-		<integer>276</integer>
 		<integer>5</integer>
 	</array>
 	<key>IBSystem Version</key>

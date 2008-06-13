@@ -28,6 +28,7 @@
 .D td ins, .D td del { text-decoration: none; }
 
 /* Inline diff view */
+.D td.F { background: #ffd; border-color: #cc0; border-style: solid; border-width: 1px 0 0 0; }
 .D td.L { background: #fdd; border-color: #c00; border-style: solid; border-width: 0 1px 0 1px; }
 .D td.R { background: #dfd; border-color: #0a0; border-style: solid; border-width: 0 1px 0 1px; }
 .D tr.A td.L, .D tr.A td.R { border-top-width: 1px }
@@ -45,9 +46,10 @@ String.prototype.beginswith = function(str) { return this.indexOf(str) == 0; }
 
 function esc(text)
 {
-	text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-	text = text.replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-	text = text.replace(/\t/g, "&nbsp; &nbsp; ").replace(/  /g, "&nbsp; ");
+	text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+			   .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+			   .replace(/\t/g, "&nbsp; &nbsp; ").replace(/  /g, "&nbsp; ")
+			   .replace(/\r/g, "<br/>");
 	return (text.charCodeAt(0) == 32) ? '&nbsp;' + text.substring(1) : text;
 }
 
@@ -59,17 +61,19 @@ function esc1(text)
 function rev(s)
 {
 	var tmp = s.match(/([0-9]+)\)$|(copy)\)$/);
-	if (tmp[2])
-		return "Work";
-	else if (tmp[1])
-		return "r" + tmp[1];
+	if (tmp)
+	{
+		if (tmp[2])
+			return "Work";
+		else if (tmp[1])
+			return "r" + tmp[1];
+	}
 	return "";
 }
 
-function diff(text)
+function diffHead(lines)
 {
-	var lines = text.split('\n'),
-		i = 0, S = "", title = "", rA = "", rB = "", m = "";
+	var i = 0, S = "", title = "", tA = "", tB = "", m = "";
 
 	if (lines[i].beginswith("Index: "))
 		title = esc(lines[i++].substring(7));
@@ -78,79 +82,77 @@ function diff(text)
 		++i;
 
 	if (lines[i].beginswith("--- "))
-		rA = rev(lines[i++]);
+		tA = rev(lines[i++]);
 	else if (lines[i].beginswith("Cannot display:"))	// file marked as a binary type.
-		m = lines[i++].concat('<br/>', lines[i++]);
+		m = esc(lines[i++]).concat('<br/>', esc(lines[i++]));
 
 	if (lines[i].beginswith("+++ "))
-		rB = rev(lines[i++]);
+		tB = rev(lines[i++]);
 
-	S += '<div class="D"><ul><li>\n';
-	S += '<h2><span class="switch"><span class="active" onclick="tab(this,0)">Tabular</span>';
-	S += '<span onclick="tab(this,1)">Unified</span></span>';
-	S += title;
-	S += '</h2>\n';
+	S = S.concat("<div class='D'><ul><li>\n",
+				 "<h2><span class='switch'><span class='active' onclick='tab(this,0)'>Tabular</span>",
+				 "<span onclick='tab(this,1)'>Unified</span></span>", title, "</h2>\n");
+	S = S.concat("<table summary='diff' cellspacing='0'>\n",
+				 "<colgroup><col class='N'/><col class='N'/><col/></colgroup>\n",
+				 "<tr class='rev'><th>", tA, "</th><th>", tB, "</th><td>", m, "</td></tr>\n");
+	return {S:S, i:i};
+}
 
-	S += '<table summary="diff" cellspacing="0">\n';
-	S += '<colgroup><col class="N"/><col class="N"/><col/></colgroup>\n';
-	S += '<tr class="rev"><th>'.concat(rA, '</th><th>', rB, '</th><td>', m, '</td></tr>\n');
+var cFirst = "<tr class='A'>",
+	cLast  = "<tr class='B'>",
+	cOnly  = "<tr class='A B'>",
+	cOther = "<tr>",
+	lnumRE = /^@@ -([0-9]+),?[0-9]* \+([0-9]+),?[0-9]* @@ *(.*)/;
 
-	var cFirst = "<tr class='A'>",
-		cLast  = "<tr class='B'>",
-		cOnly  = "<tr class='A B'>",
-		cOther = "<tr>",
-		lnumRE = /^@@ -([0-9]+),([0-9]+) \+([0-9]+),([0-9]+) @@$/,
-	    linCount = lines.length;
-	var numA = 0, numB = 0, lin, nums, tr,
+function diffLines(lines)
+{
+	var t = diffHead(lines), i = t.i, S = t.S,
+		numA = 0, numB = 0, line, linCount = lines.length,
 		prevTyp, typ = -1, nextTyp = (i < linCount) ? lines[i].charCodeAt(0) : -2;
+	var isFirst, isLast, tr;
 
 	while (i < linCount)
 	{
-		lin = lines[i++];
+		line = lines[i++];
 		prevTyp = typ;
 		typ = nextTyp;
 		nextTyp = (i < linCount) ? lines[i].charCodeAt(0) : 0;
-		var isFirst = (typ != prevTyp),
-			isLast  = (typ != nextTyp);
+		isFirst = (typ != prevTyp);
+		isLast  = (typ != nextTyp);
+		tr = isLast ? "</td></tr></tbody>\n" : "</td></tr>\n";
 		switch (typ)
 		{
 		case 64:		// '@'
-			nums = lin.match(lnumRE);
-			numA = parseInt(nums[1]);
-			numB = parseInt(nums[3]);
+			t = line.match(lnumRE);
+			numA = parseInt(t[1]);
+			numB = parseInt(t[2]);
+			if (t[3].length)
+				S = S.concat("<tr><th colspan='2'>Function:</th><td class='F'>", t[3], "</td></tr>");
+			else if (i > 5)
+				S += "<tr><th>…</th><th>…</th><td class='F'></td></tr>";
 			break;
 		case 43:	// '+'
-			if (isFirst) S += "<tbody>\n";
-			var first = isFirst && prevTyp != 45;
-			S += first ? (isLast ? cOnly : cFirst) : (isLast ? cLast : cOther);
-			S += "<th></th><th>".concat(numB++, "</th><td class='R'>");
-			S += esc1(lin);
-			S += "</td></tr>\n";
-			if (isLast) S += "</tbody>\n";
+			S = S.concat(isFirst ? "<tbody>" : "",
+						 (isFirst && prevTyp != 45) ? (isLast ? cOnly : cFirst) : (isLast ? cLast : cOther),
+						 "<th></th><th>", numB++, "</th><td class='R'>", esc1(line), tr);
 			break;
 		case 45:	// '-'
-			if (isFirst) S += "<tbody>\n";
-			var last = isLast && nextTyp != 43;
-			S += isFirst ? (last ? cOnly : cFirst) : (last ? cLast : cOther);
-			S += "<th>".concat(numA++, "</th><th></th><td class='L'>");
-			S += esc1(lin);
-			S += "</td></tr>\n";
-			if (isLast) S += "</tbody>\n";
+			S = S.concat(isFirst ? "<tbody>" : "",
+						 (isLast && nextTyp != 43) ? (isFirst ? cOnly : cLast) : (isFirst ? cFirst : cOther),
+						 "<th>", numA++, "</th><th></th><td class='L'>", esc1(line), tr);
 			break;
 		case 32:	// ' '
-			if (isFirst) S += "<tbody>\n";
-			S += "<tr><th>".concat(numA++, "</th><th>", numB++, "</th><td>");
-			S += esc1(lin);
-			S += "</td></tr>\n";
-			if (isLast) S += "</tbody>\n";
+			S = S.concat(isFirst ? "<tbody><tr><th>" : "<tr><th>",
+						 numA++, "</th><th>", numB++, "</th><td>", esc1(line), tr);
+			break;
+		case 92:	// '\\'
+			S = S.concat(isFirst ? "<tbody>" : "", "<tr><th></th><th></th><td>", esc1(line), tr);
 			break;
 		}
 	}
-	S += "</table><pre style='display:none'>";
-	S += text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-	S += "</pre></li></ul></div>\n";
 
-	return S;
+	t = lines.join('\n').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	return S.concat("</table><pre style='display:none'>", t, "</pre></li></ul></div>\n");
 }
 
 function tab(me, uni)
@@ -162,17 +164,12 @@ function tab(me, uni)
 	unified.previousSibling.style.display = uni ? "none" : "";
 }
 
-function diffAll()
+function diff1(lines)
 {
-	var list = document.getElementsByTagName("textarea");
-	for (var n, i = 0; (n = list.item(i)) != null; ++i)
-	{
-		var node = document.createElement("div");
-		node.innerHTML = diff(n.value);
-		document.body.appendChild(node);
-	}
+	var node = document.createElement("div");
+	node.innerHTML = diff(lines);
+	document.body.appendChild(node);
 }
 
-window.onload = diffAll;
-//]]></script>
+var diff = diffLines;
 

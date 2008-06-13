@@ -196,16 +196,28 @@
 }
 
 
+//----------------------------------------------------------------------------------------
+// Returns the displayed repository or nil.
+
+- (MyRepository*) repository
+{
+	NSDocument* document = [[[self window] windowController] document];
+	return [document isKindOfClass: [MyRepository class]] ? (MyRepository*) document : nil;
+}
+
+
+//----------------------------------------------------------------------------------------
+
 - (NSDictionary*) documentNameDict
 {
 	id itsTitle = nil;
-	id itsWindow = [self window];
-	if (itsWindow != nil)
-	{
-		itsTitle = [[[itsWindow windowController] document] windowTitle];
-		if (itsTitle == nil)
-			itsTitle = [itsWindow title];
-	}
+	MyRepository* itsRepository = [self repository];
+	if (itsRepository)
+		itsTitle = [itsRepository windowTitle];
+
+	if (itsTitle == nil)
+		itsTitle = [[self window] title];
+
 	if (itsTitle == nil)
 		itsTitle = @"";
 

@@ -30,6 +30,17 @@
 
 + (NSMutableArray*) parseData: (NSData*) data
 {
+#if 1
+	// HACK to fix 'Error NSXMLParserErrorDomain 1' on encountering control characters
+	int length;
+	BytePtr p = (BytePtr) [data bytes];
+	for (length = [data length]; length--; ++p)
+	{
+		UInt8 ch = *p;
+		if (ch < 32 && ch != 9 && ch != 10 && ch != 13)
+			*p = ' ';
+	}		
+#endif
 	MySvnLogParser* parser = [[self alloc] init];
 	NSMutableArray* result = [parser parseXML: data];
 	[parser release];

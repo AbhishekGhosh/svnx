@@ -49,6 +49,7 @@ addTransform (Class itsClass, NSString* itsName)
 	[dictionary setObject:[NSNumber numberWithInt:0] forKey:@"defaultDiffApplication"];
 	[dictionary setObject:@"%m/%d/%y %H:%M:%S" forKey:@"dateformat"];
 
+	// Working Copy
 	[dictionary setObject: kNSTrue  forKey: @"addWorkingCopyOnCheckout"];
 	[dictionary setObject: kNSFalse forKey: @"useOldParsingMethod"];
 
@@ -56,11 +57,17 @@ addTransform (Class itsClass, NSString* itsName)
 	[dictionary setObject: kNSTrue forKey: @"expandWCTree"];
 	[dictionary setObject: kNSFalse forKey: @"autoRefreshWC"];
 
+	// Review & Commit
 	id obj = [NSDictionary dictionaryWithObjectsAndKeys: @"Simple File List", @"name",
-														 @"Files:\n\t(<FILES><SEP-BEGIN>)\n\t(<SEP-END>)\n", @"body", nil];
+														 @"Files:\n\t(<FILES><SEPARATOR>)\n\t"
+														  "(</SEPARATOR>)\n", @"body", nil];
 	[dictionary setObject: [NSArray arrayWithObject: obj] forKey: @"msgTemplates"];
+	[dictionary setObject: @"5"    forKey: @"diffContextLines"];
+	[dictionary setObject: kNSTrue forKey: @"diffShowFunction"];
+	[dictionary setObject: kNSTrue forKey: @"diffShowCharacters"];
 
 	[dictionary setObject: [NSNumber numberWithInt: 99] forKey: @"loggingLevel"];
+
 
 	[[NSUserDefaultsController sharedUserDefaultsController] setInitialValues:dictionary];
 

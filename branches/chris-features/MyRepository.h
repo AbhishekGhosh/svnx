@@ -37,6 +37,8 @@
 - (IBAction) svnMkdir:      (id) sender;
 - (IBAction) svnDelete:     (id) sender;
 - (IBAction) svnFileMerge:  (id) sender;
+- (IBAction) svnBlame:      (id) sender;
+- (IBAction) svnReport:     (id) sender;
 - (IBAction) svnExport:     (id) sender;
 - (IBAction) svnCheckout:   (id) sender;
 - (IBAction) pickedAFolderInBrowserView: (NSMenuItem*) sender;
@@ -48,6 +50,8 @@
 
 - (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj;
 
+- (void) openLogPath: (NSDictionary*) pathInfo
+		 revision:    (NSString*)     pegRevision;
 - (void) changeRepositoryUrl: (NSURL*) anUrl;
 
 - (NSString*) revision;

@@ -33,6 +33,7 @@
                 logTable = NSTableView; 
                 logsAC = NSArrayController; 
                 logsACSelection = NSArrayController; 
+                pathsTable = NSTableView; 
                 progress = NSProgressIndicator; 
                 refetch = id; 
                 searchPaths = NSSearchField; 

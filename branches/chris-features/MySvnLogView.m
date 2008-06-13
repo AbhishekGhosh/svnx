@@ -8,6 +8,8 @@
 #include "DbgUtils.h"
 
 
+//----------------------------------------------------------------------------------------
+
 static NSString*
 getRevisionAtIndex (NSArray* array, int index)
 {
@@ -16,7 +18,50 @@ getRevisionAtIndex (NSArray* array, int index)
 
 
 //----------------------------------------------------------------------------------------
+
+static NSString*
+pathItemToString (NSDictionary* item)
+{
+	NSString* str = [NSString stringWithFormat: @"%@\t%@", [item objectForKey: @"action"],
+														   [item objectForKey: @"path"]];
+	NSString* fromPath = [item objectForKey: @"copyfrompath"];
+	if (fromPath)
+		str = [NSString stringWithFormat: @"%@\t%@\t%@", str,
+										  [item objectForKey: @"copyfromrev"], fromPath];
+
+	return str;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static NSString*
+logItemToString (NSDictionary* item, BOOL isAdvanced)
+{
+	NSMutableString* str = [NSMutableString string];
+	[str appendString: [NSString stringWithFormat: @"%@\t%@\t%@\n", [item objectForKey: @"revision"],
+												   [item objectForKey: @"author"], [item objectForKey: @"date"]]];
+	if (isAdvanced)
+	{
+		NSArray* const paths = [item objectForKey: @"paths"];
+		NSEnumerator* enumerator = [paths objectEnumerator];
+		id pathItem;
+		while (pathItem = [enumerator nextObject])
+		{
+			[str appendString: pathItemToString(pathItem)];
+			[str appendString: @"\n"];
+		}
+	}
+	[str appendString: [item objectForKey: @"msg"]];
+	[str appendString: @"\n"];
+
+	return str;
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark -
+//----------------------------------------------------------------------------------------
 
 @implementation MySvnLogView
 
@@ -71,21 +116,76 @@ getRevisionAtIndex (NSArray* array, int index)
 }
 
 
+//----------------------------------------------------------------------------------------
+// This gets called twice because of the loadNibNamed call above.
+// The first time with [self window] == nil.
+
 - (void) awakeFromNib
 {
-	if (isVerbose)
+	NSWindow* const window = [self window];
+	if (window)
 	{
-		[self setAdvanced: [GetPreference(@"defaultLogViewKindIsAdvanced") boolValue]];
+		// Can't use [self repository] here as [window windowController] == nil
+		[self setAdvanced: [[window delegate] isKindOfClass: [MyRepository class]] &&
+						   GetPreferenceBool(@"defaultLogViewKindIsAdvanced")];
+
+		[splitView setDelegate: self];	// allow us to keep the paths pane hidden during window resize
+		[pathsTable setTarget: self];
+		[pathsTable setDoubleAction: @selector(doubleClickPath:)];
+		[window makeFirstResponder: logTable];
 	}
-	[splitView setDelegate: self];	// allow us to keep the paths pane hidden during window resize
 }
 
+
+//----------------------------------------------------------------------------------------
 
 - (void) resetUrl: (NSURL*) anUrl
 {
 	[self setUrl:anUrl];
 	[self setMostRecentRevision:0];
 	[self setLogArray:nil];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) copy: (id) sender
+{
+	NSString* str = nil;
+	id view = [[self window] firstResponder];
+	if (view == logTable)
+	{
+		str = logItemToString([[logsAC selectedObjects] objectAtIndex: 0], fIsAdvanced);
+	}
+	else if (view == pathsTable)
+	{
+		str = pathItemToString([[logsACSelection selectedObjects] objectAtIndex: 0]);
+	}
+	else
+		dprintf("firstResponder=%@", view);
+
+	if (str)
+	{
+		NSPasteboard* clipboard = [NSPasteboard generalPasteboard];
+		[clipboard declareTypes: [NSArray arrayWithObject: NSStringPboardType] owner: self];
+		[clipboard setString: str forType: NSStringPboardType];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) keyDown: (NSEvent*) theEvent
+{
+	// Make space-bar in log table => acts as if the radio button in the selected row was clicked
+	if ([[self window] firstResponder] == logTable &&
+		[[theEvent characters] characterAtIndex: 0] == ' ')
+	{
+		[self setCurrentRevision: [self selectedRevision]];
+		[logTable setNeedsDisplay: YES];
+	}
+	else
+		[super keyDown: theEvent];
 }
 
 
@@ -111,6 +211,7 @@ getRevisionAtIndex (NSArray* array, int index)
 //----------------------------------------------------------------------------------------
 #pragma mark	-
 #pragma mark	svn related methods
+//----------------------------------------------------------------------------------------
 
 
 - (void) doSvnLog:    (NSString*) aPath
@@ -350,11 +451,15 @@ getRevisionAtIndex (NSArray* array, int index)
 }
 
 
+//----------------------------------------------------------------------------------------
+
 - (void) setAdvanced: (BOOL) isAdvanced
 {
 	if (fIsAdvanced == isAdvanced)
 		return;
 	fIsAdvanced = isAdvanced;
+
+	const id firstResponder = isAdvanced ? nil : [[self window] firstResponder];
 
 	// Hide or show Paths search field
 	[searchPaths setHidden: !isAdvanced];
@@ -391,6 +496,12 @@ getRevisionAtIndex (NSArray* array, int index)
 	[splitView adjustSubviews];
 	[splitView setNeedsDisplay: YES];
 	[[subViews objectAtIndex: 0] setNeedsDisplay: YES];
+
+	// If we just hid the focused view then focus the log table.
+	// This is required as hiding an NSSearchField doesn't update the focus.
+	if (firstResponder && [firstResponder isKindOfClass: [NSView class]] &&
+						  [firstResponder isHiddenOrHasHiddenAncestor])
+		[[self window] makeFirstResponder: logTable];
 }
 
 

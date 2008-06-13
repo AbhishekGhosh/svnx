@@ -7,6 +7,7 @@
 #import "MySvnRepositoryBrowserView.h"
 #import "MySvnLogView.h"
 #import "NSString+MyAdditions.h"
+#include "SvnLogReport.h"
 #include "CommonUtils.h"
 #include "DbgUtils.h"
 #include "SvnInterface.h"
@@ -30,6 +31,17 @@ TrimSlashes (id obj)
 {
 	return [[[obj valueForKey: @"url"] absoluteString] trimSlashes];
 }
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+//----------------------------------------------------------------------------------------
+
+@interface MyRepository (Private)
+
+	- (void) displayUrlTextView;
+
+@end
 
 
 //----------------------------------------------------------------------------------------
@@ -74,28 +86,60 @@ TrimSlashes (id obj)
 }
 
 
-- (void) showWindows
+- (NSWindow*) window
 {
-	[super showWindows];
-	[[svnLogView window] setTitle: [NSString stringWithFormat: @"Repository: %@", windowTitle]];
+	return [svnLogView window];
 }
 
 
+//----------------------------------------------------------------------------------------
+
+- (NSString*) preferenceName
+{
+	return [@"repoWinFrame:" stringByAppendingString: windowTitle];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) showWindows
+{
+	[super showWindows];
+	[[self window] setTitle: [NSString stringWithFormat: @"Repository: %@", windowTitle]];
+}
+
+
+//----------------------------------------------------------------------------------------
+
 - (void) close
 {
+	[[self window] saveFrameUsingName: [self preferenceName]];
+
 	[svnLogView removeObserver:self forKeyPath:@"currentRevision"];
-	
+
 	[drawerLogView unload];
 	
 	[super close];	
 }
 
 
+//----------------------------------------------------------------------------------------
+
 - (NSString*) windowNibName
 {
 	return @"MyRepository";
 }
 
+
+//----------------------------------------------------------------------------------------
+
+- (void) windowControllerDidLoadNib: (NSWindowController*) aController
+{
+	[aController setShouldCascadeWindows: NO];
+}
+
+
+//----------------------------------------------------------------------------------------
 
 - (void) awakeFromNib
 {
@@ -117,10 +161,17 @@ TrimSlashes (id obj)
 	[drawerLogView setDocument: self];
 	[drawerLogView setUp];
 
+	NSWindow* window = [self window];
+	NSString* widowFrameKey = [self preferenceName];
+	[window setFrameUsingName: widowFrameKey];
+	[window setFrameAutosaveName: widowFrameKey];
+
 	// fetch svn info in order to know the repository's root
 	[self fetchSvnInfo];
 }
 
+
+//----------------------------------------------------------------------------------------
 
 - (void) observeValueForKeyPath: (NSString*)     keyPath
 		 ofObject:               (id)            object
@@ -170,7 +221,46 @@ TrimSlashes (id obj)
 
 //----------------------------------------------------------------------------------------
 #pragma mark	-
+#pragma mark	Repository URL
+//----------------------------------------------------------------------------------------
+
+- (void) browsePath: (NSString*) relativePath
+		 revision:   (NSString*) pegRevision
+{
+	NSString* newURL = [[rootUrl absoluteString] stringByAppendingString: relativePath];
+	[self changeRepositoryUrl: [NSURL URLWithString: newURL]];
+	[self setRevision: pegRevision];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) openLogPath: (NSDictionary*) pathInfo
+		 revision:    (NSString*)     pegRevision
+{
+#if 0
+	[self browsePath: [pathInfo objectForKey: @"path"] revision: pegRevision];
+#endif
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) changeRepositoryUrl: (NSURL*) anUrl
+{
+	[self setUrl: anUrl];
+	[svnBrowserView setUrl: url];
+	[svnLogView resetUrl: url];
+	[self displayUrlTextView];
+	[svnLogView fetchSvnLog];
+	[svnBrowserView fetchSvn];
+}
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
 #pragma mark	clickable url
+//----------------------------------------------------------------------------------------
 
 - (void) displayUrlTextView
 {
@@ -236,16 +326,7 @@ TrimSlashes (id obj)
 }
 
 
-- (void) changeRepositoryUrl: (NSURL*) anUrl
-{
-	[self setUrl: anUrl];
-	[svnBrowserView setUrl: url];
-	[svnLogView resetUrl: url];
-	[self displayUrlTextView];
-	[svnLogView fetchSvnLog];
-	[svnBrowserView fetchSvn];
-}
-
+//----------------------------------------------------------------------------------------
 
 - (NSDictionary*) documentNameDict
 {
@@ -522,25 +603,64 @@ svnInfoReceiver (void*       baton,
 
 
 //----------------------------------------------------------------------------------------
+
+- (IBAction) svnReport: (id) sender
+{
+	#pragma unused(sender)
+	NSDictionary* selection = [self selectedItemOrNil];
+	if (!selection)
+	{
+		[self svnError:@"Please select exactly one item."];
+	}
+	else
+	{
+		[SvnLogReport svnLogReport: [[selection valueForKey: @"url"] absoluteString]
+					  revision:     [self revision]
+					  verbose:      !AltOrShiftPressed()];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
 #pragma mark	Checkout, Export & Import
+//----------------------------------------------------------------------------------------
+// Private:
+
+- (void) chooseFolder:   (NSString*) message
+		 didEndSelector: (SEL)       didEndSelector
+		 contextInfo:    (void*)     contextInfo
+{
+	NSOpenPanel* oPanel = [NSOpenPanel openPanel];
+
+	[oPanel setAllowsMultipleSelection: NO];
+	[oPanel setCanChooseDirectories:    YES];
+	[oPanel setCanChooseFiles:          NO];
+	[oPanel setCanCreateDirectories:    YES];
+	[oPanel setMessage: message];
+
+	[oPanel beginSheetForDirectory: NSHomeDirectory() file: nil types: nil
+					modalForWindow: [self windowForSheet]
+					 modalDelegate: self
+				    didEndSelector: didEndSelector
+					   contextInfo: contextInfo];
+}
+
+
 //----------------------------------------------------------------------------------------
 
 - (IBAction) svnExport: (id) sender
 {
-	#pragma unused(sender)
-	NSOpenPanel *oPanel = [NSOpenPanel openPanel];
-	NSString *selectionPath = NSHomeDirectory();
-	
-	[oPanel setAllowsMultipleSelection:NO];
-	[oPanel setCanChooseDirectories:YES];
-	[oPanel setCanChooseFiles:NO];
-	[oPanel setIncludeNewFolderButton:YES];
-	
-	[oPanel beginSheetForDirectory:selectionPath file:nil types:nil modalForWindow:[self windowForSheet]
-							  modalDelegate: self
-							 didEndSelector:@selector(exportPanelDidEnd:returnCode:contextInfo:)
-								contextInfo:nil
-		];
+	NSArray* const selectedObjects = [svnBrowserView selectedItems];
+	const int count = [selectedObjects count];
+	NSString* message = (count == 1)
+				? [NSString stringWithFormat: @"Export %C%@%C into folder:", 0x201C,
+											  [[selectedObjects objectAtIndex: 0] valueForKey: @"name"], 0x201D]
+				: [NSString stringWithFormat: @"Export %d items into folder:", count];
+
+	[self chooseFolder: message
+		didEndSelector: @selector(exportPanelDidEnd:returnCode:contextInfo:)
+		   contextInfo: NULL];
 }
 
 
@@ -554,19 +674,11 @@ svnInfoReceiver (void*       baton,
 	}
 	else
 	{
-		NSOpenPanel *oPanel = [NSOpenPanel openPanel];
-		NSString *selectionPath = NSHomeDirectory();
-		
-		[oPanel setAllowsMultipleSelection:NO];
-		[oPanel setCanChooseDirectories:YES];
-		[oPanel setCanChooseFiles:NO];
-		[oPanel setCanCreateDirectories:YES];
-		
-		[oPanel beginSheetForDirectory: selectionPath file:nil types:nil modalForWindow:[self windowForSheet]
-						 modalDelegate: self
-						didEndSelector: @selector(checkoutPanelDidEnd:returnCode:contextInfo:)
-						   contextInfo: selection
-			];
+		NSString* message = [NSString stringWithFormat: @"Checkout %C%@%C into folder:",
+														0x201C, [selection valueForKey: @"name"], 0x201D];
+		[self chooseFolder: message
+			didEndSelector: @selector(checkoutPanelDidEnd:returnCode:contextInfo:)
+			   contextInfo: selection];
 	}
 }
 

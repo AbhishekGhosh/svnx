@@ -82,6 +82,15 @@ SvnCmdPath ()
 
 
 //----------------------------------------------------------------------------------------
+
+NSString*
+ShellScriptPath (NSString* script)
+{
+	return shellScriptPath(script);
+}
+
+
+//----------------------------------------------------------------------------------------
 #pragma mark	-
 
 @implementation MySvn

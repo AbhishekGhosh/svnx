@@ -57,6 +57,9 @@ PathPegRevision (id path, id revision)
 
 	if ([path isKindOfClass: [NSURL class]])
 		path = [path absoluteString];
+	const int lastIndex = [path length] - 1;
+	if ([path characterAtIndex: lastIndex] == '/')
+		path = [path substringToIndex: lastIndex];
 	if (revision == nil)
 		return path;
 
@@ -127,7 +130,7 @@ PathPegRevNum (id path, unsigned int revision)
 
 
 //----------------------------------------------------------------------------------------
-// Normalize end-of-line characters
+// Normalize end-of-line characters.  Also remove any spurious control characters.
 
 - (NSString*) normalizeEOLs
 {
@@ -137,6 +140,15 @@ PathPegRevNum (id path, unsigned int revision)
 		 options: NSLiteralSearch range: NSMakeRange(0, [str length])];
 	[str replaceOccurrencesOfString: @"\r" withString: @"\n"
 		 options: NSLiteralSearch range: NSMakeRange(0, [str length])];
+	int i;
+	for (i = 0; i < 32; ++i)
+		if (i != 9 && i != 10 && i != 13)
+		{
+			unichar ch = i;
+			NSString* chStr = [NSString stringWithCharacters: &ch length: sizeof(ch)];
+			[str replaceOccurrencesOfString: chStr withString: @""
+				 options: NSLiteralSearch range: NSMakeRange(0, [str length])];
+		}
 
 	return str;
 }

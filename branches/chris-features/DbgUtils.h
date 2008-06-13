@@ -27,8 +27,10 @@
 	#define	WarnIf(expr)					DbgWarnIf(_F_L_F_, (expr))
 	#define	WarnIfNot(expr, ex)				DbgWarnIfNot(_F_L_F_, (expr), (ex))
 	#define	Assert(expr)					do { if (!(expr)) DbgAssert(_F_L_F_, #expr); } while (0)
+	#define	AssertClass(OBJ, CLASS)			Assert([(OBJ) isKindOfClass: [CLASS class]])
 	#define Log(expr)						DbgLog(_F_L_F_, #expr)
 	#define dprintf(fmt, args...)			DbgLogF(_F_L_F_, fmt, args)
+	#define dprintf_(fmt, args...)			DbgLogF2(fmt, args)
 	#define ReportCatch(expr)				DbgReportCatch(_F_L_F_, (expr))
 
 	ConstCStr	LeafName		(ConstCStr file);
@@ -39,6 +41,7 @@
 	void		DbgLogF			(ConstCStr file, int line, ConstCStr func, ConstCStr fmt, ...);
 	void		DbgLog			(ConstCStr file, int line, ConstCStr func, ConstCStr msg);
 	void		DbgReportCatch	(ConstCStr file, int line, ConstCStr func, NSObject* err);
+	void		DbgLogF2		(ConstCStr fmt, ...);
 
 
 //----------------------------------------------------------------------------------------
@@ -47,8 +50,10 @@
 	#define	WarnIf(expr)					(expr)
 	#define	WarnIfNot(expr, ex)				(expr)
 	#define	Assert(expr)					/*DbgAssert(_F_L_F_, #expr)*/
+	#define	AssertClass(OBJ, CLASS)			/*AssertClass*/
 	#define Log(expr)						/*DbgLog(_F_L_F_, #expr)*/
 	#define dprintf(fmt, args...)			/*DbgLog(_F_L_F_, fmt, args)*/
+	#define dprintf_(fmt, args...)			/*DbgLogF2(fmt, args)*/
 	#define ReportCatch(expr)				/*DbgReportCatch(_F_L_F_, (expr))*/
 
 #endif

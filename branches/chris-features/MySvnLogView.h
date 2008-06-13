@@ -7,8 +7,9 @@
 
 @interface MySvnLogView : MySvnView
 {
-    IBOutlet NSTableView*	logTable;
-    IBOutlet NSSearchField*	searchPaths;
+	IBOutlet NSTableView*	logTable;
+	IBOutlet NSTableView*	pathsTable;
+	IBOutlet NSSearchField*	searchPaths;
 	IBOutlet id				splitView;
 	IBOutlet MySvnLogAC*	logsAC;
 	IBOutlet MySvnLogAC*	logsACSelection;

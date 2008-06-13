@@ -1,20 +1,20 @@
 #import <Foundation/Foundation.h>
-
 #import "MySvn.h"
+
+@class MyRepository;
 
 @interface MySvnView : NSView
 {
-    IBOutlet id _view;
+	IBOutlet id		_view;
+	IBOutlet id		progress;
+	IBOutlet id		refetch;
 
-    IBOutlet id progress;
-    IBOutlet id refetch;
-
-	NSInvocation *svnOptionsInvocation;
-	NSString *pass;
-	NSURL *url;
-	NSString *revision;
-	id pendingTask;
-	BOOL isFetching;
+	NSInvocation*	svnOptionsInvocation;
+	NSString*		pass;
+	NSURL*			url;
+	NSString*		revision;
+	id				pendingTask;
+	BOOL			isFetching;
 }
 
 - (IBAction)refetch:(id)sender;
@@ -42,7 +42,8 @@
 - (id)pendingTask;
 - (void)setPendingTask:(id)aPendingTask;
 
+- (MyRepository*) repository;
 - (NSDictionary*) documentNameDict;
 
-
 @end
+

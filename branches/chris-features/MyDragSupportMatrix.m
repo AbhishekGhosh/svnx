@@ -1,6 +1,8 @@
 #import "MyDragSupportMatrix.h"
 #import "MyDragSupportWindow.h"
 #import "MyRepository.h"
+#import "MySvnRepositoryBrowserView.h"
+#include "ViewUtils.h"
 
 @implementation MyDragSupportMatrix
 
@@ -72,13 +74,13 @@
 
 	if ([event clickCount] == 2)
 	{
-		if (!isSubBrowser )
+		if ([self getRow: &row column: &col forPoint: locationInView(event, self)])
 		{
-			[self setDoubleAction: @selector(onDoubleClick:)];
-			[super mouseDown: event];
+			// call MySvnRepositoryBrowserView's onDoubleClick:
+			[[[self target] delegate] onDoubleClick: [self cellAtRow: row column: col]];
 		}
 	}
-	else if ([self getRow: &row column: &col forPoint:[self convertPoint:[event locationInWindow] fromView: nil]])
+	else if ([self getRow: &row column: &col forPoint: locationInView(event, self)])
 	{
 		const int nCols = [self numberOfColumns];
 		BOOL sendAction = YES;
@@ -133,7 +135,7 @@ static const NSSize gDragImageSize = { kDragImageSize, kDragImageSize };
 	if (isSubBrowser)
 		return;
 
-	NSRect srcRect = { [self convertPoint: [event locationInWindow] fromView: nil], gDragImageSize };
+	NSRect srcRect = { locationInView(event, self), gDragImageSize };
 	srcRect.origin.x -= kDragImageOffset;
 	srcRect.origin.y -= kDragImageOffset;
 

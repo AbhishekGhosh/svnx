@@ -641,8 +641,8 @@ static NSString* const gVerbs[] = {
 	id obj = message ? (id) message : [document repositoryUrl];
 	if (obj)
 		[statusView setStringValue: message ? message : PathWithRevision(obj, [document revision])];
-	else
-		[self performSelector: @selector(setStatusMessage:) withObject: nil afterDelay: 0.5];	// try later
+	else if ([window isVisible])
+		[self performSelector: @selector(setStatusMessage:) withObject: nil afterDelay: 0.1];	// try later
 }
 
 

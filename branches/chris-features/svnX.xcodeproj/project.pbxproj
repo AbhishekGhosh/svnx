@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		830B23150DE67B0E0080B2FD /* Review.js in Resources */ = {isa = PBXBuildFile; fileRef = 830B23140DE67B0E0080B2FD /* Review.js */; };
 		8314B1A60DB9769900C6F545 /* svnBlame.png in Resources */ = {isa = PBXBuildFile; fileRef = 8314B1A50DB9769900C6F545 /* svnBlame.png */; };
 		8314B22E0DB9A0CD00C6F545 /* svnblame.sh in Resources */ = {isa = PBXBuildFile; fileRef = 8314B22D0DB9A0CD00C6F545 /* svnblame.sh */; };
 		8314E66A0D79165C005538EF /* SvnLogReport.m in Sources */ = {isa = PBXBuildFile; fileRef = 8314E6680D79165C005538EF /* SvnLogReport.m */; };
@@ -18,6 +19,7 @@
 		831A7ABB0D7B0F86006A81F0 /* ModeTree.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7AB80D7B0F86006A81F0 /* ModeTree.png */; };
 		831A7ABC0D7B0F86006A81F0 /* ModeSmart.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7AB90D7B0F86006A81F0 /* ModeSmart.png */; };
 		831A7ABD0D7B0F86006A81F0 /* ModeFlat.png in Resources */ = {isa = PBXBuildFile; fileRef = 831A7ABA0D7B0F86006A81F0 /* ModeFlat.png */; };
+		832B702E0DDA881000B0E95D /* svnReport.png in Resources */ = {isa = PBXBuildFile; fileRef = 832B702D0DDA881000B0E95D /* svnReport.png */; };
 		833B71E20D91ABB3006E242E /* SvnInterface.m in Sources */ = {isa = PBXBuildFile; fileRef = 833B71E00D91ABB3006E242E /* SvnInterface.m */; };
 		836CEA220DD930E600DB72C8 /* Refresh.png in Resources */ = {isa = PBXBuildFile; fileRef = 836CEA210DD930E600DB72C8 /* Refresh.png */; };
 		83909D4D0DA4C94C00C3DAE5 /* FileMerge.png in Resources */ = {isa = PBXBuildFile; fileRef = 83909D4C0DA4C94C00C3DAE5 /* FileMerge.png */; };
@@ -142,6 +144,7 @@
 		2A37F4C4FDCFA73011CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		2A37F4C5FDCFA73011CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32DBCF750370BD2300C91783 /* svnX_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = svnX_Prefix.pch; sourceTree = "<group>"; };
+		830B23140DE67B0E0080B2FD /* Review.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = Review.js; sourceTree = "<group>"; };
 		8314B1A50DB9769900C6F545 /* svnBlame.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = svnBlame.png; sourceTree = "<group>"; };
 		8314B22D0DB9A0CD00C6F545 /* svnblame.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = svnblame.sh; sourceTree = "<group>"; };
 		8314E6680D79165C005538EF /* SvnLogReport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SvnLogReport.m; sourceTree = "<group>"; };
@@ -154,6 +157,7 @@
 		831A7AB80D7B0F86006A81F0 /* ModeTree.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeTree.png; sourceTree = "<group>"; };
 		831A7AB90D7B0F86006A81F0 /* ModeSmart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeSmart.png; sourceTree = "<group>"; };
 		831A7ABA0D7B0F86006A81F0 /* ModeFlat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ModeFlat.png; sourceTree = "<group>"; };
+		832B702D0DDA881000B0E95D /* svnReport.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = svnReport.png; sourceTree = "<group>"; };
 		833B71DF0D91ABB3006E242E /* SvnInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SvnInterface.h; sourceTree = "<group>"; };
 		833B71E00D91ABB3006E242E /* SvnInterface.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SvnInterface.m; sourceTree = "<group>"; };
 		836CEA210DD930E600DB72C8 /* Refresh.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Refresh.png; sourceTree = "<group>"; };
@@ -175,7 +179,7 @@
 		83EE48860DD226C100542832 /* ViewUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewUtils.m; sourceTree = "<group>"; };
 		83EE48870DD226C100542832 /* ViewUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewUtils.h; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Info.plist; path = ../Info.plist; sourceTree = "<group>"; };
-		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F20521BE0A5D2159003F966A /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = ../../build/Release/Sparkle.framework; sourceTree = "<group>"; };
 		F20524020A5D3945003F966A /* SUUpdater.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SUUpdater.h; path = ../../build/Release/Sparkle.framework/Versions/A/Headers/SUUpdater.h; sourceTree = SOURCE_ROOT; };
 		F20524300A5D3C9A003F966A /* GetEthernetAddrSample.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = GetEthernetAddrSample.c; sourceTree = "<group>"; };
@@ -442,6 +446,7 @@
 				8314B1A50DB9769900C6F545 /* svnBlame.png */,
 				F23B3C9D06A998DD0021E613 /* svnCopy.png */,
 				F233A39F06C3C32E00F77B90 /* svnMove.png */,
+				832B702D0DDA881000B0E95D /* svnReport.png */,
 				F26353FC06B17C98009C5ADF /* checkout.png */,
 				F22AFF1605F7440900D4ED0D /* Card.tiff */,
 				F22AFF1205F743F500D4ED0D /* Action.tiff */,
@@ -467,6 +472,7 @@
 				83DBD33D0DBF7CB400264348 /* ReviewCommit.nib */,
 				83DBD33E0DBF7CB400264348 /* review.sh */,
 				83DBD33F0DBF7CB400264348 /* Review.html */,
+				830B23140DE67B0E0080B2FD /* Review.js */,
 				8D15AC360486D014006FF6A4 /* Info.plist */,
 				F2BBEF6A076B738B002160EB /* svnX.scriptSuite */,
 				F2BBEF6B076B738B002160EB /* svnX.scriptTerminology */,
@@ -721,6 +727,8 @@
 				83DBD3410DBF7CB400264348 /* review.sh in Resources */,
 				83DBD3420DBF7CB400264348 /* Review.html in Resources */,
 				836CEA220DD930E600DB72C8 /* Refresh.png in Resources */,
+				832B702E0DDA881000B0E95D /* svnReport.png in Resources */,
+				830B23150DE67B0E0080B2FD /* Review.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

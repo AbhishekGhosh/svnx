@@ -139,6 +139,23 @@ DbgLog (ConstCStr file, int line, ConstCStr func, ConstCStr msg)
 
 
 //----------------------------------------------------------------------------------------
+// Log "<msg>..."
+
+void
+DbgLogF2 (ConstCStr fmt, ...)
+{
+	va_list ap; va_start(ap, fmt);
+	NSString* s = [[NSString alloc] initWithFormat: UTF8(fmt) arguments: ap];
+	va_end(ap);
+	char buf[2048];
+	if (!ToUTF8(s, buf, sizeof(buf)))
+		buf[0] = 0;
+	[s release];
+	fprintf(stderr, "%s\n", buf);
+}
+
+
+//----------------------------------------------------------------------------------------
 
 static char*
 SvnErrorToString (SvnError err, char buf[], size_t bufSize, ConstCStr prefix)

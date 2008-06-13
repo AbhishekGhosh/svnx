@@ -1,22 +1,72 @@
+//
+// MyRepositoryToolbar.m
+//
 
 #import "MyRepositoryToolbar.h"
+#import "NSString+MyAdditions.h"
 
 
 @implementation MyRepositoryToolbar
+
+//----------------------------------------------------------------------------------------
+// Private:
+
+- (NSToolbarItem*) createItem: (NSString*) itsID
+				   label:      (NSString*) itsLabel
+				   image:      (NSString*) imageName
+				   help:       (NSString*) itsHelp
+{
+	NSToolbarItem* item = [[NSToolbarItem alloc] initWithItemIdentifier: itsID];
+	[item setPaletteLabel: itsLabel];
+	[item setLabel: itsLabel];
+	if (itsHelp)
+		[item setToolTip: itsHelp];
+	[item setTarget: document];
+	[item setAction: NSSelectorFromString([itsID stringByAppendingString: @":"])];
+	[item setImage: [NSImage imageNamed: imageName]];
+	[items setObject: item forKey: itsID];
+	[item release];
+	return item;
+}
+
+
+//----------------------------------------------------------------------------------------
+// Private:
+
+- (NSToolbarItem*) createItem: (NSString*) itsID
+				   label:      (NSString*) itsLabel
+				   help:       (NSString*) itsHelp
+{
+	return [self createItem: itsID label: itsLabel image: itsID help: itsHelp];
+}
+
+
+//----------------------------------------------------------------------------------------
 
 - (void) awakeFromNib
 {
 	items = [[NSMutableDictionary alloc] init];
 
-	[self createItem: @"svnCopy" label: @"Copy" help: @"Copy selected item within the repository."];
-	[self createItem: @"svnMove" label: @"Move" help: @"Move selected item within the repository."];
-	[self createItem: @"svnMkdir" label: @"Make Dir" help: @"Create directories in the repository." image: @"mkdir"];
-	[self createItem: @"svnDelete" label: @"Delete" help: @"Delete items in the repository." image: @"delete"];
-	[self createItem: @"svnCheckout" label: @"Checkout" help: @"Checkout items from the repository." image: @"checkout2"];
-	[self createItem: @"svnExport" label: @"Export" help: @"Export items from the repository." image: @"export"];
-	[self createItem: @"svnFileMerge" label: @"Diff" help: @"Compare revisions of an item in the repository." image: @"FileMerge"];
-	[self createItem: @"svnBlame" label: @"Blame" help: @"Show the content of files with revision and author information in-line."];
-	[self createItem: @"toggleSidebar" label: @"Output" help: @"Show/Hide output of main operations." image: @"sidebar"];
+	[self createItem: @"svnCopy"       label: @"Copy"
+				help: @"Copy selected item within the repository."];
+	[self createItem: @"svnMove"       label: @"Move"
+				help: @"Move selected item within the repository."];
+	[self createItem: @"svnMkdir"      label: @"Make Dir" image: @"mkdir"
+				help: @"Create directories in the repository."];
+	[self createItem: @"svnDelete"     label: @"Delete"   image: @"delete"
+				help: @"Delete items in the repository."];
+	[self createItem: @"svnCheckout"   label: @"Checkout" image: @"checkout2"
+				help: @"Checkout items from the repository."];
+	[self createItem: @"svnExport"     label: @"Export"   image: @"export"
+				help: @"Export items from the repository."];
+	[self createItem: @"svnFileMerge"  label: @"Diff"     image: @"FileMerge"
+				help: @"Compare revisions of an item in the repository."];
+	[self createItem: @"svnBlame"      label: @"Blame"
+				help: @"Show the content of files with revision and author information in-line."];
+	[self createItem: @"svnReport"     label: @"Report"
+				help: UTF8("Generate a printable report of the selected item\xE2\x80\x99s log.")];
+	[self createItem: @"toggleSidebar" label: @"Output"   image: @"sidebar"
+				help: @"Show/Hide output of main operations."];
 
 	NSToolbar* toolbar = [[NSToolbar alloc] initWithIdentifier: @"RepositoryToolBar2"];
 	[toolbar setDelegate: self];
@@ -40,37 +90,6 @@
 
 //----------------------------------------------------------------------------------------
 
-- (NSToolbarItem*) createItem: (NSString*) itsID
-				   label:      (NSString*) itsLabel
-				   help:       (NSString*) itsHelp
-				   image:      (NSString*) imageName
-{
-	NSToolbarItem* item = [[NSToolbarItem alloc] initWithItemIdentifier: itsID];
-	[item setPaletteLabel: itsLabel];
-	[item setLabel: itsLabel];
-	if (itsHelp)
-		[item setToolTip: itsHelp];
-	[item setTarget: document];
-	[item setAction: NSSelectorFromString([itsID stringByAppendingString: @":"])];
-	[item setImage: [NSImage imageNamed: imageName]];
-	[items setObject: item forKey: itsID];
-	[item release];
-	return item;
-}
-
-
-//----------------------------------------------------------------------------------------
-
-- (NSToolbarItem*) createItem: (NSString*) itsID
-				   label:      (NSString*) itsLabel
-				   help:       (NSString*) itsHelp
-{
-	return [self createItem: itsID label: itsLabel help: itsHelp image: itsID];
-}
-
-
-//----------------------------------------------------------------------------------------
-
 - (NSToolbarItem*) toolbar:                   (NSToolbar*) toolbar
 				   itemForItemIdentifier:     (NSString*)  itemIdentifier
 				   willBeInsertedIntoToolbar: (BOOL)       flag
@@ -78,6 +97,8 @@
 	return [items objectForKey: itemIdentifier];
 }
 
+
+//----------------------------------------------------------------------------------------
 
 - (NSArray*) toolbarDefaultItemIdentifiers: (NSToolbar*) toolbar
 {
@@ -87,7 +108,9 @@
 					@"svnMkdir",
 					@"svnDelete",
 					@"svnFileMerge",
+					NSToolbarSeparatorItemIdentifier,
 					@"svnBlame",
+					@"svnReport",
 					NSToolbarFlexibleSpaceItemIdentifier,
 					@"svnCheckout",
 					@"svnExport",
@@ -95,6 +118,9 @@
 					@"toggleSidebar",
 					nil];
 }
+
+
+//----------------------------------------------------------------------------------------
 
 - (NSArray*) toolbarAllowedItemIdentifiers: (NSToolbar*) toolbar
 {
@@ -108,12 +134,15 @@
 					@"svnDelete",
 					@"svnFileMerge",
 					@"svnBlame",
+					@"svnReport",
 					@"svnCheckout",
 					@"svnExport",					
 					@"toggleSidebar",
 					nil];
 }
 
+
+//----------------------------------------------------------------------------------------
 
 @end
 

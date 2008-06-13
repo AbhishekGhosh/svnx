@@ -9,6 +9,14 @@
 #include <Foundation/Foundation.h>
 
 
+#define	for_each1(en, it)			for (id it; (it = [en nextObject]) != nil; )
+#define	for_each_(en, it, coll)		en = [(coll) objectEnumerator]; for_each1(en, it)
+#define	for_each(en, it, coll)		NSEnumerator* for_each_(en, it, coll)
+
+
+//----------------------------------------------------------------------------------------
+
+
 typedef const char*			ConstCStr;
 #if __LP64__
 	typedef double			GCoord;

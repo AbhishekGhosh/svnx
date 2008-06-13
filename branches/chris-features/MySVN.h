@@ -144,4 +144,5 @@
 @end
 
 NSString* SvnCmdPath ();
+NSString* ShellScriptPath (NSString* script);
 

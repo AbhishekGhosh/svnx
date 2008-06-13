@@ -200,6 +200,7 @@ enum {
 //	NSLog(@"dealloc ReviewController");
 //	[[[fDocument windowControllers] objectAtIndex: 0] setShouldCloseDocument: YES];
 //	[[fDocument controller] release];
+	[fTemplates release];
 	[fDocument release];
 	[super dealloc];
 }
@@ -215,15 +216,13 @@ enum {
 	NSMutableArray* const newFiles = [NSMutableArray array];
 
 	int commitFileCount = 0;
-	NSEnumerator* oEnum, * oEnum2;
-	id item, item2;
-	for (oEnum = [svnFiles objectEnumerator]; item = [oEnum nextObject]; )
+	for_each(oEnum, item, svnFiles)
 	{
 		if ([[item objectForKey: @"committable"] boolValue])
 		{
 			BOOL commit = commitDefault;
 			NSString* const name = [item objectForKey: @"displayPath"];
-			for (oEnum2 = [oldFiles objectEnumerator]; item2 = [oEnum2 nextObject]; )
+			for_each(oEnum2, item2, oldFiles)
 				if ([name isEqualToString: [item2 name]])
 				{
 					commit = [item2 commit];
@@ -284,10 +283,8 @@ enum {
 			NSArray* const array = [MySvnLogParser parseData: data];
 			const int count = [array count];
 			NSDateFormatter* const formatter = [SvnDateTransformer formatter];
-			NSEnumerator* oEnum;
-			id item;
-			NSDate* const date = [NSDate alloc];
-			for (oEnum = [array objectEnumerator]; item = [oEnum nextObject]; )
+			NSDate* const date = [[NSDate alloc] init];
+			for_each(oEnum, item, array)
 			{
 				NSString* str = [item objectForKey: @"date"];
 				str = [NSString stringWithFormat: @"%@ %@ +0000",
@@ -302,7 +299,13 @@ enum {
 															[item objectForKey: @"msg"]]
 								forKey: @"log"];
 				if (count == 1)
-					[fRecentAC insertObject: obj atArrangedObjectIndex: 0];
+				{
+					// If the last commit was to an svn:external then this log entry
+					// may be a duplicate.  If it is then don't add it.
+					NSArray* recentArray = [fRecentAC arrangedObjects];
+					if ([recentArray count] == 0 || ![[recentArray objectAtIndex: 0] isEqual: obj])
+						[fRecentAC insertObject: obj atArrangedObjectIndex: 0];
+				}
 				else
 					[fRecentAC addObject: obj];
 			}
@@ -377,9 +380,7 @@ enum {
 
 - (void) setAllFilesCommit: (BOOL) commit
 {
-	NSEnumerator* oEnum;
-	id item;
-	for (oEnum = [fFiles objectEnumerator]; item = [oEnum nextObject]; )
+	for_each(oEnum, item, fFiles)
 	{
 		[item setCommit: commit];
 	}
@@ -509,13 +510,11 @@ enum {
 
 //----------------------------------------------------------------------------------------
 
-- (IBAction) commitFiles: (id) sender
+- (void) doCommitFiles
 {
 	Assert([self canCommit]);
 	NSMutableArray* commitFiles = [NSMutableArray array];
-	NSEnumerator* oEnum;
-	id item;
-	for (oEnum = [fFiles objectEnumerator]; item = [oEnum nextObject]; )
+	for_each(oEnum, item, fFiles)
 	{
 		if ([item commit])
 			[commitFiles addObject: [item item]];
@@ -527,6 +526,45 @@ enum {
 				 message: message
 				callback: MakeCallbackInvocation(self, @selector(commitCallback:))
 			callbackInfo: nil];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) commitFiles: (NSAlert*) alert
+		 returnCode:  (int)      returnCode
+		 contextInfo: (void*)    context
+{
+	#pragma unused(alert, context)
+	if (returnCode == NSAlertDefaultReturn)
+		[self doCommitFiles];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) commitFiles: (id) sender
+{
+	if (AltOrShiftPressed())
+		[self doCommitFiles];
+	else
+	{
+		NSAlert* alert =
+			[NSAlert alertWithMessageText: [NSString stringWithFormat:
+												@"Commit changes to the repository\nfor %u of %u items.",
+												fCommitFileCount, [fFiles count]]
+							defaultButton: nil
+						  alternateButton: @"Cancel"
+							  otherButton: nil
+				informativeTextWithFormat: @"Note: Alt-click %CCommit%C to avoid this alert.",
+										   0x2018, 0x2019];
+
+		[alert setAlertStyle: NSInformationalAlertStyle];
+		[alert beginSheetModalForWindow: fWindow
+						  modalDelegate: self
+						 didEndSelector: @selector(commitFiles:returnCode:contextInfo:)
+						    contextInfo: nil];
+	}
 }
 
 
@@ -584,18 +622,22 @@ enum {
 //	NSLog(@"displayFileDiff: item=%@ '%@'", item, [item name]);
 	if (item)
 	{
+	//	NSString* options = [NSString stringWithFormat: @"-r%@:1", fRevision];
 		NSString* tmpHtmlPath = [NSString stringWithFormat: @"/tmp/svnx-review-%X.html", self];
 
-		// review.sh <svn-tool> <options> <destination> <urls...>
-		NSBundle* bundle = [NSBundle mainBundle];
-		NSString* const scriptPath = [bundle pathForResource: @"review" ofType: @"sh"];
-
-	//	NSString* options = [NSString stringWithFormat: @"-r%@:1", fRevision];
+		// review.sh <svn-tool> <options> <ctx-lines> <show-func> <show-chars> <dest-html> <paths...>
 		NSArray* arguments = [NSArray arrayWithObjects:
-					SvnCmdPath(), @"", tmpHtmlPath, [item fullPath], nil];
+			SvnCmdPath(),											// svn tool
+			@"",													// options
+			GetPreference(@"diffContextLines"),						// context lines
+			GetPreferenceBool(@"diffShowFunction") ? @"1" : @"",	// show function
+			GetPreferenceBool(@"diffShowCharacters") ? @"1" : @"",	// show characters
+			tmpHtmlPath,											// destination html file
+			[item fullPath],										// path
+			nil];
 
 		[[[Task alloc] initWithDelegate: self object: tmpHtmlPath]
-				launch: scriptPath arguments: arguments];
+				launch: ShellScriptPath(@"review") arguments: arguments];
 	}
 }
 
@@ -783,11 +825,11 @@ enum {
 			[str replaceCharactersInRange: range withString: tmpStr];
 		}
 
-		// <SEP-BEGIN>...<SEP-END>
-		range = [str rangeOfString: @"<SEP-BEGIN>"];
+		// <SEPARATOR>...</SEPARATOR>
+		range = [str rangeOfString: @"<SEPARATOR>"];
 		if (range.location != NSNotFound)
 		{
-			NSRange range2 = [str rangeOfString: @"<SEP-END>"];
+			NSRange range2 = [str rangeOfString: @"</SEPARATOR>"];
 			if (range2.location != NSNotFound && range2.location > range.location)
 			{
 				unsigned int loc = range.location + range.length;
@@ -802,9 +844,7 @@ enum {
 		if (range.location != NSNotFound)
 		{
 			id tmpStr = [NSMutableString string];
-			NSEnumerator* oEnum;
-			id item;
-			for (oEnum = [fFiles objectEnumerator]; item = [oEnum nextObject]; )
+			for_each(oEnum, item, fFiles)
 			{
 				if ([item commit])
 				{

@@ -8,7 +8,6 @@
 #import "MySvn.h"
 #import "MyRepository.h"
 #import "SvnListParser.h"
-#import "SvnLogReport.h"
 #import "NSString+MyAdditions.h"
 #include "CommonUtils.h"
 #include "DbgUtils.h"
@@ -190,21 +189,13 @@ makeMiniIcon (NSImage* image)
 
 
 //----------------------------------------------------------------------------------------
+// Note: <sender> is an NSCell in an NSMatrix in the NSBrowser <browser>
 
 - (void) onDoubleClick: (id) sender
 {
+	AssertClass(sender, NSCell);
 	if (!isSubBrowser)
-	{
-		NSArray* items = [self selectedItems];
-		if (items != nil && [items count] > 0)
-		{
-			NSDictionary* dict = [items objectAtIndex: 0];
-
-			[SvnLogReport svnLogReport: [[dict objectForKey: @"url"] absoluteString]
-						  revision:     [self revision]
-						  verbose:      !AltOrShiftPressed()];
-		}
-	}
+		[[self repository] changeRepositoryUrl: [[sender representedObject] objectForKey: @"url"]];
 }
 
 
@@ -430,9 +421,11 @@ makeMiniIcon (NSImage* image)
 
 		if (isDir)	// set the contextual menu on folders
 		{
+	#if 0 // contextual menu replaced with onDoubleClick
 			NSMenu* m = [browserContextMenu copy];
 			[[m itemAtIndex: 0] setRepresentedObject: row];
 			[cell setMenu: m];
+	#endif
 		}
 		else if (disallowLeaves)	// !isDir
 		{
