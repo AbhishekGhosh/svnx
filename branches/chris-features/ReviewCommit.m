@@ -166,12 +166,7 @@ enum {
 + (void) openForDocument: (MyWorkingCopy*) document
 {
 	ReviewController* obj = [[ReviewController alloc] initWithDocument: document];
-	if ([NSBundle loadNibNamed: @"ReviewCommit" owner: obj])
-		;
 	[obj release];
-//	[document addWindowController: [[NSWindowController alloc] initWithWindow: [obj window]]];
-//	NSLog(@"openForDocument('%@'): %@", [document windowTitle], [document windowControllers]);
-//	return obj;
 }
 
 
@@ -186,7 +181,11 @@ enum {
 		++*[document reviewCount];
 		fDocument = [document retain];
 		fTemplates = [[NSMutableArray array] retain];
-		[self buildFileList: YES];
+		if ([NSBundle loadNibNamed: @"ReviewCommit" owner: self])
+		{
+			[fWindow retain];
+			[self buildFileList: YES];
+		}
 	}
 
 	return self;
@@ -203,6 +202,52 @@ enum {
 	[fTemplates release];
 	[fDocument release];
 	[super dealloc];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (NSView*) unbindSuperView: (NSView*) view
+{
+	while (view)	// Find first super-view that is an NSView
+	{
+		view = [view superview];
+		if ([view isMemberOfClass: [NSView class]])
+		{
+			[view unbind: NSHiddenBinding];
+			break;
+		}
+	}
+	return view;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) unload
+{
+	enum {
+		vPaneSelector	=	500,	// NSSegmentedControl
+		vCommitButton	=	501,
+		vCommitInfo		=	502,
+		iBusyIndicator	=	0		// NSProgressIndicator
+	};
+
+	NSView* const root = [fWindow contentView];
+	[fFilesAC unbind: NSContentArrayBinding];
+	[[root viewWithTag: vPaneSelector] unbind: NSSelectedIndexBinding];
+	[self unbindSuperView: fRecentView];
+	[self unbindSuperView: fTemplatesView];
+	NSView* view = [root viewWithTag: vCommitButton];
+	[view unbind: NSEnabledBinding];
+	[view unbind: NSEnabledBinding];
+	view = [root viewWithTag: vCommitInfo];
+	[view unbind: NSDisplayPatternValueBinding];
+	[view unbind: NSDisplayPatternValueBinding];
+	view = [[[view superview] subviews] objectAtIndex: iBusyIndicator];
+	[view unbind: NSAnimateBinding];
+
+	[fWindow release];
 }
 
 
@@ -238,7 +283,8 @@ enum {
 	[newFiles sortUsingFunction: compareNames context: NULL];
 	[fFilesAC setContent: newFiles];
 	[self setCommitFileCount: commitFileCount];
-	[self displaySelectedFileDiff];
+	if (!commitDefault)
+		[self displaySelectedFileDiff];
 }
 
 
@@ -455,18 +501,21 @@ enum {
 
 		[[fDocument controller] stopProgressIndicator];
 
-		NSAlert* alert = [NSAlert alertWithMessageText: @"Error"
-										 defaultButton: @"OK"
-									   alternateButton: nil
-										   otherButton: nil
-							 informativeTextWithFormat: @"%@", errMsg];
+		if ([fWindow isVisible])
+		{
+			NSAlert* alert = [NSAlert alertWithMessageText: @"Error"
+											 defaultButton: @"OK"
+										   alternateButton: nil
+											   otherButton: nil
+								 informativeTextWithFormat: @"%@", errMsg];
 
-		[alert setAlertStyle: NSCriticalAlertStyle];
+			[alert setAlertStyle: NSCriticalAlertStyle];
 
-		[alert beginSheetModalForWindow: fWindow
-						  modalDelegate: self
-						 didEndSelector: @selector(svnErrorAlertDidEnd:returnCode:contextInfo:)
-							contextInfo: NULL];
+			[alert beginSheetModalForWindow: fWindow
+							  modalDelegate: self
+							 didEndSelector: @selector(svnErrorAlertDidEnd:returnCode:contextInfo:)
+								contextInfo: NULL];
+		}
 	}
 
 	return isErr;
@@ -498,13 +547,16 @@ enum {
 
 - (void) commitCallback: (id) taskObj
 {
-//	NSLog(@"commitCallback: %@", taskObj);
-	[self setIsBusy: NO];
-	[self refreshFiles: nil];
-	if (![self svnError: taskObj])
+	if ([fWindow isVisible])
 	{
-		[self buildRecentList: NO];
+		[self setIsBusy: NO];
+		[self refreshFiles: nil];
+		if (![self svnError: taskObj])
+		{
+			[self buildRecentList: NO];
+		}
 	}
+	[fWindow release];
 }
 
 
@@ -521,6 +573,7 @@ enum {
 	}
 	NSString* message = [[fMessageView string] normalizeEOLs];
 
+	[fWindow retain];
 	[self setIsBusy: YES];
 	[fDocument svnCommit: commitFiles
 				 message: message
@@ -556,8 +609,7 @@ enum {
 							defaultButton: nil
 						  alternateButton: @"Cancel"
 							  otherButton: nil
-				informativeTextWithFormat: @"Note: Alt-click %CCommit%C to avoid this alert.",
-										   0x2018, 0x2019];
+				informativeTextWithFormat: @""];
 
 		[alert setAlertStyle: NSInformationalAlertStyle];
 		[alert beginSheetModalForWindow: fWindow
@@ -610,8 +662,10 @@ enum {
 - (void) taskCompleted: (Task*) task object: (id) tmpHtmlPath
 {
 	#pragma unused(task)
-	[[fDiffView mainFrame] loadRequest: [NSURLRequest requestWithURL:
-											[NSURL fileURLWithPath: tmpHtmlPath]]];
+	if ([fWindow isVisible])
+		[[fDiffView mainFrame] loadRequest: [NSURLRequest requestWithURL:
+												[NSURL fileURLWithPath: tmpHtmlPath]]];
+	[fWindow release];
 }
 
 
@@ -619,7 +673,7 @@ enum {
 
 - (void) displayFileDiff: (ReviewFile*) item
 {
-//	NSLog(@"displayFileDiff: item=%@ '%@'", item, [item name]);
+//	dprintf("item=%@ '%@'", item, [item name]);
 	if (item)
 	{
 	//	NSString* options = [NSString stringWithFormat: @"-r%@:1", fRevision];
@@ -636,6 +690,7 @@ enum {
 			[item fullPath],										// path
 			nil];
 
+		[fWindow retain];
 		[[[Task alloc] initWithDelegate: self object: tmpHtmlPath]
 				launch: ShellScriptPath(@"review") arguments: arguments];
 	}
@@ -872,7 +927,6 @@ enum {
 
 - (void) awakeFromNib
 {
-//	NSLog(@"awakeFromNib: refs=%d", [self retainCount]);
 	NSWindow* const window = fWindow;
 
 	// Insert after window in responder chain
@@ -932,12 +986,14 @@ enum {
 - (void) windowWillClose: (NSNotification*) aNotification
 {
 	#pragma unused(aNotification)
-//	NSLog(@"windowWillClose ReviewController: refs=%d", [self retainCount]);
+//	dprintf("refs=%d  fWindow.refs=%d  windowController.refs=%d",
+//			[self retainCount], [fWindow retainCount], [[fWindow windowController] retainCount]);
 	--*[fDocument reviewCount];
 
 	saveSplitViews(fWindow, kPrefKeySplits);
 	[self saveTemplates];
 	[fWindow setDelegate: nil];		// prevents windowDidResignKey message
+	[self unload];
 }
 
 

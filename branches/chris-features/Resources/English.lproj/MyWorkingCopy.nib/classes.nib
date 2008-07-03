@@ -74,6 +74,10 @@
                 svnFileMerge = id; 
                 svnUpdate = id; 
                 switchPanelValidate = id; 
+                updateCancelled = id; 
+                updateIncDec = id; 
+                updateOKed = id; 
+                updateRevision = id; 
             }; 
             CLASS = MyWorkingCopyController; 
             LANGUAGE = ObjC; 
@@ -98,6 +102,7 @@
                 switchPanelSourceTextField = NSTextField; 
                 tableResult = id; 
                 toolbar = id; 
+                updateSheet = NSWindow; 
                 window = id; 
             }; 
             SUPERCLASS = NSObject; 
@@ -116,6 +121,7 @@
             }; 
             SUPERCLASS = NSObject; 
         }, 
+        {CLASS = NSDatePicker; LANGUAGE = ObjC; SUPERCLASS = NSControl; }, 
         {CLASS = NSSegmentedControl; LANGUAGE = ObjC; SUPERCLASS = NSControl; }, 
         {
             CLASS = OutlinerDataSource; 

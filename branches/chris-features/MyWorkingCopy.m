@@ -1457,19 +1457,38 @@ svnInfoReceiver (void*       baton,
 //----------------------------------------------------------------------------------------
 #pragma mark	svn update
 
-- (void) svnUpdate
+- (void) svnUpdateSelectedItems: (NSArray*) options
+{
+	[self svnCommand: @"update" options: options info: nil];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) svnUpdate: (NSArray*) options
 {
 	[controller startProgressIndicator];
 	
 	[self setDisplayedTaskObj:
 		[MySvn updateAtWorkingCopyPath: [self workingCopyPath]
 					    generalOptions: [self svnOptionsInvocation]
-							   options: nil
+							   options: options
 							  callback: MakeCallbackInvocation(self, @selector(svnUpdateCompletedCallback:))
 						  callbackInfo: nil
 							  taskInfo: [self documentNameDict]]];
 }
 
+
+//----------------------------------------------------------------------------------------
+// Update entire working copy
+
+- (void) svnUpdate
+{
+	[self svnUpdate: nil];
+}
+
+
+//----------------------------------------------------------------------------------------
 
 - (void) svnUpdateCompletedCallback: (id) taskObj
 {

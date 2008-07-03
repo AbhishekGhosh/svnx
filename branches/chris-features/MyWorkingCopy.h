@@ -48,6 +48,8 @@ enum {
 - (void) svnRefresh;
 
 - (void) fetchSvnInfo;
+- (void) svnUpdateSelectedItems: (NSArray*) options;
+- (void) svnUpdate: (NSArray*) options;
 - (void) svnUpdate;
 - (void) diffItems:    (NSArray*)      items
 		 callback:     (NSInvocation*) callback

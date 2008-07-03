@@ -1,11 +1,16 @@
-#import "MyWorkingCopyController.h"
-#import "MyWorkingCopy.h"
-#import "MyApp.h"
-#import "MyFileMergeController.h"
-#import "DrawerLogView.h"
-#import "NSString+MyAdditions.h"
+//
+// Controller of the working copy browser
+//
+#include "MyWorkingCopyController.h"
+#include "MyWorkingCopy.h"
+#include "MyApp.h"
+#include "MyFileMergeController.h"
+#include "DrawerLogView.h"
+#include "NSString+MyAdditions.h"
 #include "ReviewCommit.h"
+#include "SvnInterface.h"
 #include "CommonUtils.h"
+#include "DbgUtils.h"
 
 
 enum {
@@ -38,6 +43,28 @@ makeCommandDict (NSString* command, NSString* destination)
 															  destination, @"destination",
 															  nil];
 }
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+//----------------------------------------------------------------------------------------
+
+@interface MyWorkingCopyController (Private)
+
+	- (IBAction) commitPanelValidate: (id) sender;
+	- (IBAction) commitPanelCancel:   (id) sender;
+	- (IBAction) renamePanelValidate: (id) sender;
+	- (IBAction) switchPanelValidate: (id) sender;
+
+	- (void) runAlertBeforePerformingAction: (NSDictionary*) command;
+	- (void) startCommitMessage: (NSString*) selectedOrAll;
+
+	- (void) requestSvnUpdate: (BOOL) forSelection;
+	- (void) updateSheetDidEnd: (NSWindow*) sheet
+			 returnCode:        (int)       returnCode
+			 contextInfo:       (void*)     contextInfo;
+
+@end
 
 
 //----------------------------------------------------------------------------------------
@@ -410,10 +437,14 @@ static NSString* const gVerbs[] = {
 - (IBAction) performAction: (id) sender
 {
 	const unsigned int action = [[sender selectedCell] tag];
-	enum { kReview = 8 };
+	enum { kUpdate = 2, kReview = 8 };
 	if (action == kReview)
 	{
 		[ReviewController performSelector: @selector(openForDocument:) withObject: document afterDelay: 0];
+	}
+	else if (action == kUpdate && AltOrShiftPressed())
+	{
+		[self requestSvnUpdate: TRUE];
 	}
 	else if (action < sizeof(gCommands) / sizeof(gCommands[0]))
 	{
@@ -712,23 +743,201 @@ static NSString* const gVerbs[] = {
 #pragma mark	-
 #pragma mark	Svn Operation Requests
 //----------------------------------------------------------------------------------------
+#pragma mark	svn update
+
+enum {
+	vUpdateDesc		=	100,
+	vNumberField	=	101,
+	vNumberStepper	=	102,
+	vDateField		=	103,
+	vRecursive		=	104,
+	vIgnoreExts		=	105,
+
+	vRevisionType	=	200,
+	vRevHead		=	201,
+	vRevBase		=	202,
+	vRevCommitted	=	203,
+	vRevPrev		=	204,
+	vRevNumber		=	205,
+	vRevDate		=	206
+};
+
 
 //----------------------------------------------------------------------------------------
-#pragma mark	svn update
+
+- (void) requestSvnUpdate: (BOOL) forSelection
+{
+	NSWindow* const sheet = updateSheet;
+	NSView* const view = [sheet contentView];
+	NSString* msg;
+	if (forSelection)
+	{
+		NSArray* const selObjs = [svnFilesAC selectedObjects];
+		const int count = [selObjs count];
+		msg = (count == 1) ? [NSString stringWithFormat: @"Update item %C%@%C to:",
+									0x201C, [[selObjs objectAtIndex: 0] objectForKey: @"displayPath"], 0x201D]
+						   : [NSString stringWithFormat: @"Update %d items to:", count];
+	}
+	else
+		msg = @"Update entire working copy to:";
+	Assert([view viewWithTag: vUpdateDesc]);
+	[[view viewWithTag: vUpdateDesc] setStringValue: msg];
+
+	const SvnRevNum revNum = [[document revision] intValue];
+	// TO_DO
+//	[[view viewWithTag: vNumberStepper] setMaxValue: <repo HEAD revNum>];
+	if (!updateInited)
+	{
+		updateInited = TRUE;
+		Assert([view viewWithTag: vNumberField]);
+		[[view viewWithTag: vNumberField] setIntValue: revNum];
+		[[view viewWithTag: vNumberStepper] setIntValue: revNum];
+
+		Assert([view viewWithTag: vDateField]);
+		[[view viewWithTag: vDateField] setDateValue: [NSDate date]];
+	}
+
+	[NSApp beginSheet:     sheet
+		   modalForWindow: [self window]
+		   modalDelegate:  self
+		   didEndSelector: @selector(updateSheetDidEnd:returnCode:contextInfo:)
+		   contextInfo:    (void*) (intptr_t) forSelection];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) updateRevision: (id) sender
+{
+	NSView* const view = [updateSheet contentView];
+	const int tag = [[sender selectedCell] tag];
+
+	Assert([view viewWithTag: vNumberField]);
+	[[view viewWithTag: vNumberField] setEnabled: (tag == vRevNumber)];
+
+	Assert([view viewWithTag: vNumberStepper]);
+	[[view viewWithTag: vNumberStepper] setEnabled: (tag == vRevNumber)];
+
+	Assert([view viewWithTag: vDateField]);
+	[[view viewWithTag: vDateField] setEnabled: (tag == vRevDate)];
+
+	[updateSheet selectNextKeyView: self];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) updateIncDec: (id) sender
+{
+	[[[updateSheet contentView] viewWithTag: vNumberField] setIntValue: [sender intValue]];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) updateOKed: (id) sender
+{
+	[NSApp endSheet: [sender window] returnCode: NSOKButton];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (IBAction) updateCancelled: (id) sender
+{
+	[NSApp endSheet: [sender window] returnCode: NSCancelButton];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) updateSheetDidEnd: (NSWindow*) sheet
+		 returnCode:        (int)       returnCode
+		 contextInfo:       (void*)     contextInfo
+{
+	[sheet orderOut: self];
+	if (returnCode != NSOKButton) return;
+
+	NSView* const view = [sheet contentView];
+	Assert([view viewWithTag: vRevisionType]);	// NSMatrix
+	NSCell* cell = [[view viewWithTag: vRevisionType] selectedCell];
+	Assert(cell);
+
+	NSString* revision = nil;
+	switch ([cell tag])
+	{
+		case vRevHead:
+			revision = @"HEAD";
+			break;
+
+		case vRevBase:
+			revision = @"BASE";
+			break;
+
+		case vRevCommitted:
+			revision = @"COMMITTED";
+			break;
+
+		case vRevPrev:
+			revision = @"PREV";
+			break;
+
+		case vRevNumber:
+		{
+			const SvnRevNum revNum = [[view viewWithTag: vNumberField] intValue];
+			Assert(revNum >= 1 && revNum <= 9999999);
+			revision = SvnRevNumToString(revNum);
+			break;
+		}
+
+		case vRevDate:
+			revision = [NSString stringWithFormat: @"{%@}",
+				[[[[view viewWithTag: vDateField] dateValue] description] substringToIndex: 10]];
+			break;
+
+		default:
+			dprintf("UNKNOWN cell.tag=%d", [cell tag]);
+			break;
+	}
+
+	if (revision != nil)
+	{
+		id arg1 = nil, arg2 = nil;
+		if (![[view viewWithTag: vRecursive] intValue])
+			arg1 = @"--non-recursive";
+		if ([[view viewWithTag: vIgnoreExts] intValue])
+			*(arg1 ? &arg2 : &arg1) = @"--ignore-externals";
+
+		[document performSelector: contextInfo ? @selector(svnUpdateSelectedItems:)	// current selection
+											   : @selector(svnUpdate:)				// entire working copy
+					   withObject: [NSArray arrayWithObjects: @"-r", revision, arg1, arg2, nil]
+					   afterDelay: 0.1];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
 
 - (void) svnUpdate: (id) sender
 {
 	#pragma unused(sender)
-	[[NSAlert alertWithMessageText: @"Update this working copy to the latest revision?"
-					 defaultButton: @"OK"
-				   alternateButton: @"Cancel"
-					   otherButton: nil
-		 informativeTextWithFormat: @""]
+	if (AltOrShiftPressed())
+	{
+		[self requestSvnUpdate: FALSE];
+	}
+	else
+	{
+		[[NSAlert alertWithMessageText: @"Update this working copy to the latest revision?"
+						 defaultButton: @"OK"
+					   alternateButton: @"Cancel"
+						   otherButton: nil
+			 informativeTextWithFormat: @""]
 
-		beginSheetModalForWindow: [self window]
-				   modalDelegate: self
-				  didEndSelector: @selector(updateWorkingCopyPanelDidEnd:returnCode:contextInfo:)
-					 contextInfo: NULL];					 
+			beginSheetModalForWindow: [self window]
+					   modalDelegate: self
+					  didEndSelector: @selector(updateWorkingCopyPanelDidEnd:returnCode:contextInfo:)
+						 contextInfo: NULL];					 
+	}
 }
 
 

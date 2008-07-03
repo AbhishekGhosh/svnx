@@ -33,6 +33,9 @@
 	IBOutlet NSTextField	*switchPanelDestinationTextField;
 	IBOutlet NSButton		*switchPanelRelocateButton;
 
+	IBOutlet NSWindow*		updateSheet;
+	BOOL					updateInited;
+
 	BOOL svnStatusPending;
 	BOOL svnActionPending;
 	
@@ -58,11 +61,6 @@
 - (void)     setCurrentMode: (int) mode;
 - (void)     setStatusMessage: (NSString*) message;
 
-- (IBAction) commitPanelValidate: (id) sender;
-- (IBAction) commitPanelCancel:   (id) sender;
-- (IBAction) renamePanelValidate: (id) sender;
-- (IBAction) switchPanelValidate: (id) sender;
-
 - (void) setup;
 - (void) savePrefs;
 - (void) cleanup;
@@ -78,8 +76,6 @@
 - (void) fetchSvnInfo;
 - (void) fetchSvnStatusVerboseReceiveDataFinished;
 
-- (void) runAlertBeforePerformingAction: (NSDictionary*) command;
-- (void) startCommitMessage: (NSString*) selectedOrAll;
 - (void) svnError: (NSString*) errorString;
 - (void) startProgressIndicator;
 - (void) stopProgressIndicator;

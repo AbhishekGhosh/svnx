@@ -75,7 +75,8 @@
 		  help:       @"Show the selected file in the Finder."];
 
 	[self createItem: @"svnUpdate" label: @"Update" image: @"checkout2"
-		  help:       UTF8("Perform an \xE2\x80\x98svn update\xE2\x80\x99 on this working copy.")];
+		  help:       UTF8("Update this working copy to HEAD.\n"
+						   "Alt-click to specify a different revision.")];
 
 	[self createItem: @"openRepository" label: @"Repository" image: @"Repository"
 		  help:       @"Open repository window for this current working."];

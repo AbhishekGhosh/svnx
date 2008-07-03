@@ -116,7 +116,8 @@ SvnInitialize ()
 			}
 		#endif
 		}
-	//	NSLog(@"SvnInitialize: svn_fs_initialize=0x%X apr_initialize=0x%X => %d", fn1, fn2, exists);
+		if (!exists)
+			dprintf("svn_fs_initialize=0x%X apr_initialize=0x%X", fn1, fn2);
 	}
 
 	return exists;
