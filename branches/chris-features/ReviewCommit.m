@@ -233,7 +233,9 @@ enum {
 		iBusyIndicator	=	0		// NSProgressIndicator
 	};
 
-	NSView* const root = [fWindow contentView];
+	NSWindow* const window = fWindow;
+	fWindow = NULL;
+	NSView* const root = [window contentView];
 	[fFilesAC unbind: NSContentArrayBinding];
 	[[root viewWithTag: vPaneSelector] unbind: NSSelectedIndexBinding];
 	[self unbindSuperView: fRecentView];
@@ -247,7 +249,16 @@ enum {
 	view = [[[view superview] subviews] objectAtIndex: iBusyIndicator];
 	[view unbind: NSAnimateBinding];
 
-	[fWindow release];
+	[window release];
+}
+
+
+//----------------------------------------------------------------------------------------
+// Private:
+
+- (NSInvocation*) makeCallback: (SEL) selector
+{
+	return MakeCallbackInvocation([self retain], selector);
 }
 
 
@@ -309,7 +320,7 @@ enum {
 	[MySvn		log: [[fDocument repositoryUrl] absoluteString]
 	 generalOptions: [fDocument svnOptionsInvocation]
 			options: [NSArray arrayWithObjects: @"--limit", (full ? @"50" : @"1"), @"--xml", nil]
-		   callback: MakeCallbackInvocation(self, @selector(recentCallback:))
+		   callback: [self makeCallback: @selector(recentCallback:)]
 	   callbackInfo: nil
 		   taskInfo: nil];
 }
@@ -320,7 +331,8 @@ enum {
 
 - (void) recentCallback: (id) taskObj
 {
-	if ([[taskObj valueForKey: @"status"] isEqualToString: @"completed"] &&
+	if ([fWindow isVisible] &&
+		[[taskObj valueForKey: @"status"] isEqualToString: @"completed"] &&
 		[[taskObj valueForKey: @"stderr"] length] == 0)
 	{
 		NSData* data = [taskObj valueForKey: @"stdoutData"];
@@ -358,6 +370,7 @@ enum {
 			[date release];
 		}
 	}
+	[self release];
 }
 
 
@@ -526,7 +539,11 @@ enum {
 
 - (void) diffCallback: (id) taskObj
 {
-	[self svnError: taskObj];
+	if ([fWindow isVisible])
+	{
+		[self svnError: taskObj];
+	}
+	[self release];
 }
 
 
@@ -538,7 +555,7 @@ enum {
 	ReviewFile* item = [self selectedItemOrNil];
 	if (item)
 		[fDocument diffItems: [NSArray arrayWithObject: [item fullPath]]
-					callback: MakeCallbackInvocation(self, @selector(diffCallback:))
+					callback: [self makeCallback: @selector(diffCallback:)]
 				callbackInfo: nil];
 }
 
@@ -556,7 +573,7 @@ enum {
 			[self buildRecentList: NO];
 		}
 	}
-	[fWindow release];
+	[self release];
 }
 
 
@@ -573,11 +590,10 @@ enum {
 	}
 	NSString* message = [[fMessageView string] normalizeEOLs];
 
-	[fWindow retain];
 	[self setIsBusy: YES];
 	[fDocument svnCommit: commitFiles
 				 message: message
-				callback: MakeCallbackInvocation(self, @selector(commitCallback:))
+				callback: [self makeCallback: @selector(commitCallback:)]
 			callbackInfo: nil];
 }
 
@@ -665,7 +681,6 @@ enum {
 	if ([fWindow isVisible])
 		[[fDiffView mainFrame] loadRequest: [NSURLRequest requestWithURL:
 												[NSURL fileURLWithPath: tmpHtmlPath]]];
-	[fWindow release];
 }
 
 
@@ -690,7 +705,6 @@ enum {
 			[item fullPath],										// path
 			nil];
 
-		[fWindow retain];
 		[[[Task alloc] initWithDelegate: self object: tmpHtmlPath]
 				launch: ShellScriptPath(@"review") arguments: arguments];
 	}
