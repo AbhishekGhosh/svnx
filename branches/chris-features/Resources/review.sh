@@ -26,10 +26,13 @@ foreach $path (@ARGV)
 	$str =~ s/\'/\\\'/g;
 	$str =~ s/\r/\\r/g;
 	$str =~ s/]]>/]\\]>/g;
-	$str =~ s/<\/script>/<\\\/script>/g;
+	$str =~ s/<(\/script)>/<\\$1>/gi;
 	$str =~ s/\n$//;
 	$str =~ s/\n/',\n '/g;
-	print("diff1([\n '$str'\n]);\n\n");
+	$str = "diff1([\n '$str']);";
+	$str =~ s/(,\n '')?,\n( '(Index|Property changes on):)/,\n '']);\ndiff1([\n$2/g;
+	$str =~ s/diff1\(\[\n ''(,\n '')?\]\);//g;
+	print("$str\n\n");
 }
 
 print("//]]></script>\n</body>\n</html>\n");

@@ -12,7 +12,9 @@
 		margin: 0 auto; padding: 1px 0 3px 7px; }
 .D h2 .switch { float: right; font-size: 11px; line-height: 1.6; }
 .D h2 .switch span { border-left: 1px solid #ccc; cursor: pointer; padding: 3px 9px 5px; }
-.D h2 .switch span.active { background: #83bcf9; cursor: default; }
+.D h2 .switch span:hover { background: #77F; }
+.D h2 .switch span.active { background: #BBF; cursor: default; }
+.D h2 .switch span.active:hover { background: #BBF; }
 
 /* Tabular/Inline diff view */
 .D table { border: 1px solid #ddd; border-spacing: 0; border-top: 0; empty-cells: show;
@@ -73,29 +75,40 @@ function rev(s)
 
 function diffHead(lines)
 {
-	var i = 0, S = "", title = "", tA = "", tB = "", m = "";
+	var i = 0, S = "", title = "", tA = "", tB = "", m = "", ip = false, lN = lines.length;
 
 	if (lines[i].beginswith("Index: "))
 		title = esc(lines[i++].substring(7));
+	else if (lines[i].beginswith("Property changes on: "))
+	{
+		ip = true;
+		title = esc(lines[i++].substring(21));
+		if (lines[i].beginswith("____"))
+			++i;
+	}
 
-	if (lines[i].beginswith("===="))
-		++i;
-
-	if (lines[i].beginswith("--- "))
-		tA = rev(lines[i++]);
-	else if (lines[i].beginswith("Cannot display:"))	// file marked as a binary type.
-		m = esc(lines[i++]).concat('<br/>', esc(lines[i++]));
-
-	if (lines[i].beginswith("+++ "))
-		tB = rev(lines[i++]);
+	if (!ip)
+	{
+		if (lines[i].beginswith("===="))
+			++i;
+	
+		if (lines[i].beginswith("--- "))
+			tA = rev(lines[i++]);
+		else if (lines[i].beginswith("Cannot display:"))	// file marked as a binary type.
+			m = esc(lines[i++]).concat('<br/>', esc(lines[i++]));
+	
+		if (lN > i && lines[i].beginswith("+++ "))
+			tB = rev(lines[i++]);
+	}
 
 	S = S.concat("<div class='D'><ul><li>\n",
 				 "<h2><span class='switch'><span class='active' onclick='tab(this,0)'>Tabular</span>",
-				 "<span onclick='tab(this,1)'>Unified</span></span>", title, "</h2>\n");
-	S = S.concat("<table summary='diff' cellspacing='0'>\n",
-				 "<colgroup><col class='N'/><col class='N'/><col/></colgroup>\n",
-				 "<tr class='rev'><th>", tA, "</th><th>", tB, "</th><td>", m, "</td></tr>\n");
-	return {S:S, i:i};
+				 "<span onclick='tab(this,1)'>Unified</span></span>", title, "</h2>\n",
+				 "<table summary='diff' cellspacing='0'>\n",
+				 "<colgroup><col class='N'/><col class='N'/><col/></colgroup>\n");
+	if (!ip)
+		S = S.concat("<tr class='rev'><th>", tA, "</th><th>", tB, "</th><td>", m, "</td></tr>\n");
+	return {S:S, i:i, p:ip};
 }
 
 var cFirst = "<tr class='A'>",

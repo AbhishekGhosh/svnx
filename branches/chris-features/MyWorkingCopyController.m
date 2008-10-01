@@ -15,7 +15,8 @@
 
 enum {
 	vFlatTable	=	2000,
-	vTreeTable	=	2002
+	vTreeTable	=	2002,
+	vCmdButtons	=	3000
 };
 
 enum {
@@ -56,8 +57,11 @@ makeCommandDict (NSString* command, NSString* destination)
 	- (IBAction) renamePanelValidate: (id) sender;
 	- (IBAction) switchPanelValidate: (id) sender;
 
+	- (void) resetStatusMessage;
 	- (void) runAlertBeforePerformingAction: (NSDictionary*) command;
 	- (void) startCommitMessage: (NSString*) selectedOrAll;
+	- (void) renamePanelForCopy: (BOOL)      isCopy
+			 destination:        (NSString*) destination;
 
 	- (void) requestSvnUpdate: (BOOL) forSelection;
 	- (void) updateSheetDidEnd: (NSWindow*) sheet
@@ -171,7 +175,11 @@ makeCommandDict (NSString* command, NSString* destination)
 - (void) windowDidBecomeKey: (NSNotification*) notification
 {
 	#pragma unused(notification)
-	if (!svnStatusPending && GetPreferenceBool(@"autoRefreshWC"))
+	if (suppressAutoRefresh)
+	{
+		suppressAutoRefresh = false;
+	}
+	else if (!svnStatusPending && GetPreferenceBool(@"autoRefreshWC"))
 	{
 		[document svnRefresh];
 	}
@@ -270,10 +278,23 @@ makeCommandDict (NSString* command, NSString* destination)
 
 - (void) keyDown: (NSEvent*) theEvent
 {
-	const unichar ch = [[theEvent charactersIgnoringModifiers] characterAtIndex: 0];
+	NSString* const chars = [theEvent charactersIgnoringModifiers];
+	const unichar ch = [chars characterAtIndex: 0];
 
 	if (ch == '\r' || ch == 3)
 		[self doubleClickInTableView: nil];
+	else if (([theEvent modifierFlags] & NSControlKeyMask) != 0)	// ctrl+<letter> => command button
+	{
+		for_each(enumerator, cell, [[[window contentView] viewWithTag: vCmdButtons] cells])
+		{
+			NSString* const keys = [cell keyEquivalent];
+			if (keys != nil && [keys length] == 1 && ch == ([keys characterAtIndex: 0] | 0x20))
+			{
+				[cell performClick: self];
+				break;
+			}
+		}
+	}
 	else if (ch >= ' ')
 	{
 		NSTableView* const tableView = [[window contentView] viewWithTag: vFlatTable];
@@ -669,11 +690,32 @@ static NSString* const gVerbs[] = {
 
 - (void) setStatusMessage: (NSString*) message
 {
-	id obj = message ? (id) message : [document repositoryUrl];
-	if (obj)
-		[statusView setStringValue: message ? message : PathWithRevision(obj, [document revision])];
-	else if ([window isVisible])
-		[self performSelector: @selector(setStatusMessage:) withObject: nil afterDelay: 0.1];	// try later
+	if (message)
+		[statusView setStringValue: message];
+	else
+	{
+		[window retain];
+		[self resetStatusMessage];
+	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) resetStatusMessage
+{
+	if ([window isVisible])
+	{
+		id obj = [document repositoryUrl];
+		if (obj == nil)
+		{
+			[self performSelector: @selector(resetStatusMessage) withObject: nil afterDelay: 0.1];	// try later
+			return;
+		}
+
+		[statusView setStringValue: PathWithRevision(obj, [document revision])];
+	}
+	[window release];		// iff window is hidden or statusView was set
 }
 
 
@@ -1016,21 +1058,7 @@ enum {
 
 - (void) requestSvnMoveSelectedItemsToDestination: (NSString*) destination
 {
-	NSMutableDictionary* action = makeCommandDict(@"move", destination);
-
-	NSDictionary* selection;
-	if (selection = [self selectedItemOrNil])
-	{
-		[renamePanel setTitle: @"Move and rename"];
-		[renamePanelTextField setStringValue: [[selection valueForKey: @"path"] lastPathComponent]];
-		[NSApp beginSheet:     renamePanel
-			   modalForWindow: [self window]
-			   modalDelegate:  self
-			   didEndSelector: @selector(renamePanelDidEnd:returnCode:contextInfo:)
-			   contextInfo:    [action retain]];
-	}
-	else
-		[self runAlertBeforePerformingAction: action];
+	[self renamePanelForCopy: false destination: destination];
 }
 
 
@@ -1039,13 +1067,26 @@ enum {
 
 - (void) requestSvnCopySelectedItemsToDestination: (NSString*) destination
 {
-	NSMutableDictionary* action = makeCommandDict(@"copy", destination);
+	[self renamePanelForCopy: true destination: destination];
+}
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	svn copy & svn move common 
+
+- (void) renamePanelForCopy: (BOOL)      isCopy
+		 destination:        (NSString*) destination
+{
+	NSMutableDictionary* action = makeCommandDict(isCopy ? @"copy" : @"move", destination);
 
 	NSDictionary* selection;
 	if (selection = [self selectedItemOrNil])
 	{
-		[renamePanel setTitle: @"Copy and rename"];
+		suppressAutoRefresh = true;		// Otherwise selection gets reset before it's used
+		[[[renamePanel contentView] viewWithTag: 100]
+				setStringValue: isCopy ? @"Copy and Rename" : @"Move and Rename"];
 		[renamePanelTextField setStringValue: [[selection valueForKey: @"path"] lastPathComponent]];
+		[renamePanelTextField selectText: self];
 		[NSApp beginSheet:     renamePanel
 			   modalForWindow: [self window]
 			   modalDelegate:  self
@@ -1058,30 +1099,30 @@ enum {
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark	svn copy & svn move common 
 
 - (void) renamePanelDidEnd: (NSWindow*) sheet
 		 returnCode:        (int)       returnCode
 		 contextInfo:       (void*)     contextInfo
 {
-	[sheet orderOut:nil];
-	NSMutableDictionary *action = contextInfo;
-	
-	[action setObject:[[(id) contextInfo objectForKey:@"destination"]
-					stringByAppendingPathComponent:[renamePanelTextField stringValue]] forKey:@"destination"];
-	
-	if ( returnCode == 1 )
+	[sheet orderOut: nil];
+	NSMutableDictionary* action = contextInfo;
+
+	[action setObject: [[(id) contextInfo objectForKey: @"destination"]
+						stringByAppendingPathComponent: [renamePanelTextField stringValue]]
+			forKey: @"destination"];
+
+	if (returnCode == 1)
 	{
-		[self runAlertBeforePerformingAction:action];
+		[self runAlertBeforePerformingAction: action];
 	}
-	
+
 	[action release];																					
 }
 
 
 - (IBAction) renamePanelValidate: (id) sender
 {
-	[NSApp endSheet:renamePanel returnCode:[sender tag]];
+	[NSApp endSheet: renamePanel returnCode: [sender tag]];
 }
 
 

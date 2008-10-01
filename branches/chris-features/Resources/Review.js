@@ -11,7 +11,7 @@ dmp.prototype.commonPrefix=function(a,b){if(!a||!b||a.charCodeAt(0)!==b.charCode
 dmp.prototype.commonSuffix=function(a,b){if(!a||!b||a.charCodeAt(a.length-1)!==b.charCodeAt(b.length-1)){return 0}var c=0,d=Math.min(a.length,b.length);var e=d,f=0;while(c<e){if(a.substring(a.length-e,a.length-f)==b.substring(b.length-e,b.length-f)){c=e;f=c}else{d=e}e=Math.floor((d-c)/2+c)}return e}
 dmp.prototype.halfMatch=function(h,k){var l=h.length>k.length?h:k;var m=h.length>k.length?k:h;if(l.length<10||m.length<1){return null}var n=this;function diff_halfMatchI(a,b,i){var c=a.substring(i,i+Math.floor(a.length/4));var j=-1,d='',e,best_longtext_b,best_shorttext_a,best_shorttext_b;while((j=b.indexOf(c,j+1))!=-1){var f=n.commonPrefix(a.substring(i),b.substring(j));var g=n.commonSuffix(a.substring(0,i),b.substring(0,j));if(d.length<g+f){d=b.substring(j-g,j)+b.substring(j,j+f);e=a.substring(0,i-g);best_longtext_b=a.substring(i+f);best_shorttext_a=b.substring(0,j-g);best_shorttext_b=b.substring(j+f)}}if(d.length>=a.length/2){return[e,best_longtext_b,best_shorttext_a,best_shorttext_b,d]}else{return null}}var o=diff_halfMatchI(l,m,Math.ceil(l.length/4));var p=diff_halfMatchI(l,m,Math.ceil(l.length/2));var q;if(!o&&!p){return null}else if(!p){q=o}else if(!o){q=p}else{q=o[4].length>p[4].length?o:p}var r,text1_b,text2_a,text2_b;if(h.length>k.length){r=q[0];text1_b=q[1];text2_a=q[2];text2_b=q[3]}else{text2_a=q[0];text2_b=q[1];r=q[2];text1_b=q[3]}var s=q[4];return[r,text1_b,text2_a,text2_b,s]}
 dmp.prototype.cleanupSemantic=function(a){var b=false,c=[],d=0,e=null,f=0,g=0,h=0;while(f<a.length){if(a[f][0]==0){c[d++]=f;g=h;h=0;e=a[f][1]}else{h+=a[f][1].length;if(e!==null&&(e.length<=g)&&(e.length<=h)){a.splice(c[d-1],0,[-1,e]);a[c[d-1]+1][0]=1;d-=2;f=d>0?c[d-1]:-1;g=h=0;e=null;b=true}}++f}if(b){this.cleanupMerge(a)}this.cleanupSemanticLossless(a)}
-dmp.prototype.cleanupSemanticLossless=function(f){function diff_cleanupSemanticScore(a,b,c){if(!a||!c){return 10}var d=/\s/;var e=0;if(a.charAt(a.length-1).match(d)||b.charAt(0).match(d)){++e}if(b.charAt(b.length-1).match(d)||c.charAt(0).match(d)){++e}return e}var g=1;while(g<f.length-1){if(f[g-1][0]==0&&f[g+1][0]==0){var h=f[g-1][1];var i=f[g][1],j=f[g+1][1],k=this.commonSuffix(h,i);if(k){var l=i.substring(i.length-k);h=h.substring(0,h.length-k);i=l+i.substring(0,i.length-k);j=l+j}var m=h,n=i,o=j,p=diff_cleanupSemanticScore(h,i,j);while(i.charAt(0)===j.charAt(0)){h+=i.charAt(0);i=i.substring(1)+j.charAt(0);j=j.substring(1);var q=diff_cleanupSemanticScore(h,i,j);if(q>=p){p=q;m=h;n=i;o=j}}if(f[g-1][1]!=m){if(m){f[g-1][1]=m}else{f.splice(g-1,1);g--}f[g][1]=n;if(o){f[g+1][1]=o}else{f.splice(g+1,1);g--}}}++g}}
+dmp.prototype.cleanupSemanticLossless=function(d){var e=/[^a-zA-Z0-9]/,f=/\s/,g=/[\r\n]/,h=/\n\r?\n$/,i=/^\r?\n\r?\n/;function cleanupSemanticScore(a,b){if(!a||!b){return 5}var c=0;if(a.charAt(a.length-1).match(e)||b.charAt(0).match(e)){++c;if(a.charAt(a.length-1).match(f)||b.charAt(0).match(f)){++c;if(a.charAt(a.length-1).match(g)||b.charAt(0).match(g)){++c;if(a.match(h)||b.match(i)){++c}}}}return c}var j=1;while(j<d.length-1){if(d[j-1][0]==0&&d[j+1][0]==0){var k=d[j-1][1],l=d[j][1],m=d[j+1][1],n=this.commonSuffix(k,l);if(n){var o=l.substring(l.length-n);k=k.substring(0,k.length-n);l=o+l.substring(0,l.length-n);m=o+m}var p=k,q=l,r=m, s=cleanupSemanticScore(k,l)+cleanupSemanticScore(l,m);while(l.charAt(0)===m.charAt(0)){k+=l.charAt(0);l=l.substring(1)+m.charAt(0);m=m.substring(1);var t=cleanupSemanticScore(k,l)+cleanupSemanticScore(l,m);if(t>=s){s=t;p=k;q=l;r=m}}if(d[j-1][1]!=p){if(p){d[j-1][1]=p}else{d.splice(j-1,1);j--}d[j][1]=q;if(r){d[j+1][1]=r}else{d.splice(j+1,1);j--}}}++j}}
 dmp.prototype.cleanupMerge=function(a){a.push([0,'']);var b=0,c=0,d=0,e='',f='',g;while(b<a.length){switch(a[b][0]){case 1:++d;f+=a[b][1];++b;break;case -1:++c;e+=a[b][1];++b;break;case 0:if(c!==0||d!==0){if(c!==0&&d!==0){g=this.commonPrefix(f,e);if(g!==0){if((b-c-d)>0&&a[b-c-d-1][0]==0){a[b-c-d-1][1]+=f.substring(0,g)}else{a.splice(0,0,[0,f.substring(0,g)]);++b}f=f.substring(g);e=e.substring(g)}g=this.commonSuffix(f,e);if(g!==0){a[b][1]=f.substring(f.length-g)+a[b][1];f=f.substring(0,f.length-g);e=e.substring(0,e.length-g)}}if(c===0){a.splice(b-c-d,c+d,[1,f])}else if(d===0){a.splice(b-c-d,c+d,[-1,e])}else{a.splice(b-c-d,c+d,[-1,e],[1,f])}b=b-c-d+(c?1:0)+(d?1:0)+1}else if(b!==0&&a[b-1][0]==0){a[b-1][1]+=a[b][1];a.splice(b,1)}else{++b}d=0;c=0;e='';f='';break}}if(a[a.length-1][1]===''){a.pop()}var h=false;b=1;while(b<a.length-1){if(a[b-1][0]==0&&a[b+1][0]==0){if(a[b][1].substring(a[b][1].length-a[b-1][1].length)==a[b-1][1]){a[b][1]=a[b-1][1]+a[b][1].substring(0,a[b][1].length-a[b-1][1].length);a[b+1][1]=a[b-1][1]+a[b+1][1];a.splice(b-1,1);h=true}else if(a[b][1].substring(0,a[b+1][1].length)==a[b+1][1]){a[b-1][1]+=a[b+1][1];a[b][1]=a[b][1].substring(a[b+1][1].length)+a[b+1][1];a.splice(b+1,1);h=true}}++b}if(h){this.cleanupMerge(a)}}
 
 var DIFF = new dmp;
@@ -44,12 +44,27 @@ function diffOldNew(tA, tB)
 
 function diffChars(lines)
 {
-	var t = diffHead(lines), i = t.i, S = t.S,
+	var t = diffHead(lines), i = t.i, S = t.S, ip = t.p,
 		numA = 0, numB = 0, line, linCount = lines.length,
-		prevTyp, typ, nextTyp, LINES = [{t:0, a:0, b:0, txt:""}], n = 0;
+		prevTyp, typ = 3, nextTyp, LINES = [{t:0, a:0, b:0, txt:""}], n = 0;
 
-	while (i < linCount)
-	{
+	if (ip)
+	  while (i < linCount)
+	  {
+		line = lines[i++];
+		if (typ == 2) ++numA; else ++numB;
+		if (line.beginswith("Name: "))
+			LINES.push({t:8, a:numA=0, b:numB=0, txt:line.substring(6)});
+		else if (line.beginswith("   + "))
+			LINES.push({t:typ=1, a:0, b:numB, txt:line.substring(5)});
+		else if (line.beginswith("   - "))
+			LINES.push({t:typ=2, a:numA, b:0, txt:line.substring(5), ins:0});
+		else if (line.length)
+			LINES.push({t:typ, a:numA, b:numB, txt:line});
+	  }
+	else
+	  while (i < linCount)
+	  {
 		line = lines[i++];
 		typ = line.charCodeAt(0);
 		t = line.substring(1);
@@ -80,7 +95,7 @@ function diffChars(lines)
 			break;
 		}
 		prevTyp = typ;
-	}
+	  }
 
 	LINES.push(LINES[0]);
 	linCount = LINES.length - 1;
@@ -129,12 +144,6 @@ function diffChars(lines)
 		tr = isLast ? "</td></tr></tbody>\n" : "</td></tr>\n";
 		switch (typ)
 		{
-		case 9:		// '@'
-			if (t.length)
-				S = S.concat("<tr><th colspan='2'>Function:</th><td class='F'>", t, "</td></tr>");
-			else if (i > 2)
-				S += "<tr><th>…</th><th>…</th><td class='F'></td></tr>";
-			break;
 		case 1:		// '+'
 			S = S.concat(isFirst ? "<tbody>" : "",
 						 (isFirst && prevTyp != 2) ? (isLast ? cOnly : cFirst) : (isLast ? cLast : cOther),
@@ -148,6 +157,15 @@ function diffChars(lines)
 		case 3:		// ' '
 			S = S.concat(isFirst ? "<tbody><tr><th>" : "<tr><th>",
 						 line.a, "</th><th>", line.b, "</th><td>", t, tr);
+			break;
+		case 8:
+			S = S.concat("<tr><th colspan='2'>Property:</th><td class='F'>", t, "</td></tr>");
+			break;
+		case 9:		// '@'
+			if (t.length)
+				S = S.concat("<tr><th colspan='2'>Function:</th><td class='F'>", t, "</td></tr>");
+			else if (i > 2)
+				S += "<tr><th>…</th><th>…</th><td class='F'></td></tr>";
 			break;
 		}
 	}

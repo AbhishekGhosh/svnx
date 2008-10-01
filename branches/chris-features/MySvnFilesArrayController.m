@@ -1,3 +1,7 @@
+//
+// MySvnFilesArrayController.m
+//
+
 #import "MySvnFilesArrayController.h"
 #import "MyWorkingCopy.h"
 
@@ -31,6 +35,7 @@ compareNames (id obj1, id obj2, void* context)
 	const BOOL treeMode = ![document flatMode];
 	NSString* const	selectedPath = [document outlineSelectedPath];
     NSString* const lowerSearch = (searchString != nil && [searchString length] > 0) ? [searchString lowercaseString] : nil;
+	BOOL isCommittable = NO;
 
 	NSEnumerator* oEnum;
 	id item;
@@ -86,10 +91,13 @@ compareNames (id obj1, id obj2, void* context)
 
 		if (test)
 			[matchedObjects addObject: item];
+		if (!isCommittable)
+			isCommittable = [[item objectForKey: @"committable"] boolValue];
 
 		[pool release];
 	}
 
+	[self setCommittable: isCommittable];
 #if 0
 	if (!treeMode && [matchedObjects count])
 	{
@@ -123,6 +131,22 @@ compareNames (id obj1, id obj2, void* context)
 		[searchString autorelease];
 		searchString = [newSearchString copy];
 	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (BOOL) committable
+{
+	return committable;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) setCommittable: (BOOL) isCommittable
+{
+	committable = isCommittable;
 }
 
 @end

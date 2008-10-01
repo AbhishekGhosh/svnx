@@ -121,8 +121,8 @@
 //----------------------------------------------------------------------------------------
 
 - (NSToolbarItem*) createItem: (NSString*) itsID
-				   label: (NSString*) itsLabel
-				   help: (NSString*) itsHelp
+				   label:      (NSString*) itsLabel
+				   help:       (NSString*) itsHelp
 {
 	NSToolbarItem* item = [[NSToolbarItem alloc] initWithItemIdentifier: itsID];
 	[item setPaletteLabel: itsLabel];
@@ -147,6 +147,15 @@
 #pragma mark	-
 //========================================================================================
 
+enum {
+	kUnlimitedLogLimit	=	0,
+	kDefaultLogLimit	=	kUnlimitedLogLimit,
+	kDefaultPageLength	=	500
+};
+
+
+//----------------------------------------------------------------------------------------
+
 @implementation SvnLogReport
 
 - (void) taskCompleted: (Task*) task object: (id) object
@@ -157,14 +166,9 @@
 
 	if (object != nil)	// svn task
 	{
-	//	NSString* const tmpHtmlPath = [object objectForKey: @"html"];
-	//	NSArray* const arguments = [object objectForKey: @"arguments"];
-
 		Task* task = [[Task alloc] initWithDelegate: self object: nil];
-	//	[task launch: @"/usr/bin/xsltproc" arguments: arguments stdOutput: tmpHtmlPath];
 		[task launch:    @"/usr/bin/xsltproc"
-			  arguments: [object objectForKey: @"arguments"]
-			  stdOutput: [object objectForKey: @"html"]];
+			  arguments: object];
 	}
 	else				// xsltproc task
 	{
@@ -179,7 +183,10 @@
 
 - (void) createReport: (NSString*) fileURL
 		 revision:     (NSString*) revision
+		 limit:        (int)       limit
+		 pageLength:   (int)       pageLength
 		 verbose:      (BOOL)      verbose
+		 stopOnCopy:   (BOOL)      stopOnCopy
 {
 	Assert(fWindow != nil);
 	Assert(fLogView != nil);
@@ -193,27 +200,40 @@
 	const pid_t pid = getpid();
 	static unsigned int uid = 0;
 	++uid;
-	NSString* const tmpXmlPath  = [NSString stringWithFormat: @"/tmp/svnX-%u-log-%u.xml", pid, uid];
-	NSString* const tmpHtmlPath = [NSString stringWithFormat: @"/tmp/svnX-%u-log-%u.html", pid, uid];
+	NSString* const tmpXmlPath  = [NSString stringWithFormat: @"/tmp/svnx%u-log%u.xml", pid, uid];
+	NSString* const tmpHtmlBase = [NSString stringWithFormat: @"svnx%u-log%u-", pid, uid];
+	NSString* const tmpHtmlPath = [NSString stringWithFormat: @"/tmp/%@1.html", tmpHtmlBase];
+	NSString* const pageLen     = [NSString stringWithFormat: @"%u", pageLength];
 
 	NSBundle* bundle = [NSBundle mainBundle];
 	NSString* const srcXslPath = [bundle pathForResource: @"svnlog" ofType: @"xsl"];
 //	NSString* const srcCssPath = [bundle pathForResource: @"svnlog" ofType: @"css"];
 
 	NSString* svnRev = [NSString stringWithFormat: @"-r%@:1", revision];
-	NSArray* arguments = [NSArray arrayWithObjects: @"log", @"--xml", svnRev,
-													PathPegRevision(fileURL, revision),
-													(verbose ? @"-v" : nil), nil];
+	id aBuf[10] = { @"log", @"--xml", svnRev, PathPegRevision(fileURL, revision) };
+	int aCount = 4;
+	Assert(aBuf[aCount - 1] != nil);
+	Assert(aBuf[aCount] == nil);
+	if (verbose)
+		aBuf[aCount++] = @"-v";
+	if (stopOnCopy)
+		aBuf[aCount++] = @"--stop-on-copy";
+	if (limit != kUnlimitedLogLimit)
+	{
+		aBuf[aCount++] = @"--limit";
+		aBuf[aCount++] = [NSString stringWithFormat: @"%u", limit];
+	}
+	NSArray* arguments = [NSArray arrayWithObjects: aBuf count: aCount];
 
 	NSArray* args2 = [NSArray arrayWithObjects: @"--stringparam", @"file", fileURL,
 												@"--stringparam", @"revision", revision,
 												@"--stringparam", @"base", [bundle resourcePath],
+												@"--stringparam", @"F", tmpHtmlBase,
+												@"--param", @"page-len", pageLen,
+												@"-o", @"/tmp/",
 												srcXslPath, tmpXmlPath, nil];
 	// TO_DO: store task & kill it if window closes before completion
-	Task* task = [[Task alloc] initWithDelegate: self
-							   object: [NSDictionary dictionaryWithObjectsAndKeys:
-															tmpHtmlPath, @"html",
-															args2, @"arguments", nil]];
+	Task* task = [[Task alloc] initWithDelegate: self object: args2];
 	[@"?" writeToFile: tmpXmlPath atomically: false];
 	[task launch: SvnCmdPath() arguments: arguments stdOutput: tmpXmlPath];
 
@@ -287,13 +307,32 @@ NSString* const SearchDocToolbarItemIdentifier = @"svnX.search";
 
 + (void) svnLogReport: (NSString*) fileURL
 		 revision:     (NSString*) revision
+		 limit:        (int)       limit
+		 pageLength:   (int)       pageLength
 		 verbose:      (BOOL)      verbose
+		 stopOnCopy:   (BOOL)      stopOnCopy
 {
-	SvnLogReport* report = [[SvnLogReport alloc] init];
+	SvnLogReport* report = [[self alloc] init];
 	if ([NSBundle loadNibNamed: @"BrowseLog" owner: report])
-		[report createReport: fileURL revision: revision verbose: verbose];
+		[report createReport: fileURL revision: revision limit: limit
+				pageLength: pageLength verbose: verbose stopOnCopy: stopOnCopy];
 	else
 		[report release];
+}
+
+
+//----------------------------------------------------------------------------------------
+
++ (void) svnLogReport: (NSString*) fileURL
+		 revision:     (NSString*) revision
+		 verbose:      (BOOL)      verbose
+{
+	[self svnLogReport: fileURL
+		  revision:     revision
+		  limit:        kDefaultLogLimit
+		  pageLength:   kDefaultPageLength
+		  verbose:      verbose
+		  stopOnCopy:   false];
 }
 
 

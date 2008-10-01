@@ -22,4 +22,13 @@
 
 }
 
+
+//----------------------------------------------------------------------------------------
+// Subvert the 10.5 behaviour (which eats SOME of these events)
+
+- (void) keyDown: (NSEvent*) theEvent
+{
+	[[self nextResponder] keyDown: theEvent];
+}
+
 @end

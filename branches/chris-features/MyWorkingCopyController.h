@@ -36,12 +36,12 @@
 	IBOutlet NSWindow*		updateSheet;
 	BOOL					updateInited;
 
-	BOOL svnStatusPending;
-	BOOL svnActionPending;
+	BOOL					svnStatusPending;
+	BOOL					suppressAutoRefresh;
 	
-	BOOL isDisplayingErrorSheet;
+	BOOL					isDisplayingErrorSheet;
 
-	NSArray*	savedSelection;		// used by save/restoreSelection
+	NSArray*				savedSelection;		// used by save/restoreSelection
 }
 
 + (void) presetDocumentName: name;

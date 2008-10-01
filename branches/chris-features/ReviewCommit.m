@@ -2,6 +2,9 @@
 // ReviewCommit.m - Review and edit a commit
 //
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <WebKit/WebKit.h>
 #include "ReviewCommit.h"
 #include "MySvnLogParser.h"
@@ -606,7 +609,10 @@ enum {
 {
 	#pragma unused(alert, context)
 	if (returnCode == NSAlertDefaultReturn)
+	{
+		fSuppressAutoRefresh = true;
 		[self doCommitFiles];
+	}
 }
 
 
@@ -861,6 +867,67 @@ enum {
 
 
 //----------------------------------------------------------------------------------------
+// Calls a script with the args: svnBinDir, wcPath, 3, commit-file-names...
+
+- (NSString*) insertTemplateScript: (NSString*) script
+{
+	const NSStringEncoding kEncoding = NSUTF8StringEncoding;
+	NSMutableArray* args = [NSMutableArray arrayWithObjects:
+								GetPreference(@"svnBinariesFolder"),
+								[fDocument workingCopyPath],
+								@"3",			// count of args before first file
+								nil];
+
+	for_each(oEnum, it, fFiles)
+	{
+		if ([it commit])
+			[args addObject: [it name]];
+	}
+
+//	NSLog(@"args=%@\nscript='%@'", args, script);
+
+	NSString* result = @"[SCRIPT: Couldn't run]";
+	static unsigned int uid = 0;
+	++uid;
+	NSString* const path = [NSString stringWithFormat: @"/tmp/svnx%u-script%u.sh", getpid(), uid];
+	char cpath[40];
+	if ([[script normalizeEOLs] writeToFile: path atomically: NO encoding: kEncoding error: nil] &&
+		[path getCString: cpath maxLength: sizeof(cpath) encoding: kEncoding] &&
+		chmod(cpath, S_IRWXU) == 0)
+	{
+		NSPipe* const pipe = [NSPipe pipe];
+		Task* const task = [[Task alloc] initWithDelegate: nil object: nil];
+		[task setStandardOutput: pipe];
+		[task launch: path arguments: args];
+
+		NSTask* const nsTask = [task task];
+		NSFileHandle* const handle = [pipe fileHandleForReading];
+		NSMutableData* const data = [NSMutableData dataWithLength: 0];
+		NSDate* const endDate = [NSDate dateWithTimeIntervalSinceNow: 30];	// Wait a max of 30 secs
+		while ([nsTask isRunning] && [endDate compare: [NSDate date]] > 0)
+		{
+			[data appendData: [handle availableData]];
+		}
+
+		if (![nsTask isRunning])
+		{
+			[data appendData: [handle readDataToEndOfFile]];
+			result = [[NSString alloc] initWithData: data encoding: kEncoding];
+		}
+		else
+		{
+			[nsTask terminate];
+			result = @"[SCRIPT: Timed-out]";
+		}
+
+		unlink(cpath);
+	}
+
+	return result;
+}
+
+
+//----------------------------------------------------------------------------------------
 
 - (void) insertTemplate: (id) sender
 {
@@ -870,7 +937,6 @@ enum {
 		NSRange range;
 		NSMutableString* str = [[[fTemplates objectAtIndex: rowIndex]
 													objectForKey: @"body"] mutableCopy];
-		id fileSep = @"\n";
 
 		// <MACHINE>
 		range = [str rangeOfString: @"<MACHINE>"];
@@ -894,24 +960,19 @@ enum {
 			[str replaceCharactersInRange: range withString: tmpStr];
 		}
 
-		// <SEPARATOR>...</SEPARATOR>
-		range = [str rangeOfString: @"<SEPARATOR>"];
+		// <FILES> or <FILES>...</FILES>
+		range = [str rangeOfString: @"<FILES>"];
 		if (range.location != NSNotFound)
 		{
-			NSRange range2 = [str rangeOfString: @"</SEPARATOR>"];
+			id fileSep = @"\n";		// default separator
+			NSRange range2 = [str rangeOfString: @"</FILES>"];
 			if (range2.location != NSNotFound && range2.location > range.location)
 			{
 				unsigned int loc = range.location + range.length;
 				fileSep = [str substringWithRange: NSMakeRange(loc, range2.location - loc)];
 				range.length = range2.length + range2.location - range.location;
-				[str replaceCharactersInRange: range withString: @""];
 			}
-		}
 
-		// <FILES>
-		range = [str rangeOfString: @"<FILES>"];
-		if (range.location != NSNotFound)
-		{
 			id tmpStr = [NSMutableString string];
 			for_each(oEnum, item, fFiles)
 			{
@@ -923,6 +984,20 @@ enum {
 				}
 			}
 			[str replaceCharactersInRange: range withString: tmpStr];
+		}
+
+		// <SCRIPT>...</SCRIPT>
+		range = [str rangeOfString: @"<SCRIPT>"];
+		if (range.location != NSNotFound)
+		{
+			NSRange range2 = [str rangeOfString: @"</SCRIPT>"];
+			if (range2.location != NSNotFound && range2.location > range.location)
+			{
+				unsigned int loc = range.location + range.length;
+				NSString* script = [str substringWithRange: NSMakeRange(loc, range2.location - loc)];
+				range.length = range2.length + range2.location - range.location;
+				[str replaceCharactersInRange: range withString: [self insertTemplateScript: script]];
+			}
 		}
 
 		[fMessageView insertText: str];
@@ -977,7 +1052,11 @@ enum {
 {
 	#pragma unused(notification)
 //	NSLog(@"windowDidBecomeKey");
-	if (GetPreferenceBool(@"autoRefreshWC"))
+	if (fSuppressAutoRefresh)
+	{
+		fSuppressAutoRefresh = false;
+	}
+	else if (GetPreferenceBool(@"autoRefreshWC"))
 	{
 		[self refreshFiles: nil];
 	}

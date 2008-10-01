@@ -26,6 +26,7 @@
 	int						fCommitFileCount;
 	int						fEditState;
 	BOOL					fIsBusy;
+	BOOL					fSuppressAutoRefresh;
 }
 
 + (void) openForDocument: (MyWorkingCopy*) document;
