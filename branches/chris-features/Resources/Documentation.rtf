@@ -333,15 +333,15 @@ Make sure not to overlook this!!\
 \pard\intbl\itap1\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\tx7380\tx7940\tx9080\tx10200\tx11340\tx12480\pardeftab720\ri5\ql\qnatural
 
 \f3\fs20 \cf0 <SCRIPT>#!/bin/sh\
-alias svn="$1/svn"; cd "$2"; shift $3; FILES="$@"\
-for FILE in $FILES; \{\
-  echo "* $FILE"\
+alias svn="$1/svn"; cd "$2"; shift $3\
+until [ -z "$1" ]; do\
+  echo "* $1"\
   # List the names of the modified functions\
-  svn diff --diff-cmd diff -x '-U0 -p --show-function-line=[[:blank:]]*[-+][[:blank:]]*([[:alpha:]_]' "$FILE" \\\
+  svn diff --diff-cmd diff -x '-U0 -p --show-function-line=[[:blank:]]*[-+][[:blank:]]*([[:alpha:]_]' "$1" \\\
     | sed -E -e 's/(^@@ [^@]* @@ )((.*([[:<:]][[:alnum:]_]+) *\\()|(([[:blank:]]*[-+][[:blank:]]*\\([^\\)]+\\)[[:blank:]]*))([[:alnum:]_]+)).*/  (\\4\\7): /' -e "t" -e "d" \\\
     | uniq\
-  echo ""\
-\}\
+  echo ""; shift\
+done\
 </SCRIPT>
 \f1 \cell \lastrow\row
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\ql\qnatural\pardirnatural

@@ -1275,10 +1275,10 @@ enum {
 	if (returnCode == 1)
 	{
 #if 1
-		[document svnCommit: [[commitPanelText string] normalizeEOLs]];
+		[document svnCommit: [commitPanelText string]];
 #else
 		[document performSelector: @selector(svnCommit:)
-				  withObject:      [[commitPanelText string] normalizeEOLs]
+				  withObject:      [commitPanelText string]
 				  afterDelay:      0.1];
 #endif
 	}

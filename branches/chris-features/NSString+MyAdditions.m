@@ -83,6 +83,92 @@ PathPegRevNum (id path, unsigned int revision)
 
 
 //----------------------------------------------------------------------------------------
+#pragma mark	-
+//----------------------------------------------------------------------------------------
+// An NSString that responds to [fileSystemRepresentation] by calling [UTF8String].
+
+@interface MsgString : NSString
+{
+	NSString*	fString;
+}
+@end
+
+
+//----------------------------------------------------------------------------------------
+
+@implementation MsgString
+
+- (id) initWithString: (NSString*) aString
+{
+	self = [super init];
+	if (self != nil)
+	{
+		fString = [aString copy];
+	}
+
+	return self;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) dealloc
+{
+	[fString release];
+	[super dealloc];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (unsigned int) length
+{
+	return [fString length];
+}
+
+
+
+//----------------------------------------------------------------------------------------
+
+- (unichar) characterAtIndex: (unsigned) index
+{
+	return [fString characterAtIndex: index];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) getCharacters: (unichar*) buffer range: (NSRange) aRange
+{
+	return [fString getCharacters: buffer range: aRange];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (const char*) fileSystemRepresentation
+{
+	return [fString UTF8String];
+}
+
+@end
+
+
+//----------------------------------------------------------------------------------------
+// Return a normalized string that prevents [fileSystemRepresentation] from decomposing it.
+
+NSString*
+MessageString (NSString* str)
+{
+	assert(str != nil);
+
+	return [MsgString stringWithString: [str normalizeEOLs]];
+}
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+//----------------------------------------------------------------------------------------
 
 @implementation NSString (MyAdditions)
 
@@ -134,7 +220,7 @@ PathPegRevNum (id path, unsigned int revision)
 
 - (NSString*) normalizeEOLs
 {
-	NSMutableString* str = [NSMutableString stringWithCapacity: 0];
+	NSMutableString* str = [NSMutableString string];
 	[str setString: self];
 	[str replaceOccurrencesOfString: @"\r\n" withString: @"\n"
 		 options: NSLiteralSearch range: NSMakeRange(0, [str length])];

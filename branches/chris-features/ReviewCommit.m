@@ -591,11 +591,10 @@ enum {
 		if ([item commit])
 			[commitFiles addObject: [item item]];
 	}
-	NSString* message = [[fMessageView string] normalizeEOLs];
 
 	[self setIsBusy: YES];
 	[fDocument svnCommit: commitFiles
-				 message: message
+				 message: [fMessageView string]
 				callback: [self makeCallback: @selector(commitCallback:)]
 			callbackInfo: nil];
 }

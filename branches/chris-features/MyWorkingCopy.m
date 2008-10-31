@@ -1338,7 +1338,7 @@ svnInfoReceiver (void*       baton,
 		itemsPaths = [itemsPaths valueForKey: @"fullPath"];
 	}
 
-	NSArray* options = [NSArray arrayWithObjects: @"-m", message,
+	NSArray* options = [NSArray arrayWithObjects: @"-m", MessageString(message),
 												  (nonRecusive ? @"--non-recursive" : nil),
 												  nil];
 	id taskObj = [MySvn genericCommand: @"commit"

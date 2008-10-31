@@ -13,6 +13,7 @@ BOOL      ToUTF8			(NSString* string, char* buf, unsigned int bufSize);
 NSString* PathWithRevision	(id path, id revision);
 NSString* PathPegRevision	(id path, id revision);
 NSString* PathPegRevNum		(id path, unsigned int revision);
+NSString* MessageString		(NSString* str);
 
 
 //----------------------------------------------------------------------------------------

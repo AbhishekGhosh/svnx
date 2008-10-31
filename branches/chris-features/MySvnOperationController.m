@@ -167,7 +167,7 @@
 
 - (NSString*) getCommitMessage
 {
-	return [[commitMessage string] normalizeEOLs];
+	return MessageString([commitMessage string]);
 }
 
 

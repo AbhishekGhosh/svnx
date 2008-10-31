@@ -884,7 +884,7 @@ svnInfoReceiver (void*       baton,
 									[dict objectForKey:@"destination"], [fileNameTextField stringValue]]
 											// stringByAppendingPathComponent would eat svn:// into svn:/ !
 				generalOptions: [self svnOptionsInvocation]
-					   options: [NSArray arrayWithObjects: @"-m", [[commitTextView string] normalizeEOLs], nil]
+					   options: [NSArray arrayWithObjects: @"-m", MessageString([commitTextView string]), nil]
 					  callback: [self makeCallbackInvocationOfKind:SVNXCallbackImport]
 				  callbackInfo: nil
 					  taskInfo: [self documentNameDict]]
