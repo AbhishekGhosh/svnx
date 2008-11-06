@@ -3,9 +3,9 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "Tasks.h"
 
 @class WebView, MyWorkingCopy;
-@protocol TaskDelegate;
 
 @interface ReviewController : NSResponder<TaskDelegate>
 {

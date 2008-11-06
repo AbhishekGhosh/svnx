@@ -3,9 +3,9 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "Tasks.h"
 
 @class WebView;
-@protocol TaskDelegate;
 
 @interface SvnLogReport : NSResponder<TaskDelegate>
 {

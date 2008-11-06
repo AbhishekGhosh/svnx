@@ -1,7 +1,20 @@
 #import "MyApp.h"
 #import "GetEthernetAddrSample.h"
 #import "RepositoriesController.h"
+#import "SvnFileStatusToColourTransformer.h"
+#import "SvnDateTransformer.h"
+#import "ArrayCountTransformer.h"
+#import "SvnFilePathTransformer.h"
+#import "FilePathCleanUpTransformer.h"
+#import "TrimNewLinesTransformer.h"
 #include "CommonUtils.h"
+
+
+// TO_DO: Add file "TaskStatusToColorTransformer.h"
+@interface TaskStatusToColorTransformer : NSObject
+{
+}
+@end
 
 
 //----------------------------------------------------------------------------------------
@@ -17,9 +30,6 @@ addTransform (Class itsClass, NSString* itsName)
 #pragma mark	-
 
 @implementation MyApp
-
-@class SvnFileStatusToColourTransformer, SvnDateTransformer, ArrayCountTransformer, SvnFilePathTransformer,
-	   FilePathCleanUpTransformer, FilePathWorkingCopy, TrimNewLinesTransformer, TaskStatusToColorTransformer;
 
 + (MyApp*) myApp
 {
@@ -59,8 +69,8 @@ addTransform (Class itsClass, NSString* itsName)
 
 	// Review & Commit
 	id obj = [NSDictionary dictionaryWithObjectsAndKeys: @"Simple File List", @"name",
-														 @"Files:\n\t(<FILES><SEPARATOR>)\n\t"
-														  "(</SEPARATOR>)\n", @"body", nil];
+														 @"Files:\n\t(<FILES>)\n\t"
+														  "(</FILES>)\n", @"body", nil];
 	[dictionary setObject: [NSArray arrayWithObject: obj] forKey: @"msgTemplates"];
 	[dictionary setObject: @"5"    forKey: @"diffContextLines"];
 	[dictionary setObject: kNSTrue forKey: @"diffShowFunction"];

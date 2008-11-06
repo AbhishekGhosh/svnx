@@ -180,8 +180,8 @@
 		83EE48870DD226C100542832 /* ViewUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewUtils.h; sourceTree = "<group>"; };
 		8D15AC360486D014006FF6A4 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Info.plist; path = ../Info.plist; sourceTree = "<group>"; };
 		8D15AC370486D014006FF6A4 /* svnX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = svnX.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F20521BE0A5D2159003F966A /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = ../../build/Release/Sparkle.framework; sourceTree = "<group>"; };
-		F20524020A5D3945003F966A /* SUUpdater.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SUUpdater.h; path = ../../build/Release/Sparkle.framework/Versions/A/Headers/SUUpdater.h; sourceTree = SOURCE_ROOT; };
+		F20521BE0A5D2159003F966A /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sparkle.framework; sourceTree = SPARKLE_BUILD; };
+		F20524020A5D3945003F966A /* SUUpdater.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SUUpdater.h; path = Sparkle.framework/Versions/A/Headers/SUUpdater.h; sourceTree = SPARKLE_BUILD; };
 		F20524300A5D3C9A003F966A /* GetEthernetAddrSample.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.objc; fileEncoding = 30; path = GetEthernetAddrSample.c; sourceTree = "<group>"; };
 		F20524310A5D3C9A003F966A /* GetEthernetAddrSample.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = GetEthernetAddrSample.h; sourceTree = "<group>"; };
 		F205246A0A5D3D7E003F966A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
@@ -651,6 +651,7 @@
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = F2FD1A1E0855F03C00550248 /* Build configuration list for PBXProject "svnX" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,
@@ -663,6 +664,7 @@
 			);
 			mainGroup = 2A37F4AAFDCFA73011CA2CEA /* svnX */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				8D15AC270486D014006FF6A4 /* svnX */,
 			);
@@ -893,25 +895,12 @@
 		834DE4110D9C317100E6F26B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(FRAMEWORK_SEARCH_PATHS)",
-					"$(SRCROOT)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
-				);
-				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Release\"";
+				FRAMEWORK_SEARCH_PATHS = $SPARKLE_BUILD;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = svnX_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(SVN_LIBS)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/i386\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/ppc\"";
 				PRODUCT_NAME = svnX;
 			};
 			name = Release;
@@ -954,6 +943,7 @@
 				);
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SPARKLE_BUILD = $SRCROOT/sparkle/build/Release;
 				SVN_LIBS = /opt/subversion/lib;
 				USER_HEADER_SEARCH_PATHS = "$APR_SVN/svn $(inherited)";
 			};
@@ -989,6 +979,7 @@
 				);
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SPARKLE_BUILD = $SRCROOT/sparkle/build/Release;
 				STRIP_INSTALLED_PRODUCT = NO;
 				SVN_LIBS = /opt/subversion/lib;
 				USER_HEADER_SEARCH_PATHS = "$APR_SVN/svn $(inherited)";
@@ -998,12 +989,7 @@
 		F2EF3C3C0CD296C6000FBD9D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(FRAMEWORK_SEARCH_PATHS)",
-					"$(SRCROOT)",
-					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_1)",
-				);
-				FRAMEWORK_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Release\"";
+				FRAMEWORK_SEARCH_PATHS = $SPARKLE_BUILD;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_MODEL_TUNING = "";
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1011,14 +997,6 @@
 				GCC_PREFIX_HEADER = svnX_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
-					"$(SVN_LIBS)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/i386\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SYMROOT)/Sparkle.build/Release/Sparkle.build/Objects-normal/ppc\"";
 				PRODUCT_NAME = svnX;
 			};
 			name = Debug;
