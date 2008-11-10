@@ -405,7 +405,7 @@ setupSplitViews (NSWindow* window, NSArray* values, id delegate)
 	int i, count = [splitViews count], valueCount = [values count];
 	for (i = 0; i < count; ++i)
 	{
-		GCoord value = (i < valueCount) ? [[values objectAtIndex: i] floatValue] : nil;
+		GCoord value = (i < valueCount) ? [[values objectAtIndex: i] floatValue] : 0;
 //		NSLog(@"    %d splitView=%@ value=%g", i, [splitViews objectAtIndex: i], value);
 		initSplitView([splitViews objectAtIndex: i], value, delegate);
 	}

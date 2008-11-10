@@ -758,13 +758,13 @@
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/apr_svn.c",
+				$APR_SVN.c,
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$APR_SVN\"\nif [ ! -e libapr.dylib ]; then\n\tLIBS=\"svn_client svn_subr svn_fs apr\"\n\n\tfunction CC () {\n\t#\techo \"  <$1> <$2>\"\n\t\tgcc -Iapr -iquotesvn -dynamiclib -nodefaultlibs -arch ${2} -install_name \\\n\t\t\t\"$SVN_LIBS/lib${1}-1.0.dylib\" -o lib${1}.${2} -DLIB_${1} \"$APR_SVN.c\"\n\t}\n\n\tfor LIB in $LIBS; {\n\t\techo \"Making $LIB\"\n\t\tCC \"$LIB\" 'ppc'\n\t\tCC \"$LIB\" 'i386'\n\t\tlipo -create lib${LIB}.ppc lib${LIB}.i386 -output lib${LIB}.dylib\n\t\trm lib${LIB}.ppc lib${LIB}.i386\n\t}\nfi\n";
+			shellScript = "cd \"$APR_SVN\"\nif [ \"$APR_SVN.c\" -nt libapr.dylib ]; then\n\tLIBS=\"svn_client svn_subr svn_fs apr\"\n\n\tfunction CC () {\n\t#\techo \"  <$1> <$2>\"\n\t\tgcc -Iapr -iquotesvn -dynamiclib -nodefaultlibs -arch ${2} -install_name \\\n\t\t\t\"$SVN_LIBS/lib${1}-1.0.dylib\" -o lib${1}.${2} -DLIB_${1} \"$APR_SVN.c\"\n\t}\n\n\tfor LIB in $LIBS; {\n\t\techo \"Making $LIB\"\n\t\tCC \"$LIB\" 'ppc'\n\t\tCC \"$LIB\" 'i386'\n\t\tlipo -create lib${LIB}.ppc lib${LIB}.i386 -output lib${LIB}.dylib\n\t\trm lib${LIB}.ppc lib${LIB}.i386\n\t}\nfi\n";
 		};
 		83F834E20D9DC42600AA13B1 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -899,6 +899,7 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = svnX_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "SVN_LIBS=$SVN_LIBS";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = svnX;
@@ -967,6 +968,7 @@
 					$APR_SVN/apr,
 					"$(inherited)",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_LDFLAGS = (
 					"-weak_library",
 					$APR_SVN/libsvn_client.dylib,
@@ -995,6 +997,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = svnX_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "SVN_LIBS=$SVN_LIBS";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = svnX;

@@ -6,6 +6,7 @@
 #include "apr_general.h"
 #include "apr_pools.h"
 #include "apr_tables.h"
+#include "svn_version.h"
 
 
 /*----------------------------------------------------------------------*/
@@ -51,6 +52,9 @@ svn_client_create_context(svn_client_ctx_t **ctx,
 {
 	return 0;
 }
+
+
+const svn_version_t* svn_client_version(void) { return 0; }
 
 #endif	// LIB_svn_client
 
@@ -128,6 +132,13 @@ void svn_auth_open(svn_auth_baton_t **auth_baton,
 {
 }
 
+
+const svn_version_t* svn_subr_version(void) { return 0; }
+
+
+svn_error_t* svn_ver_check_list(const svn_version_t *my_version,
+                   const svn_version_checklist_t *checklist) { return 0; }
+
 #endif	// LIB_svn_subr
 
 
@@ -142,6 +153,8 @@ svn_error_t *svn_fs_initialize(apr_pool_t *pool)
 	return 0;
 }
 
+
+const svn_version_t* svn_fs_version(void) { return 0; }
 
 #endif	// LIB_svn_fs
 
@@ -199,6 +212,7 @@ libsvn_client
 	_svn_client_info
 	_svn_client_status2
 	_svn_client_create_context
+	_svn_client_version
 libsvn_subr
 	_svn_pool_create_ex
 	_svn_auth_get_keychain_simple_provider
@@ -208,8 +222,11 @@ libsvn_subr
 	_svn_config_ensure
 	_svn_config_get_config
 	_svn_error_clear
+	_svn_subr_version
+	_svn_ver_check_list
 libsvn_fs
 	_svn_fs_initialize
+	_svn_fs_version
 libapr
 	_apr_pool_destroy
 	_apr_array_make

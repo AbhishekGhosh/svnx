@@ -74,7 +74,7 @@ SvnDoReport (SvnError err)
 	// TO_DO: Show alert
 #if qDebug
 	DbgSvnPrint(err);
-#elif 1
+#elif 0
 	svn_handle_error2(err, stderr, FALSE, kAppName);
 #endif
 }
@@ -88,16 +88,30 @@ SvnDoReport (SvnError err)
 BOOL
 SvnInitialize ()
 {
+#ifndef SVN_LIBS
+	#define	SVN_LIBS	/opt/subversion/lib
+#endif
+#define	STR_STR(s)			#s
+#define	APR_LIB_PATH(dir)	(@"" STR_STR(dir) "/libapr-1.0.dylib")
+	NSString* const apr_lib_path = APR_LIB_PATH(SVN_LIBS);
+#undef	APR_LIB_PATH
+#undef	STR_STR
 	static BOOL inited = FALSE, exists = FALSE;
 
 	if (!inited)
 	{
 		inited = TRUE;
 		const intptr_t fn1 = (intptr_t) svn_fs_initialize,
-					   fn2 = (intptr_t) apr_initialize;
+					   fn2 = (intptr_t) apr_initialize,
+					   fn3 = (intptr_t) svn_ver_check_list;
 
+	#if qDebug
+		if (![[NSFileManager defaultManager] fileExistsAtPath: apr_lib_path])
+			dprintf("missing lib '%s'", [apr_lib_path UTF8String]);
+	#endif
 		// Initialize the APR & SVN libraries.
-		if (fn1 != 0 && fn2 != 0)
+		if (fn1 != 0 && fn2 != 0 && fn3 != 0 &&
+			[[NSFileManager defaultManager] fileExistsAtPath: apr_lib_path])
 		{
 		#if 0
 			setenv("LC_ALL", "en_GB.UTF-8", 1);
@@ -112,7 +126,27 @@ SvnInitialize ()
 			{
 			//	dprintf("locale='%s'", buf);
 				setlocale(LC_ALL, buf);
-				exists = (apr_initialize() == APR_SUCCESS);
+				if (apr_initialize() == APR_SUCCESS)
+				{
+					static const svn_version_checklist_t checklist[] = {
+					//	{ "apr",        apr_version        },
+						{ "svn_client", svn_client_version },
+						{ "svn_fs",     svn_fs_version     },
+						{ "svn_subr",   svn_subr_version   },
+						{ NULL, NULL }
+					};
+
+					SVN_VERSION_DEFINE(my_version);
+
+					SvnError err = svn_ver_check_list(&my_version, checklist);
+					exists = (err == NULL);
+				#if qDebug
+					if (err)
+						DbgSvnPrint(err);
+				#endif
+				}
+				else
+					dprintf("lapr_initialize() != APR_SUCCESS", 0);
 			}
 		#endif
 		}
