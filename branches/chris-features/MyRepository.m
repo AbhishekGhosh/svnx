@@ -923,7 +923,7 @@ svnInfoReceiver (void*       baton,
 			sourceUrl = [[[self selectedItemOrNil] valueForKey: @"url"] absoluteString];
 			targetUrl = [[controller getTargetUrl] absoluteString];
 		}
-		if (operation != kSvnDelete)
+		if (operation != kSvnDiff)
 			commitMessage = [controller getCommitMessage];
 
 		switch (operation)
