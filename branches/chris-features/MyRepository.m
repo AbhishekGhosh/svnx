@@ -41,6 +41,9 @@ TrimSlashes (id obj)
 
 	- (void) displayUrlTextView;
 
+	- (void) updateLog;
+	- (void) fetchSvnInfo: (SEL) selector;
+
 @end
 
 
@@ -152,7 +155,6 @@ TrimSlashes (id obj)
 	[svnLogView setIsFetching: TRUE];
 	[svnLogView setSvnOptionsInvocation: [self makeSvnOptionInvocation]];
 	[svnLogView setUrl: url];
-	[svnLogView fetchSvnLog];
 //	[svnLogView setSvnOptions: [self makeSvnOptionInvocation] url: url currentRevision: [self revision]];
 //	[svnLogView setupUrl: url options: [self makeSvnOptionInvocation] currentRevision: [self revision]];
 
@@ -168,8 +170,8 @@ TrimSlashes (id obj)
 	[window setFrameUsingName: widowFrameKey];
 	[window setFrameAutosaveName: widowFrameKey];
 
-	// fetch svn info in order to know the repository's root
-	[self fetchSvnInfo];
+	// fetch svn info in order to know the repository's root URL & HEAD revision
+	[self updateLog];
 }
 
 
@@ -348,6 +350,34 @@ TrimSlashes (id obj)
 
 //----------------------------------------------------------------------------------------
 #pragma mark	-
+#pragma mark	Log Management
+//----------------------------------------------------------------------------------------
+
+- (void) fetchSvnLog
+{
+	[svnLogView fetchSvnLog];
+}
+
+
+//----------------------------------------------------------------------------------------
+// Initiate fetching of repository info then any new log entries.
+
+- (void) updateLog
+{
+	[self fetchSvnInfo: @selector(updateLog_InfoCompleted:)];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) updateLog_InfoCompleted: (id) taskObj
+{
+	[self fetchSvnLog];
+}
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
 #pragma mark	svn info
 //----------------------------------------------------------------------------------------
 
@@ -382,7 +412,7 @@ svnInfoReceiver (void*       baton,
 //----------------------------------------------------------------------------------------
 // svn info of <url> via SvnInterface (called by separate thread)
 
-- (void) svnDoInfo
+- (void) svnDoInfo: (Message*) completedMsg
 {
 	[self retain];
 	NSAutoreleasePool* autoPool = [[NSAutoreleasePool alloc] init];
@@ -411,6 +441,7 @@ svnInfoReceiver (void*       baton,
 			rootUrl = (NSURL*) CFURLCreateWithBytes(kCFAllocatorDefault,
 													(const UInt8*) env.fURL, strlen(env.fURL),
 													kCFStringEncodingUTF8, NULL);
+			[completedMsg sendToOnMainThread: self];
 			[self performSelectorOnMainThread: @selector(displayUrlTextView) withObject: nil waitUntilDone: NO];
 		}
 	}
@@ -429,23 +460,35 @@ svnInfoReceiver (void*       baton,
 
 
 //----------------------------------------------------------------------------------------
+// Get current repository info & send <completedMsg> to self on completion.
 
-- (void) fetchSvnInfo
+- (void) fetchSvnInfo: (SEL) completedMsg
 {
 	if (GetPreferenceBool(@"useOldParsingMethod") || !SvnInitialize())
 	{
+		if (completedMsg == nil)
+			completedMsg = @selector(svnInfoCompletedCallback:);
 		[MySvn    genericCommand: @"info"
-					   arguments: [NSArray arrayWithObject:[url absoluteString]]
+					   arguments: [NSArray arrayWithObject: [url absoluteString]]
 				  generalOptions: [self svnOptionsInvocation]
 						 options: nil
-						callback: [self makeCallbackInvocationOfKind:SVNXCallbackSvnInfo]
+						callback: MakeCallbackInvocation(self, completedMsg)
 					callbackInfo: nil
 						taskInfo: [self documentNameDict]];
 	}
 	else
 	{
-		[NSThread detachNewThreadSelector: @selector(svnDoInfo) toTarget: self withObject: nil];
+		id message = [[Message alloc] initWithMessage: completedMsg];
+		[NSThread detachNewThreadSelector: @selector(svnDoInfo:) toTarget: self withObject: message];
 	}
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) fetchSvnInfo
+{
+	[self fetchSvnInfo: nil];
 }
 
 

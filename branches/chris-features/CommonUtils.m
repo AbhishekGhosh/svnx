@@ -80,6 +80,63 @@ AltOrShiftPressed ()
 #pragma mark	-
 //----------------------------------------------------------------------------------------
 
+@implementation Message
+
+- (id) initWithMessage: (SEL) message
+{
+	if (self = [super init])
+	{
+		fMessage = message;
+	}
+	return self;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) sendTo: (id) target
+{
+	if (fMessage)
+		[target performSelector: fMessage withObject: nil];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) sendTo:     (id) target
+		 withObject: (id) object
+{
+	if (fMessage)
+		[target performSelector: fMessage withObject: object];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) sendToOnMainThread: (id) target
+{
+	if (fMessage)
+		[target performSelectorOnMainThread: fMessage withObject: nil waitUntilDone: NO];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+- (void) sendToOnMainThread: (id)   target
+		 withObject:         (id)   object
+		 waitUntilDone:      (BOOL) wait
+{
+	if (fMessage)
+		[target performSelectorOnMainThread: fMessage withObject: object waitUntilDone: wait];
+}
+
+@end
+
+
+//----------------------------------------------------------------------------------------
+#pragma mark	-
+//----------------------------------------------------------------------------------------
+
 @interface NSSavePanel (ShouldBeAvailableInOSX10_4)
 	- (void) _setIncludeNewFolderButton: (BOOL) flag;
 @end

@@ -295,9 +295,15 @@ SvnAuth_ssl_server_trust_prompt (svn_auth_cred_ssl_server_trust_t** cred_p,
 	[alert setMessageText: [NSString stringWithFormat:
 								@"Error validating server certificate for %C%s%C.",
 								0x2018, realm, 0x2019]];
-	if (may_save)
-		[alert addButtonWithTitle: @"Accept Permanently"];
-	[alert addButtonWithTitle: @"Accept Temporarily"];
+	const BOOL force_save = TRUE;	// Disable 'Accept Temporarily' for now
+	if (force_save)
+		[alert addButtonWithTitle: @"Accept"];
+	else
+	{
+		if (may_save)
+			[alert addButtonWithTitle: @"Accept Permanently"];
+		[alert addButtonWithTitle: @"Accept Temporarily"];
+	}
 	[alert addButtonWithTitle: @"Reject"];
 	[alert setInformativeText: msg];
 	[alert setAlertStyle: NSInformationalAlertStyle];
@@ -309,7 +315,7 @@ SvnAuth_ssl_server_trust_prompt (svn_auth_cred_ssl_server_trust_t** cred_p,
 			break;
 
 		case NSAlertSecondButtonReturn:
-			if (may_save)
+			if (!force_save && may_save)
 			{
 				may_save = FALSE;		// Accept Temporarily
 				break;
@@ -327,7 +333,7 @@ SvnAuth_ssl_server_trust_prompt (svn_auth_cred_ssl_server_trust_t** cred_p,
 	if (makeCred)
 	{
 		cred = apr_pcalloc(pool, sizeof(*cred));
-		cred->may_save          = may_save;
+		cred->may_save          = force_save || may_save;
 		cred->accepted_failures = failures;
 	}
 	*cred_p = cred;

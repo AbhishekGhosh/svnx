@@ -40,6 +40,27 @@ bool			AltOrShiftPressed		();
 
 
 //----------------------------------------------------------------------------------------
+// Wrap a selector in an object for sending later.
+
+@interface Message : NSObject
+{
+	SEL		fMessage;
+}
+
+- (id) initWithMessage: (SEL) message;
+//- (SEL) message;
+- (void) sendTo:     (id) target;
+- (void) sendTo:     (id) target
+		 withObject: (id) object;
+- (void) sendToOnMainThread: (id)   target;
+- (void) sendToOnMainThread: (id)   target
+		 withObject:         (id)   object
+		 waitUntilDone:      (BOOL) wait;
+
+@end
+
+
+//----------------------------------------------------------------------------------------
 
 @interface NSSavePanel (MakeAvailable)
 	- (void) setIncludeNewFolderButton: (BOOL) flag;
