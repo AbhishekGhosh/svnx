@@ -45,8 +45,6 @@ TrimSlashes (id obj)
 
 
 //----------------------------------------------------------------------------------------
-#pragma mark	-
-//----------------------------------------------------------------------------------------
 
 @implementation MyRepository
 
@@ -81,10 +79,13 @@ TrimSlashes (id obj)
 	[self setDisplayedTaskObj: nil];
 
 //	NSLog(@"Repository dealloc'ed");
+	SvnEndClient(fSvnEnv);
 
 	[super dealloc];
 }
 
+
+//----------------------------------------------------------------------------------------
 
 - (NSWindow*) window
 {
@@ -148,6 +149,7 @@ TrimSlashes (id obj)
 	[svnBrowserView setSvnOptionsInvocation: [self makeSvnOptionInvocation]];
 	[svnBrowserView setUrl: url];
 
+	[svnLogView setIsFetching: TRUE];
 	[svnLogView setSvnOptionsInvocation: [self makeSvnOptionInvocation]];
 	[svnLogView setUrl: url];
 	[svnLogView fetchSvnLog];
@@ -179,10 +181,11 @@ TrimSlashes (id obj)
 		 context:                (void*)         context
 {
 	#pragma unused(object, context)
-	if ([keyPath isEqualToString:@"currentRevision"])	// A new current revision was selected in the svnLogView
+	if ([keyPath isEqualToString: @"currentRevision"])	// A new current revision was selected in the svnLogView
 	{
-		[self setRevision:[change objectForKey:NSKeyValueChangeNewKey]];
-		[svnBrowserView setRevision:[change objectForKey:NSKeyValueChangeNewKey]];
+		const id value = [change objectForKey: NSKeyValueChangeNewKey];
+		[self setRevision: value];
+		[svnBrowserView setRevision: value];
 		[svnBrowserView fetchSvn];
 	}
 }
@@ -310,7 +313,9 @@ TrimSlashes (id obj)
 }
 
 
+//----------------------------------------------------------------------------------------
 //	Handle a click on the repository url (MyRepository is urlTextView's delegate).
+
 - (BOOL) textView:      (NSTextView*) textView
 		 clickedOnLink: (id)          link
 		 atIndex:       (unsigned)    charIndex
@@ -318,7 +323,7 @@ TrimSlashes (id obj)
 	#pragma unused(textView, charIndex)
 	if ([link isKindOfClass: [NSString class]])
 	{	
-		[self changeRepositoryUrl:[NSURL URLWithString:link]];					
+		[self changeRepositoryUrl: [NSURL URLWithString: link]];					
         return YES;
 	}
 
@@ -379,26 +384,26 @@ svnInfoReceiver (void*       baton,
 
 - (void) svnDoInfo
 {
-	#pragma unused(ignored)
 	[self retain];
 	NSAutoreleasePool* autoPool = [[NSAutoreleasePool alloc] init];
-	SvnPool pool = svn_pool_create(NULL);	// Create top-level memory pool.
+	SvnPool pool = SvnNewPool();	// Create top-level memory pool.
 	@try
 	{
-		SvnClient ctx = SvnSetupClient(self, pool);
+		SvnClient ctx = SvnSetupClient(&fSvnEnv, self);
 
-		char path[2048];
+		char path[PATH_MAX * 2];
 		if (ToUTF8([url absoluteString], path, sizeof(path)))
 		{
 			int len = strlen(path);
 			if (len > 0 && path[len - 1] == '/')
 				path[len - 1] = 0;
-			const svn_opt_revision_t rev_opt = { svn_opt_revision_head };
+			const SvnOptRevision peg_rev = { svn_opt_revision_head, 0 },
+								 rev_opt = { svn_opt_revision_unspecified, 0 };
 			SvnInfoEnv env;
 			env.fURL[0] = 0;
 
 			// Retrive HEAD revision info from repository root.
-			SvnThrowIf(svn_client_info(path, &rev_opt, &rev_opt,
+			SvnThrowIf(svn_client_info(path, &peg_rev, &rev_opt,
 									   svnInfoReceiver, &env, !kSvnRecurse,
 									   ctx, pool));
 
@@ -416,7 +421,7 @@ svnInfoReceiver (void*       baton,
 	}
 	@finally
 	{
-		svn_pool_destroy(pool);
+		SvnDeletePool(pool);
 		[autoPool release];
 		[self release];
 	}
@@ -1209,6 +1214,12 @@ svnInfoReceiver (void*       baton,
 - (void) setOperationInProgress: (BOOL) aBool
 {
 	operationInProgress = aBool;
+}
+
+
+- (SvnClient) svnClient
+{
+	return SvnSetupClient(&fSvnEnv, self);
 }
 
 

@@ -159,6 +159,25 @@ SvnInitialize ()
 
 
 //----------------------------------------------------------------------------------------
+// Create top-level memory pool
+
+SvnPool
+SvnNewPool ()
+{
+	return svn_pool_create(NULL);
+}
+
+
+//----------------------------------------------------------------------------------------
+
+void
+SvnDeletePool (SvnPool pool)
+{
+	svn_pool_destroy(pool);
+}
+
+
+//----------------------------------------------------------------------------------------
 
 NSString*
 SvnRevNumToString (SvnRevNum rev)
@@ -195,93 +214,176 @@ SvnStatusToString (SvnWCStatusKind kind)
 
 
 //----------------------------------------------------------------------------------------
-// An authentication callback function of type 'svn_auth_simple_prompt_func_t'.
 
-SvnError
-SvnAuthenticate (svn_auth_cred_simple_t** cred,
-				 void*                    baton,
-				 const char*              realm,
-				 const char*              username,
-				 SvnBool                  may_save,
-				 SvnPool                  pool)
+static const char*
+CopyString (NSString* strObj, SvnPool pool)
 {
-	#pragma unused(realm, may_save)
-	id delegate = (id) baton;
-	svn_auth_cred_simple_t* ret = apr_pcalloc(pool, sizeof(*ret));
-	char answerbuf[100];
-
-/*	if (realm)
+	const char* str = NULL;
+	char buf[256];
+	if (strObj && [strObj length] &&
+		[strObj getCString: buf maxLength: sizeof(buf) encoding: NSUTF8StringEncoding])
 	{
-		printf("Authentication realm: %s\n", realm);
-	}*/
-
-	if (username)
-	{
-		ret->username = apr_pstrdup(pool, username);
-	}
-	else if (ToUTF8([delegate user], answerbuf, sizeof(answerbuf)))
-	{
-		ret->username = apr_pstrdup(pool, answerbuf);
+		str = apr_pstrdup(pool, buf);
 	}
 
-	if (ToUTF8([delegate pass], answerbuf, sizeof(answerbuf)))
-		ret->password = apr_pstrdup(pool, answerbuf);
-
-//	NSLog(@"SvnAuthenticate username='%s' password='%s'", ret->username, ret->password);
-	*cred = ret;
-	return SVN_NO_ERROR;
-}
-
-
-//----------------------------------------------------------------------------------------
-// An authentication callback function of type 'svn_auth_username_prompt_func_t'.
-
-SvnError
-SvnAuthUsername (svn_auth_cred_username_t** cred,
-				 void*                    baton,
-				 const char*              realm,
-				 SvnBool                  may_save,
-				 SvnPool                  pool)
-{
-	#pragma unused(realm, may_save)
-	id delegate = (id) baton;
-	svn_auth_cred_username_t* ret = apr_pcalloc(pool, sizeof(*ret));
-	char answerbuf[100];
-
-	if (ToUTF8([delegate user], answerbuf, sizeof(answerbuf)))
-	{
-		ret->username = apr_pstrdup(pool, answerbuf);
-	}
-
-//	NSLog(@"SvnAuthUsername username='%s'", ret->username);
-	*cred = ret;
-	return SVN_NO_ERROR;
+	return str;
 }
 
 
 //----------------------------------------------------------------------------------------
 
-SvnAuth
-SvnSetupAuthentication (SvnInterface* delegate, SvnPool pool)
+static void
+SetParam (SvnAuth auth, const char* name, const void* value)
 {
-	apr_array_header_t* providers = apr_array_make(pool, 4, sizeof(SvnAuthProvider));
+//	dprintf("(0x%X, name='%s', value='%s')", auth, name, value);
+	if (value)
+		svn_auth_set_parameter(auth, name, value);
+}
 
-	SvnAuthProvider provider = NULL;
-	void* const baton = delegate;
 
-	svn_auth_get_simple_prompt_provider(&provider, SvnAuthenticate,
-										baton, kSvnRetryLimit, pool);
-	SvnPush(providers, provider);
+//----------------------------------------------------------------------------------------
+// This implements 'svn_auth_ssl_server_trust_prompt_func_t'.
 
-	svn_auth_get_username_prompt_provider(&provider, SvnAuthUsername,
-										  baton, kSvnRetryLimit, pool);
-	SvnPush(providers, provider);
+static SvnError
+SvnAuth_ssl_server_trust_prompt (svn_auth_cred_ssl_server_trust_t** cred_p,
+								 void* baton,
+								 const char* realm,
+								 apr_uint32_t failures,
+								 const svn_auth_ssl_server_cert_info_t* cert_info,
+								 SvnBool may_save,
+								 SvnPool pool)
+{
+//	const id delegate = (id) baton;
+	NSMutableString* msg = [NSMutableString string];
+	if (failures & SVN_AUTH_SSL_UNKNOWNCA)
+		[msg appendString: UTF8("\xE2\x80\xA2 The certificate is not issued by a trusted authority.\n"
+								"   Use the fingerprint to validate the certificate manually!\n")];
 
-	svn_auth_get_keychain_simple_provider(&provider, pool);
-	SvnPush(providers, provider);
+	if (failures & SVN_AUTH_SSL_CNMISMATCH)
+	{
+		[msg appendString: UTF8("\xE2\x80\xA2 The certificate hostname does not match.\n")];
+	} 
+
+	if (failures & SVN_AUTH_SSL_NOTYETVALID)
+	{
+		[msg appendString: UTF8("\xE2\x80\xA2 The certificate is not yet valid.\n")];
+	}
+
+	if (failures & SVN_AUTH_SSL_EXPIRED)
+	{
+		[msg appendString: UTF8("\xE2\x80\xA2 The certificate has expired.\n")];
+	}
+
+	if (failures & SVN_AUTH_SSL_OTHER)
+	{
+		[msg appendString: UTF8("\xE2\x80\xA2 The certificate has an unknown error.\n")];
+	}
+
+	[msg appendFormat: @"Certificate information:\n"
+						" - Hostname: %s\n"
+						" - Valid: from %s until %s\n"
+						" - Issuer: %s\n"
+						" - Fingerprint: %s",
+						cert_info->hostname,
+						cert_info->valid_from,
+						cert_info->valid_until,
+						cert_info->issuer_dname,
+						cert_info->fingerprint];
+
+	// Modally ask user to Accept Permanently, Temporarily or Reject the certificate
+	NSAlert* alert = [[NSAlert alloc] init];
+	[alert setMessageText: [NSString stringWithFormat:
+								@"Error validating server certificate for %C%s%C.",
+								0x2018, realm, 0x2019]];
+	if (may_save)
+		[alert addButtonWithTitle: @"Accept Permanently"];
+	[alert addButtonWithTitle: @"Accept Temporarily"];
+	[alert addButtonWithTitle: @"Reject"];
+	[alert setInformativeText: msg];
+	[alert setAlertStyle: NSInformationalAlertStyle];
+
+	BOOL makeCred = TRUE;
+	switch ([alert runModal])
+	{
+		case NSAlertFirstButtonReturn:	// Accept Permanently/Temporarily
+			break;
+
+		case NSAlertSecondButtonReturn:
+			if (may_save)
+			{
+				may_save = FALSE;		// Accept Temporarily
+				break;
+			}
+			// fall through
+
+		case NSAlertThirdButtonReturn:	// Reject
+			makeCred = FALSE;
+			break;
+	}
+	[alert release];
+
+//	dprintf("makeCred=%d  may_save=%d  failures=0x%X", makeCred, may_save, failures);
+	svn_auth_cred_ssl_server_trust_t* cred = NULL;
+	if (makeCred)
+	{
+		cred = apr_pcalloc(pool, sizeof(*cred));
+		cred->may_save          = may_save;
+		cred->accepted_failures = failures;
+	}
+	*cred_p = cred;
+
+	return SVN_NO_ERROR;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static SvnAuth
+SvnSetupAuthentication (id delegate, SvnPool pool)
+{
+	SvnArray providers = SvnNewArray(pool, 8, sizeof(SvnAuthProvider));
+
+	#define	Push()		((SvnAuthProvider*) apr_array_push(providers))
+
+	svn_auth_get_keychain_simple_provider(Push(), pool);
+	svn_auth_get_simple_provider(Push(), pool);
+	svn_auth_get_username_provider(Push(), pool);
+
+	// The server-cert, client-cert, and client-cert-password providers.
+	svn_auth_get_ssl_server_trust_file_provider(Push(), pool);
+	svn_auth_get_ssl_client_cert_file_provider(Push(), pool);
+	svn_auth_get_ssl_client_cert_pw_file_provider(Push(), pool);
+
+#if 0
+	svn_auth_get_simple_prompt_provider(Push(), SvnAuth_simple_prompt,
+										delegate, kSvnRetryLimit, pool);
+	svn_auth_get_username_prompt_provider(Push(), SvnAuth_username_prompt,
+										  delegate, kSvnRetryLimit, pool);
+#endif
+
+	// Three ssl prompt providers, for server-certs, client-certs, and client-cert-passphrases.
+	svn_auth_get_ssl_server_trust_prompt_provider(Push(), SvnAuth_ssl_server_trust_prompt,
+												  delegate, pool);
+#if 0
+	svn_auth_get_ssl_client_cert_prompt_provider(Push(), SvnAuth_ssl_client_cert_prompt,
+												 delegate, kSvnRetryLimit, pool);
+	svn_auth_get_ssl_client_cert_pw_prompt_provider(Push(), SvnAuth_ssl_client_cert_pw_prompt,
+												    delegate, kSvnRetryLimit, pool);
+#endif
+
+	#undef	Push
 
 	SvnAuth auth_baton = NULL;
 	svn_auth_open(&auth_baton, providers, pool);
+
+	if (delegate)
+	{
+		SetParam(auth_baton, SVN_AUTH_PARAM_DEFAULT_USERNAME, CopyString([delegate user], pool));
+		SetParam(auth_baton, SVN_AUTH_PARAM_DEFAULT_PASSWORD, CopyString([delegate pass], pool));
+	}
+//	SetParam(auth_baton, SVN_AUTH_PARAM_NON_INTERACTIVE, "");
+	SetParam(auth_baton, SVN_AUTH_PARAM_DONT_STORE_PASSWORDS, "");
+//	SetParam(auth_baton, SVN_AUTH_PARAM_NO_AUTH_CACHE, "");
 
 	return auth_baton;
 }
@@ -289,75 +391,62 @@ SvnSetupAuthentication (SvnInterface* delegate, SvnPool pool)
 
 //----------------------------------------------------------------------------------------
 
-SvnClient
-SvnSetupClient (SvnInterface* delegate, SvnPool pool)
+struct SvnEnv
 {
-	// Initialize the FS library.
-	SvnThrowIf(svn_fs_initialize(pool));
+	SvnPool		pool;
+	SvnClient	client;
+};
 
-	// Make sure the ~/.subversion run-time config files exist
-	SvnThrowIf(svn_config_ensure(NULL, pool));
 
-	// Initialize and allocate the client_ctx object.
-	SvnClient ctx = NULL;
-	SvnThrowIf(svn_client_create_context(&ctx, pool));
+//----------------------------------------------------------------------------------------
 
-	// Load the run-time config file into a hash
-	SvnThrowIf(svn_config_get_config(&ctx->config, NULL, pool));
+SvnClient
+SvnSetupClient (SvnEnv** envRef, SvnInterface* delegate)
+{
+	Assert(envRef != NULL);
+	SvnEnv* env = *envRef;
+	if (env == NULL)
+	{
+		// Create top-level memory pool.
+		SvnPool pool = SvnNewPool();
 
-	ctx->auth_baton = SvnSetupAuthentication(delegate, pool);
+		*envRef = env = apr_pcalloc(pool, sizeof(SvnEnv));
+		env->pool = pool;
 
-	return ctx;
+		// Initialize the FS library.
+		SvnThrowIf(svn_fs_initialize(pool));
+
+		// Make sure the ~/.subversion run-time config files exist
+		SvnThrowIf(svn_config_ensure(NULL, pool));
+
+		// Initialize and allocate the client_ctx object.
+		SvnThrowIf(svn_client_create_context(&env->client, pool));
+		SvnClient ctx = env->client;
+
+		// Load the run-time config file into a hash
+		SvnThrowIf(svn_config_get_config(&ctx->config, NULL, pool));
+
+		ctx->auth_baton = SvnSetupAuthentication(delegate, pool);
+
+		// Set the log message callback function.
+	//	ctx->log_msg_func2 = SvnGetLogMessage;
+
+		// Set up our cancellation support.
+	//	ctx->cancel_func = SvnCheckCancel;
+	}
+
+	return env->client;
 }
 
 
-#if 0
 //----------------------------------------------------------------------------------------
 
 void
-SvnDoStatus (SvnInterface* interface)
-{	
-//	NSLog(@"svn status - begin");
-	NSAutoreleasePool* autoPool = [[NSAutoreleasePool alloc] init];
-	// Create top-level memory pool.
-	SvnPool pool = svn_pool_create(NULL);
-	@try
-	{
-	//	[interface svnBeginStatus];
-		[interface svnDoStatus: pool];
-	}
-	@catch (SvnException* err)
-	{
-		ReportCatch(err);
-		svn_handle_error2([err error], stderr, FALSE, kAppName ": ");
-	}
-	@finally
-	{
-		svn_pool_destroy(pool);
-		[autoPool release];
-//		NSLog(@"svn status - end");
-	}
-	[interface svnEndStatus];
-}
-
-
-//----------------------------------------------------------------------------------------
-// svn info <workingCopyPath>
-
-- (void) svnInfo_new: (SvnPool) pool
+SvnEndClient (SvnEnv* env)
 {
-	SvnClient ctx = [self setupSvn: pool];
-
-	// Set revision to always be the HEAD revision.
-	svn_opt_revision_t revision_opt;
-	revision_opt.kind = svn_opt_revision_head;
-
-	char path[2048];
-	[workingCopyPath getCString: path maxLength: sizeof(path) encoding: NSUTF8StringEncoding];
-	SvnThrowIf(svn_client_info(path, &revision_opt, &revision_opt,
-							   SvnInfoReceiver, self, !kSvnRecurse, ctx, pool));
+	if (env && env->pool)
+		SvnDeletePool(env->pool);
 }
-#endif
 
 
 //----------------------------------------------------------------------------------------

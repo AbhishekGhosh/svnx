@@ -29,8 +29,8 @@
 	#define	Assert(expr)					do { if (!(expr)) DbgAssert(_F_L_F_, #expr); } while (0)
 	#define	AssertClass(OBJ, CLASS)			Assert([(OBJ) isKindOfClass: [CLASS class]])
 	#define Log(expr)						DbgLog(_F_L_F_, #expr)
-	#define dprintf(fmt, args...)			DbgLogF(_F_L_F_, fmt, args)
-	#define dprintf_(fmt, args...)			DbgLogF2(fmt, args)
+	#define dprintf(fmt...)					DbgLogF(_F_L_F_, fmt)
+	#define dprintf_(fmt...)				DbgLogF2(fmt)
 	#define ReportCatch(expr)				DbgReportCatch(_F_L_F_, (expr))
 
 	ConstCStr	LeafName		(ConstCStr file);

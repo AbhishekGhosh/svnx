@@ -36,7 +36,8 @@ enum {
 	int				filterMode;
 	int				reviewCount;	// number of active ReviewContollers
 
-	NSMutableDictionary *displayedTaskObj;
+	NSMutableDictionary*	displayedTaskObj;
+	struct SvnEnv*			fSvnEnv;		// The svn client environment
 }
 
 
@@ -62,7 +63,7 @@ enum {
 - (void) svnInfo: (const struct svn_info_t*) info
 		 forPath: (const char*)              path;
 
-- (void) svnCommit:    (NSArray*)      itemsPaths
+- (void) svnCommit:    (NSArray*)      items
 		 message:      (NSString*)     message
 		 callback:     (NSInvocation*) callback
 		 callbackInfo: (id)            callbackInfo;
@@ -73,7 +74,8 @@ enum {
 
 - (void) svnCommand: (NSString*)     command
 		 options:    (NSArray*)      options
-		 info:       (NSDictionary*) info;
+		 info:       (NSDictionary*) info
+		 itemPaths:  (NSArray*)      itemPaths;
 
 - (NSInvocation*) svnOptionsInvocation;
 - (void) setDisplayedTaskObj: (NSMutableDictionary*) aDisplayedTaskObj;

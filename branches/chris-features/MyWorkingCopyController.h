@@ -40,6 +40,7 @@
 	BOOL					suppressAutoRefresh;
 	
 	BOOL					isDisplayingErrorSheet;
+	BOOL					outlineInited;		// has initialised outline view
 
 	NSArray*				savedSelection;		// used by save/restoreSelection
 }

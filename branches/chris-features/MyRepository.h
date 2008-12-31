@@ -28,7 +28,8 @@
 	NSString *pass;
 	NSString *windowTitle;
 	
-	NSMutableDictionary *displayedTaskObj;
+	NSMutableDictionary*					displayedTaskObj;
+	struct SvnEnv*							fSvnEnv;		// The svn client environment
 }
 
 - (IBAction) toggleSidebar: (id) sender;
@@ -58,6 +59,7 @@
 - (void) setRevision: (NSString*) aRevision;
 
 - (NSString*) windowTitle;
+- (struct svn_client_ctx_t*) svnClient;
 
 - (NSURL*) url;
 - (void) setUrl: (NSURL*) anUrl;

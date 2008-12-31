@@ -28,7 +28,17 @@
 
 - (void) keyDown: (NSEvent*) theEvent
 {
-	[[self nextResponder] keyDown: theEvent];
+	switch ([theEvent keyCode])
+	{
+		case 0x7E:	// Up
+		case 0x7D:	// Down
+			[super keyDown: theEvent];
+			break;
+
+		default:
+			[[self nextResponder] keyDown: theEvent];
+			break;
+	}
 }
 
 @end

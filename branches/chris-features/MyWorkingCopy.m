@@ -338,6 +338,7 @@ GenericFolderImage ()
 	[self setOutlineSelectedPath: nil];
 	[self setRepositoryUrl: nil];
 	[self setDisplayedTaskObj: nil];
+	SvnEndClient(fSvnEnv);
 
 	[super dealloc];
 }
@@ -653,7 +654,7 @@ svnInfoReceiver (void*       baton,
 - (void) svnDoStatus: (BOOL)    showUpdates_
          pool:        (SvnPool) pool
 {
-	SvnClient ctx = SvnSetupClient(self, pool);
+	SvnClient ctx = SvnSetupClient(&fSvnEnv, self);
 
 	char path[2048];
 	if (ToUTF8(workingCopyPath, path, sizeof(path)))
@@ -723,7 +724,7 @@ svnInfoReceiver (void*       baton,
 	{
 		NSAutoreleasePool* autoPool = [[NSAutoreleasePool alloc] init];
 		// Create top-level memory pool.
-		SvnPool pool = svn_pool_create(NULL);
+		SvnPool pool = SvnNewPool();
 		@try
 		{
 			[self svnDoStatus: showUpdates_ pool: pool];
@@ -736,7 +737,7 @@ svnInfoReceiver (void*       baton,
 		}
 		@finally
 		{
-			svn_pool_destroy(pool);
+			SvnDeletePool(pool);
 			[autoPool release];
 			[controller setStatusMessage: nil];
 		}
@@ -1307,42 +1308,36 @@ svnInfoReceiver (void*       baton,
 //----------------------------------------------------------------------------------------
 #pragma mark	svn commit
 
-- (void) svnCommit:    (NSArray*)      itemsPaths
+- (void) svnCommit:    (NSArray*)      items
 		 message:      (NSString*)     message
 		 callback:     (NSInvocation*) callback
 		 callbackInfo: (id)            callbackInfo
 {
-	Assert([[itemsPaths objectAtIndex: 0] isKindOfClass: [NSDictionary class]]);
+	AssertClass([items objectAtIndex: 0], NSDictionary);
 
 	// Cannot non-recursively commit a directory deletion, i.e. must not use --non-recursive
 	// when committing a directory deletion, but we want to use it if possible to prevent
 	// commiting files in a dir if only a prop-change commit was requested on the dir.
-	BOOL nonRecusive = TRUE;
-//	if ([[itemsPaths objectAtIndex: 0] isKindOfClass: [NSDictionary class]])
+	BOOL nonRecusive = TRUE, isDir;
+	NSFileManager* const fileManager = [NSFileManager defaultManager];
+	for_each(enumerator, item, items)
 	{
-		NSFileManager* const fileManager = [NSFileManager defaultManager];
-		BOOL isDir;
-		NSEnumerator* iter = [itemsPaths objectEnumerator];
-		NSDictionary* item;
-		while (item = [iter nextObject])
+		if ([[item objectForKey: @"deleted"] boolValue] &&
+			[fileManager fileExistsAtPath: [item objectForKey: @"fullPath"] isDirectory: &isDir] &&
+			isDir)
 		{
-			if ([[item objectForKey: @"deleted"] boolValue] &&
-				[fileManager fileExistsAtPath: [item objectForKey: @"fullPath"] isDirectory: &isDir] &&
-				isDir)
-			{
-				nonRecusive = FALSE;
-				break;
-			}
+			nonRecusive = FALSE;
+			break;
 		}
-
-		itemsPaths = [itemsPaths valueForKey: @"fullPath"];
 	}
+
+	NSArray* itemPaths = [items valueForKey: @"fullPath"];
 
 	NSArray* options = [NSArray arrayWithObjects: @"-m", MessageString(message),
 												  (nonRecusive ? @"--non-recursive" : nil),
 												  nil];
 	id taskObj = [MySvn genericCommand: @"commit"
-							 arguments: itemsPaths
+							 arguments: itemPaths
 						generalOptions: [self svnOptionsInvocation]
 							   options: options
 							  callback: callback
@@ -1384,8 +1379,10 @@ svnInfoReceiver (void*       baton,
 - (void) svnCommand: (NSString*)     command
 		 options:    (NSArray*)      options
 		 info:       (NSDictionary*) info
+		 itemPaths:  (NSArray*)      itemPaths
 {
-	NSArray* itemsPaths = [[svnFilesAC selectedObjects] valueForKey: @"fullPath"];
+	if (itemPaths == nil)
+		itemPaths = [[svnFilesAC selectedObjects] valueForKey: @"fullPath"];
 	if (options == nil)
 		options = [NSArray array];
 
@@ -1395,7 +1392,7 @@ svnInfoReceiver (void*       baton,
 
 	if ( [command isEqualToString:@"rename"] )
 	{
-		NSMutableArray* srcAndDst = [NSMutableArray arrayWithArray: itemsPaths];
+		NSMutableArray* srcAndDst = [NSMutableArray arrayWithArray: itemPaths];
 		[srcAndDst addObject: [info objectForKey: @"destination"]];
 
 		[MySvn   genericCommand: @"move"
@@ -1408,7 +1405,7 @@ svnInfoReceiver (void*       baton,
 	}
 	else if ( [command isEqualToString:@"move"] )
 	{
-		[MySvn     moveMultiple: itemsPaths
+		[MySvn     moveMultiple: itemPaths
 					destination: [info objectForKey:@"destination"]
                  generalOptions: [self svnOptionsInvocation]
 						options: options
@@ -1418,7 +1415,7 @@ svnInfoReceiver (void*       baton,
 	}
 	else if ( [command isEqualToString:@"copy"] )
 	{
-		[MySvn     copyMultiple: itemsPaths
+		[MySvn     copyMultiple: itemPaths
 					destination: [info objectForKey:@"destination"]
                  generalOptions: [self svnOptionsInvocation]
 						options: options
@@ -1431,7 +1428,7 @@ svnInfoReceiver (void*       baton,
 		Assert(![command isEqualToString: @"switch"]);
 		Assert(![command isEqualToString: @"commit"]);
 		[MySvn   genericCommand: command
-					  arguments: itemsPaths
+					  arguments: itemPaths
 				 generalOptions: [self svnOptionsInvocation]
 						options: options
 					   callback: callback
@@ -1459,7 +1456,7 @@ svnInfoReceiver (void*       baton,
 
 - (void) svnUpdateSelectedItems: (NSArray*) options
 {
-	[self svnCommand: @"update" options: options info: nil];
+	[self svnCommand: @"update" options: options info: nil itemPaths: nil];
 }
 
 

@@ -13,7 +13,7 @@
 static NSString*
 getRevisionAtIndex (NSArray* array, int index)
 {
-	return [[array objectAtIndex: index] objectForKey: @"revision"];
+	return (index >= 0 && index < [array count]) ? [[array objectAtIndex: index] objectForKey: @"revision"] : nil;
 }
 
 
@@ -181,8 +181,12 @@ logItemToString (NSDictionary* item, BOOL isAdvanced)
 	if ([[self window] firstResponder] == logTable &&
 		[[theEvent characters] characterAtIndex: 0] == ' ')
 	{
-		[self setCurrentRevision: [self selectedRevision]];
-		[logTable setNeedsDisplay: YES];
+		NSString* rev = [self selectedRevision];
+		if (rev)
+		{
+			[self setCurrentRevision: rev];
+			[logTable setNeedsDisplay: YES];
+		}
 	}
 	else
 		[super keyDown: theEvent];
@@ -212,7 +216,6 @@ logItemToString (NSDictionary* item, BOOL isAdvanced)
 #pragma mark	-
 #pragma mark	svn related methods
 //----------------------------------------------------------------------------------------
-
 
 - (void) doSvnLog:    (NSString*) aPath
 		 pegRevision: (NSString*) pegRev
@@ -343,6 +346,7 @@ logItemToString (NSDictionary* item, BOOL isAdvanced)
 //----------------------------------------------------------------------------------------
 #pragma mark	-
 #pragma mark	Table View datasource
+//----------------------------------------------------------------------------------------
 
 // The tableview is driven by the bindings, except for the radio button column.
 
@@ -389,7 +393,7 @@ logItemToString (NSDictionary* item, BOOL isAdvanced)
 //----------------------------------------------------------------------------------------
 #pragma mark	-
 #pragma mark	Accessors
-
+//----------------------------------------------------------------------------------------
 
 - (NSString*) selectedRevision	// This is different from the checked one
 {

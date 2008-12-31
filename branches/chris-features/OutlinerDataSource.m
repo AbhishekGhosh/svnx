@@ -69,12 +69,6 @@
 		 item:            (id)             item
 {
 	#pragma unused(outlineView, tableColumn)
-	if (!hasSetFont)
-	{
-		hasSetFont = TRUE;
-		[cell setFont: [NSFont systemFontOfSize: [NSFont smallSystemFontSize]]];
-		[cell setWraps: FALSE];
-	}
 
 	[cell setImage: [item icon: document]];
 }

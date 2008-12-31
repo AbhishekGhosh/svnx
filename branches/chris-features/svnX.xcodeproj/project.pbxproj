@@ -82,7 +82,6 @@
 		F286AC4406B680B600FF0174 /* stop_pressed.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F286AC4306B680B600FF0174 /* stop_pressed.tiff */; };
 		F286AE2606B6D3F000FF0174 /* svnFileMergeFromRepository.nib in Resources */ = {isa = PBXBuildFile; fileRef = F286AE2506B6D3F000FF0174 /* svnFileMergeFromRepository.nib */; };
 		F293DCB406B46ABF00B81B86 /* svnResult.nib in Resources */ = {isa = PBXBuildFile; fileRef = F293DCB306B46ABF00B81B86 /* svnResult.nib */; };
-		F2997D900609E60C00E0DA4A /* SplitViewDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F2997D8E0609E60C00E0DA4A /* SplitViewDelegate.m */; };
 		F2997E380609FFBA00E0DA4A /* FilePathCleanUpTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = F2997E360609FFBA00E0DA4A /* FilePathCleanUpTransformer.m */; };
 		F29E3EE6069C78C9007CE672 /* RepositoriesController.m in Sources */ = {isa = PBXBuildFile; fileRef = F29E3EE4069C78C9007CE672 /* RepositoriesController.m */; };
 		F29E3F64069EEFE2007CE672 /* MyWorkingCopyController.m in Sources */ = {isa = PBXBuildFile; fileRef = F29E3F62069EEFE2007CE672 /* MyWorkingCopyController.m */; };
@@ -251,8 +250,6 @@
 		F286AC4306B680B600FF0174 /* stop_pressed.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = stop_pressed.tiff; sourceTree = "<group>"; };
 		F286AE2506B6D3F000FF0174 /* svnFileMergeFromRepository.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = svnFileMergeFromRepository.nib; sourceTree = "<group>"; };
 		F293DCB306B46ABF00B81B86 /* svnResult.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = svnResult.nib; sourceTree = "<group>"; };
-		F2997D8D0609E60C00E0DA4A /* SplitViewDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SplitViewDelegate.h; sourceTree = "<group>"; };
-		F2997D8E0609E60C00E0DA4A /* SplitViewDelegate.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = SplitViewDelegate.m; sourceTree = "<group>"; };
 		F2997E350609FFBA00E0DA4A /* FilePathCleanUpTransformer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FilePathCleanUpTransformer.h; sourceTree = "<group>"; };
 		F2997E360609FFBA00E0DA4A /* FilePathCleanUpTransformer.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FilePathCleanUpTransformer.m; sourceTree = "<group>"; };
 		F29E3EE3069C78C9007CE672 /* RepositoriesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RepositoriesController.h; sourceTree = "<group>"; };
@@ -553,7 +550,6 @@
 				F2AFD0E005FFE153008F4267 /* OutlinerDataSource.m */,
 				F23B32F706029317005C11F2 /* MyTableView.m */,
 				F2C20624060136D0004C843B /* TableViewDelegate.m */,
-				F2997D8E0609E60C00E0DA4A /* SplitViewDelegate.m */,
 				F22964D206B2617700441FA8 /* MyWorkingCopyToolbar.m */,
 				83DBD38F0DBF7F9500264348 /* ReviewCommit.m */,
 				83DBD3900DBF7F9500264348 /* ReviewCommit.h */,
@@ -587,7 +583,6 @@
 				F2AFD0E105FFE153008F4267 /* OutlinerDataSource.h */,
 				F23B32F606029316005C11F2 /* MyTableView.h */,
 				F2C20623060136D0004C843B /* TableViewDelegate.h */,
-				F2997D8D0609E60C00E0DA4A /* SplitViewDelegate.h */,
 				F25913C006A1C0BD00B5FFA9 /* MySvnLogView.h */,
 				F27AA2AD06AE553C001A1B05 /* MySvnLogAC.h */,
 				F2A62B5E06A29E6B00EC533F /* MySvnLogParser.h */,
@@ -809,7 +804,6 @@
 				F2C20626060136D0004C843B /* TableViewDelegate.m in Sources */,
 				F27CD1E606028DC600F19225 /* MyOutlineView.m in Sources */,
 				F23B32F906029317005C11F2 /* MyTableView.m in Sources */,
-				F2997D900609E60C00E0DA4A /* SplitViewDelegate.m in Sources */,
 				F2997E380609FFBA00E0DA4A /* FilePathCleanUpTransformer.m in Sources */,
 				F29E3EE6069C78C9007CE672 /* RepositoriesController.m in Sources */,
 				F29E3F64069EEFE2007CE672 /* MyWorkingCopyController.m in Sources */,

@@ -18,9 +18,11 @@
 
 //----------------------------------------------------------------------------------------
 
-typedef enum svn_wc_status_kind	SvnWCStatusKind;
+typedef enum svn_wc_status_kind		SvnWCStatusKind;
 typedef apr_pool_t*					SvnPool;
+typedef apr_array_header_t*			SvnArray;
 typedef svn_boolean_t				SvnBool;
+typedef svn_opt_revision_t			SvnOptRevision;
 typedef svn_revnum_t				SvnRevNum;
 typedef svn_error_t*				SvnError;
 typedef svn_client_ctx_t*			SvnClient;
@@ -28,6 +30,7 @@ typedef svn_auth_baton_t*			SvnAuth;
 typedef svn_auth_provider_object_t* SvnAuthProvider;
 typedef svn_wc_status2_t*			SvnStatus;
 typedef const svn_info_t*			SvnInfo;
+typedef struct SvnEnv				SvnEnv;
 
 static const int kSvnRetryLimit = 2;
 static const SvnBool kSvnRecurse = true;
@@ -82,16 +85,16 @@ void SvnDoReport	(SvnError err);
 //----------------------------------------------------------------------------------------
 
 BOOL		SvnInitialize		();
+SvnPool		SvnNewPool			();
+void		SvnDeletePool		(SvnPool pool);
 NSString*	SvnRevNumToString	(SvnRevNum rev);
 NSString*	SvnStatusToString	(SvnWCStatusKind kind);
-SvnError	SvnAuthenticate		(svn_auth_cred_simple_t** cred,
-								 void*                    baton,
-								 const char*              realm,
-								 const char*              username,
-								 SvnBool                  may_save,
-								 SvnPool                  pool);
-SvnAuth		SvnSetupAuthentication (SvnInterface* delegate, SvnPool pool);
-SvnClient	SvnSetupClient		(SvnInterface* delegate, SvnPool pool);
+SvnClient	SvnSetupClient		(SvnEnv** envRef, SvnInterface* delegate);
+void		SvnEndClient		(SvnEnv* env);
+
+static inline
+SvnArray	SvnNewArray			(SvnPool pool, int count, int elem_size)
+									{ return apr_array_make(pool, count, elem_size); }
 
 
 //----------------------------------------------------------------------------------------

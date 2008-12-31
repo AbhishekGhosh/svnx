@@ -29,6 +29,26 @@ ToUTF8 (NSString* string, char* buf, unsigned int bufSize)
 
 
 //----------------------------------------------------------------------------------------
+
+NSString*
+EscapeURL (NSString* url)
+{
+	return [url stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+}
+
+
+//----------------------------------------------------------------------------------------
+
+NSString*
+UnEscapeURL (id url)
+{
+	if ([url isKindOfClass: [NSURL class]])
+		url = [url absoluteString];
+	return [url stringByReplacingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+}
+
+
+//----------------------------------------------------------------------------------------
 // Returns "<path>  [Rev. <revision>]"
 
 NSString*
@@ -36,12 +56,11 @@ PathWithRevision (id path, id revision)
 {
 	assert(path != nil);
 
-	if ([path isKindOfClass: [NSURL class]])
-		path = [path absoluteString];
+	path = UnEscapeURL(path);
 	if (revision == nil)
 		return path;
 //	if ([revision isKindOfClass: [NSNumber class]])
-//		revision = [path absoluteString];
+//		revision = [revision absoluteString];
 
 	return [NSString stringWithFormat: @"%@  [Rev. %@]", path, revision];
 }

@@ -68,6 +68,8 @@ makeCommandDict (NSString* command, NSString* destination)
 			 returnCode:        (int)       returnCode
 			 contextInfo:       (void*)     contextInfo;
 
+	- (NSArray*) selectedFilePaths;
+
 @end
 
 
@@ -99,7 +101,7 @@ makeCommandDict (NSString* command, NSString* destination)
 	[drawerLogView setDocument:document];
 	[drawerLogView setUp];
 
-	NSTableView* tableView = [[window contentView] viewWithTag: vFlatTable];
+	NSTableView* const tableView = tableResult;
 	[[[tableView tableColumnWithIdentifier: @"path"] dataCell] setDrawsBackground: NO];
 
 	[self setNextResponder: [tableView nextResponder]];
@@ -334,17 +336,7 @@ makeCommandDict (NSString* command, NSString* destination)
 			savedSelection = nil;
 		}
 
-		NSArray* const selectedObjects = [svnFilesAC selectedObjects];
-		const int count = [selectedObjects count];
-		if (count > 0)
-		{
-			NSMutableArray* files = [NSMutableArray arrayWithCapacity: count];
-			NSEnumerator* it = [selectedObjects objectEnumerator];
-			NSDictionary* dict;
-			while (dict = [it nextObject])
-				[files addObject: [dict objectForKey: @"fullPath"]];
-			savedSelection = [files retain];
-		}
+		savedSelection = [[self selectedFilePaths] retain];
 	}
 //	NSLog(@"savedSelection=%@", savedSelection);
 }
@@ -542,10 +534,10 @@ static NSString* const gVerbs[] = {
 {
 	NSView* leftView = [[splitView subviews] objectAtIndex: 0];
 
-	const GCoord kSplitterWidth = [splitView dividerThickness];
+	const GCoord kDivGap = [splitView dividerThickness];
 	NSRect frame = [splitView frame];
-	frame.origin.x = -kSplitterWidth;
-	frame.size.width = [[splitView superview] frame].size.width + kSplitterWidth;
+	frame.origin.x = -kDivGap;
+	frame.size.width = [[splitView superview] frame].size.width + kDivGap;
 	[splitView setFrame: frame];
 
 	frame = [leftView frame];
@@ -583,18 +575,75 @@ static NSString* const gVerbs[] = {
 //}
 
 
+//----------------------------------------------------------------------------------------
+
 - (void) fetchSvnStatusVerboseReceiveDataFinished
 {
 	[self stopProgressIndicator];
 
-	BOOL expandChildren = [GetPreference(@"expandWCTree") boolValue];
-	NSIndexSet *selectedRows = [outliner selectedRowIndexes];
-	[outliner setIndentationPerLevel: 8];
+	NSIndexSet* selectedRows = [outliner selectedRowIndexes];
+	unsigned int index,
+				 selectedRow = [selectedRows firstIndex],
+				 rowCount    = [outliner numberOfRows];
+	if (selectedRow == NSNotFound)
+	{
+		selectedRow = 0;
+		selectedRows = [NSIndexSet indexSetWithIndex: 0];
+	}
+
+	// Save the paths of the selected item
+	NSString* selPath = [[outliner itemAtRow: selectedRow] path];
+
+	NSMutableArray* expanded = nil;
+	if (outlineInited && selPath != nil)	// Save the paths of the expanded items
+	{
+		expanded = [NSMutableArray array];
+		for (index = 0; index < rowCount; ++index)
+		{
+			id item = [outliner itemAtRow: index];
+			if ([outliner isItemExpanded: item])
+			{
+				[expanded addObject: [item path]];
+			}
+		}
+	}
+
 	[outliner reloadData];
-	[outliner expandItem: [outliner itemAtRow: 0] expandChildren: expandChildren];
+
+	if (!outlineInited)
+	{
+		if (![document flatMode])			// First time through - expand top level
+		{									// If preference is set then expand children too
+			outlineInited = YES;
+			[outliner expandItem: [outliner itemAtRow: 0] expandChildren: GetPreferenceBool(@"expandWCTree")];
+		}
+	}
+	else if (selPath != nil)				// Restore the expanded items
+	{
+		unsigned int xIndex = 0, xCount = [expanded count];
+		id xPath = nil, item;
+		for (index = 0; (item = [outliner itemAtRow: index]) != nil; ++index)
+		{
+			NSString* path = [item path];
+			if (xPath == nil && xIndex < xCount)
+				xPath = [expanded objectAtIndex: xIndex++];
+			if (xPath != nil && [xPath isEqualToString: path])
+			{
+				[outliner expandItem: item];
+				xPath = nil;
+			}
+											// Restore the selected item
+			if (selPath != nil && [selPath isEqualToString: path])
+			{
+				selectedRows = [NSIndexSet indexSetWithIndex: index];
+				selPath = nil;
+			}
+		}
+	}
+
 	[outliner selectRowIndexes: selectedRows byExtendingSelection: NO];
-	if ( [selectedRows count] )
-		[outliner scrollRowToVisible:[selectedRows firstIndex]];
+	if ([selectedRows count])
+		[outliner scrollRowToVisible: [selectedRows firstIndex]];
 
 	svnStatusPending = NO;
 }
@@ -724,60 +773,89 @@ static NSString* const gVerbs[] = {
 #pragma mark Split View delegate
 //----------------------------------------------------------------------------------------
 
+static const GCoord kMinFilesHeight    = 96,
+					kMinTreeWidth      = 140,
+					kMaxTreeWidthFract = 0.5;
+
+
+//----------------------------------------------------------------------------------------
+
 - (BOOL) splitView:          (NSSplitView*) sender
 		 canCollapseSubview: (NSView*)      subview
 {
 	#pragma unused(sender)
-	NSView *leftView = [[splitView subviews] objectAtIndex:0];
-	
-	if ( subview == leftView )
+
+#if 0
+	NSView* leftView = [[splitView subviews] objectAtIndex: 0];
+
+	if (subview == leftView)
 	{
 		return NO; // I would like to return YES here, but can't find a way to uncollapse a view programmatically.
 				   // Collasping a view is obviously not setting its width to 0 ONLY.
 				   // If I allow user collapsing here, I won't be able to expand the left view with the "toggle button"
 				   // (it will remain closed, in spite of a size.width > 0);
 	}
+#endif
 
 	return NO;
 }
 
+
+//----------------------------------------------------------------------------------------
 
 - (GCoord) splitView:              (NSSplitView*) sender
 		   constrainMaxCoordinate: (GCoord)       proposedMax
 		   ofSubviewAt:            (int)          offset
 {
 	#pragma unused(sender)
-	return proposedMax * (offset ? 1.0 : 0.5);	// max tree width = .5 * window-width
+
+	return proposedMax * kMaxTreeWidthFract;	// max tree width = proposedMax * kMaxTreeWidthFract
 }
 
+
+//----------------------------------------------------------------------------------------
 
 - (GCoord) splitView:              (NSSplitView*) sender
 		   constrainMinCoordinate: (GCoord)       proposedMin
 		   ofSubviewAt:            (int)          offset
 {
 	#pragma unused(sender)
-	return offset ? proposedMin : 140;			// min tree width = 140
+
+	return kMinTreeWidth;						// min tree width = kMinTreeWidth
 }
 
+
+//----------------------------------------------------------------------------------------
 
 - (void) splitView:                 (NSSplitView*) sender
 		 resizeSubviewsWithOldSize: (NSSize)       oldSize
 {
 	#pragma unused(oldSize)
-	// how to resize a horizontal split view so that the left frame stays a constant size
-	NSView *left = [[sender subviews] objectAtIndex:0];			// get the two sub views
-	NSView *right = [[sender subviews] objectAtIndex:1];
-	GCoord dividerThickness = [sender dividerThickness];		// and the divider thickness
-	NSRect newFrame = [sender frame];							// get the new size of the whole splitView
-	NSRect leftFrame = [left frame];							// current size of the left subview
-	NSRect rightFrame = [right frame];							// ...and the right
-	leftFrame.size.height = newFrame.size.height;				// resize the height of the left
-	leftFrame.origin = NSMakePoint(0,0);						// don't think this is needed
-	rightFrame.size.width = newFrame.size.width - leftFrame.size.width - dividerThickness;  // the rest of the width
-	rightFrame.size.height = newFrame.size.height;				// the whole height
-	rightFrame.origin.x = leftFrame.size.width + dividerThickness;
-	[left setFrame:leftFrame];
-	[right setFrame:rightFrame];
+	NSArray* subviews = [sender subviews];
+	NSView* view0 = [subviews objectAtIndex: 0];
+	NSView* view1 = [subviews objectAtIndex: 1];
+	NSRect frame  = [sender frame],								// get the new frame of the whole splitView
+		   frame0 = [view0 frame],								// current frame of the left/top subview
+		   frame1 = [view1 frame];								// ...and the right/bottom
+	const GCoord kDivGap = [sender dividerThickness],
+				 kWidth  = frame.size.width,
+				 kHeight = frame.size.height;
+
+	{								// Adjust split view so that the left frame stays a constant size
+		GCoord width0 = frame0.size.width;
+		if (width0 > (kWidth - kDivGap) * kMaxTreeWidthFract)
+			width0 = (kWidth - kDivGap) * kMaxTreeWidthFract;
+		frame0.size.width  = width0;							// prevent files from shrinking too much
+		frame0.size.height = kHeight;							// full height
+
+		const GCoord x1 = width0 + kDivGap;
+		frame1.origin.x    = x1;
+		frame1.size.width  = kWidth - x1;						// the rest of the width
+		frame1.size.height = kHeight;							// full height
+	}
+
+	[view0 setFrame: frame0];
+	[view1 setFrame: frame1];
 }
 
 
@@ -1025,7 +1103,7 @@ enum {
 	}
 	else
 	{
-		[document diffItems: [[svnFilesAC selectedObjects] valueForKey: @"fullPath"]];
+		[document diffItems: [self selectedFilePaths]];
 	}
 }
 
@@ -1078,6 +1156,7 @@ enum {
 		 destination:        (NSString*) destination
 {
 	NSMutableDictionary* action = makeCommandDict(isCopy ? @"copy" : @"move", destination);
+	[action setObject: [self selectedFilePaths] forKey: @"itemPaths"];
 
 	NSDictionary* selection;
 	if (selection = [self selectedItemOrNil])
@@ -1213,16 +1292,17 @@ enum {
 - (void) svnCommand: (id) action
 {
 	NSString* const command = [action objectForKey: @"command"];
+	NSArray* itemPaths = [action objectForKey: @"itemPaths"];
 
 	if ([command isEqualToString: @"rename"] ||
 		[command isEqualToString: @"move"] ||
 		[command isEqualToString: @"copy"])
 	{
-		[document svnCommand: command options: [action objectForKey: @"options"] info: action];
+		[document svnCommand: command options: [action objectForKey: @"options"] info: action itemPaths: itemPaths];
 	}
 	else if ([command isEqualToString: @"remove"])
 	{
-		[document svnCommand: command options: [NSArray arrayWithObject: @"--force"] info: nil];
+		[document svnCommand: command options: [NSArray arrayWithObject: @"--force"] info: nil itemPaths: itemPaths];
 	}
 	else if ([command isEqualToString: @"commit"])
 	{
@@ -1230,7 +1310,7 @@ enum {
 	}
 	else
 	{
-		[document svnCommand: command options: nil info: nil];
+		[document svnCommand: command options: nil info: nil itemPaths: itemPaths];
 	}
 
 	[action release];
@@ -1394,29 +1474,32 @@ enum {
 	return window;
 }
 
+
+- (NSArray*) selectedFilePaths
+{
+	return [[svnFilesAC selectedObjects] valueForKey: @"fullPath"];
+}
+
+
+//----------------------------------------------------------------------------------------
 // Have the Finder show the parent folder for the selected files.
 // if no row in the list is selected then open the root directory of the project
 
 - (void) revealInFinder: (id) sender
 {
 	#pragma unused(sender)
-	NSWorkspace *ws = [NSWorkspace sharedWorkspace];
-	NSArray* const selectedObjects = [svnFilesAC selectedObjects];
+	NSWorkspace* const ws = [NSWorkspace sharedWorkspace];
+	NSArray* const selectedFiles = [self selectedFilePaths];
 
-	if ([selectedObjects count] <= 0)
+	if ([selectedFiles count] <= 0)
 	{
-		NSURL *fileURL = [NSURL fileURLWithPath:[document workingCopyPath]];
-		[ws selectFile:[fileURL path] inFileViewerRootedAtPath:nil];		
+		[ws selectFile: [document workingCopyPath] inFileViewerRootedAtPath: nil];		
 	}
 	else
 	{
-		NSEnumerator *enumerator = [selectedObjects objectEnumerator];
-		id file;
-		
-		while (file = [enumerator nextObject]) 
+		for_each(enumerator, file, selectedFiles) 
 		{
-			NSURL *fileURL = [NSURL fileURLWithPath:[file valueForKey:@"fullPath"]];
-			[ws selectFile:[fileURL path] inFileViewerRootedAtPath:nil];
+			[ws selectFile: file inFileViewerRootedAtPath: nil];
 		}
 	}
 }
