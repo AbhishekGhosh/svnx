@@ -269,18 +269,17 @@ TrimSlashes (id obj)
 
 - (void) displayUrlTextView
 {
-	NSString *root = [rootUrl absoluteString];
-	const int rootLength = [root length];
-	NSString* tmpString = [url absoluteString];
+	const int rootLength = [UnEscapeURL(rootUrl) length];
+	NSString* tmpString = UnEscapeURL(url);
+	const id layout = [urlTextView layoutManager];
 
 	[urlTextView setString:@""]; // workaround to clean-up the style for sure
 	[urlTextView setString:tmpString];
 	[[urlTextView textStorage] setFont:[NSFont boldSystemFontOfSize:11]];
-	[[urlTextView layoutManager]
-			addTemporaryAttributes: [NSDictionary dictionaryWithObject:
-														[NSNumber numberWithInt: NSUnderlineStyleNone]
-												  forKey: NSUnderlineStyleAttributeName]
-			forCharacterRange:      NSMakeRange(0, [[urlTextView string] length])];
+	[layout addTemporaryAttributes:
+						[NSDictionary dictionaryWithObject: [NSNumber numberWithInt: NSUnderlineStyleNone]
+													forKey: NSUnderlineStyleAttributeName]
+			forCharacterRange: NSMakeRange(0, [tmpString length])];
 
 	// Make a link on each part of the url. Stop at the root of the repository.
 	while ( TRUE )
@@ -296,8 +295,9 @@ TrimSlashes (id obj)
 			range.length += l;
 		}
 
+		NSString* urlString = EscapeURL(tmpString);
 		NSMutableDictionary* linkAttributes =
-				[NSMutableDictionary dictionaryWithObject: tmpString forKey: NSLinkAttributeName];
+				[NSMutableDictionary dictionaryWithObject: urlString forKey: NSLinkAttributeName];
 		[linkAttributes setObject: [NSColor blackColor] forKey: NSForegroundColorAttributeName];
 		[linkAttributes setObject: [NSNumber numberWithInt: NSUnderlineStyleThick]
 						forKey:    NSUnderlineStyleAttributeName];
@@ -305,8 +305,7 @@ TrimSlashes (id obj)
 		[linkAttributes setObject: [NSColor blueColor] forKey: NSUnderlineColorAttributeName];
 
 		[[urlTextView textStorage] addAttributes: linkAttributes range: range]; // required to set the link
-		[[urlTextView layoutManager] addTemporaryAttributes: linkAttributes
-									 forCharacterRange: range]; // required to turn it to black
+		[layout addTemporaryAttributes: linkAttributes forCharacterRange: range]; // required to turn it to black
 
 		if ( tmpLength < rootLength ) break;
 

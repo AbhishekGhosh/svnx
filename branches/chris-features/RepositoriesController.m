@@ -10,13 +10,51 @@
 
 //----------------------------------------------------------------------------------------
 
+
+static inline BOOL
+IsURLChar (unichar ch)
+{
+	// Based on table in http://www.opensource.apple.com/darwinsource/10.5.6/CF-476.17/CFURL.c
+	if (ch >= 33 && ch <= 126)
+		if (ch != '"' && ch != '%' && ch != '<' && ch != '>' &&
+						(ch < '[' || ch > '^') && ch != '`' && (ch < '{' || ch == '~'))
+			return TRUE;
+	return FALSE;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+static inline BOOL
+IsHexChar (unichar ch)
+{
+	return (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
+}
+
+
+//----------------------------------------------------------------------------------------
+
 static NSURL*
 StringToURL (NSString* urlString)
 {
-	if ([urlString characterAtIndex: [urlString length] - 1] != '/')
+	int length = [urlString length];
+	if ([urlString characterAtIndex: length - 1] != '/')
 		urlString = [urlString stringByAppendingString: @"/"];
 
-	return [NSURL URLWithString: [urlString stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
+	// Escape urlString iff it isn't already escaped
+	for (int i = 0; i < length; ++i)
+	{
+		unichar ch = [urlString characterAtIndex: i];
+		if (!IsURLChar(ch) &&
+			(ch != '%' || i >= length - 2 || !IsHexChar([urlString characterAtIndex: i + 1]) ||
+											 !IsHexChar([urlString characterAtIndex: i + 2])))
+		{
+			urlString = [urlString stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+			break;
+		}
+	}
+
+	return [NSURL URLWithString: urlString];
 }
 
 
