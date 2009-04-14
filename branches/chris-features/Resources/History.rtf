@@ -6,7 +6,7 @@
 \deftab720
 \pard\tx566\tx1133\tx1700\pardeftab720\sl320\ql\qnatural
 
-\f0\b\fs26 \cf2 0.10\
+\f0\b\fs26 \cf2 1.0\
 \pard\tx1660\tx2160\pardeftab720\sl320\ql\qnatural
 
 \f1\b0 \cf0 J
@@ -29,12 +29,12 @@
   \'a5 Improved the look of the tree list and fixed the keyboard focus when it's hidden (also hides the splitter bar).\
   \'a5 Save & restore each window's frame, view & filter modes.\
   \'a5 Improvements, corrections & optimisations to file list's help tags.\
-  \'a5 Up to 5-10 x faster refresh.  Uses less memory.\
-  \'a5 Fixed commit failure due to mixed end-of-line characters in commit message. [Maps all EOLs to \\n.]\
+  \'a5 Refresh is up to 5-10 times as fast.  Uses less memory.\
+  \'a5 Fixed commit failure due to mixed end-of-line characters in commit message. [Maps all EoLs to \\n.]\
   \'a5 Fixed dragging of non-selected items in Flat & Smart modes.\
   \'a5 Maintain file selection after refresh or view mode change.  Also maintain tree state.\
-  \'a5 New recent items menu to search field.\
-  \'a5 Added auto-refresh option (with preference checkbox).\
+  \'a5 New recent items menu in search field.\
+  \'a5 Added auto-refresh option (with preference checkbox).  Refreshes Working Copy window each time it\'d5s focused.\
   \'a5 Added new svn update options sheet.  [Alt-click Update action button or toolbar icon to see options for updating selection or entire WC.  Supports updating to any file to any revision & most 
 \f3\i svn update
 \f2\i0  options.]\
@@ -43,12 +43,11 @@
 \f2  Repository window:\
   \'a5 Updated layout & toolbar.\
   \'a5 Added new Report toolbar item.  Displays an HTML formatted, printable, log report of any item in the browser.  [Alt-click excludes path lists from report. Report window has toolbar with buttons for smaller/bigger text & printing.  Long reports span multiple HTML pages.]\
-  \'a5 For all commands normalise end-of-line characters of their commit messages.\
-  \'a5 Fixed file names that start or end with white-space in repository browser.\
+  \'a5 For all commands normalise end-of-line characters & strip control-characters in commit messages.\
   \'a5 Faster & better caching of log & repository browser lists.\
   \'a5 Improved drag feedback (transparent icons).\
   \'a5 Improved help tags (folders don't have size info).\
-  \'a5 New recent items menu to search field.\
+  \'a5 New recent items menu in search field.\
   \'a5 Correctly browse files with names that start or end with white-space.\
   \'a5 Replace Advanced/Simple tabbed view with an \'d4Advanced\'d5 toggle button.\
   \'a5 Added new Blame toolbar item.  [Supports multiple files & alt-click => verbose.]\
@@ -80,16 +79,17 @@
 
 \f1 J
 \f2  Added new Review and Commit window.\
+  \'a5 Opened by clicking \'d4Review\'c9\'d5 button in a\'caWorking Copy window.\
   \'a5 Initially adds all commitable items to the Avalable Items list and marks them as \'d4will commit\'d5 (checked).\
   \'a5 Refreshing the Avalable Items list adds new items as \'d4don\'d5t commit\'d5 (unchecked).\
   \'a5 The Avalable Items list responds to cmd-shift-A => check all, cmd-shift-N => check none, cmd-R => refresh.\
-  \'a5 The selected item responds to cmd-D => Diff, cmd-O or double click => Open, cmd-T => toggle commit status & cmd-shift-F => reveal file in Finder\
-  \'a5 Drag items to Finder to copy them or to an Application\'d5s icon to open them.\
+  \'a5 The selected item responds to cmd-D => Diff, cmd-O or double click => Open, cmd-T => toggle commit status & cmd-shift-F => reveal file in Finder.\
+  \'a5 Drag items to Finder to copy them or to an application\'d5s icon to open them.\
   \'a5 Items display same help tags as in WC.\
   \'a5 Displays formated or raw diff of selected file.  User switchable by clicking \'d4Tabular\'d5 or \'d4Unified\'d5.\
   \'a5 Saves & restores window size & splits.\
   \'a5 Lists, and allows reuse of, the 50 most recent commit messages.\
-  \'a5 Custom commit message templates with keyword substitution.\
+  \'a5 Custom commit message templates with keyword substitution & embeddable shell scripts.\
      Keywords are:<MACHINE>, <USER>, <DATE>, <FILES>\'c9</FILES>, <FILES> & <SCRIPT>\'c9</SCRIPT>.\
 
 \f1 J

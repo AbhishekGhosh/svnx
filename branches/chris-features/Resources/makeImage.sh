@@ -1,13 +1,16 @@
 #!/bin/sh
+# Usage: makeImage [path-to-svnX.app]
 
+RES="${0%/*}"
+SOURCE="${RES%/*}"
 TARGET=/Volumes/svnX
 
 hdiutil create -volname "svnX" -size 10m -fs HFS+ /tmp/svnX.dmg
 hdiutil attach -owners on /tmp/svnX.dmg -shadow
-ditto build/Deployment/svnX.app "$TARGET"/svnX.app
-cp Documentation.rtf "$TARGET"/Read\ Me.rtf
-cp License.rtf "$TARGET"/
-cp History.rtf "$TARGET"/
+ditto "${1:-$SOURCE/build/Release/svnX.app}" "$TARGET/svnX.app"
+cp "$RES/Documentation.rtf" "$TARGET/Read Me.rtf"
+cp "$RES/License.rtf" "$TARGET/"
+cp "$RES/History.rtf" "$TARGET/"
 #mkdir "$TARGET"/sources
 #rsync -avz --exclude .svn --exclude *~.nib --exclude build . "$TARGET"/sources
 hdiutil detach "$TARGET"
