@@ -3,19 +3,21 @@
 
 = Introduction =
 
-==== _SvnX_ is a _Free_, open source, _Subversion_ client for _Mac OS X_. ====
+http://svnx.googlecode.com/svn/wiki/svnX-1.0-tiny.png
+
+==== http://svnx.googlecode.com/svn/wiki/svnX-1.0-icon.png _SvnX_ is a _Free_, open source, _Subversion_ client for _Mac OS X_. ====
 SvnX 1.0 runs on Mac OS X 10.4.x & 10.5.x.<br/>
 SvnX 1.0 is compatible with Subversion 1.4.6, 1.5.6 & 1.6.1.<br/>
 SvnX 1.0 is provided as a universal binary packaged in a disc image.
 
-*[http://svnx.googlecode.com/files/svnX%201.0.dmg Download svnX 1.0 here.]*
-
+=== <font color='green'>[http://svnx.googlecode.com/files/svnX%201.0.dmg ►►►  Download svnX 1.0  ◀◀◀]</font> ===
+ 
 
 = Details =
 
-Here is a list of *new* features and changes in *svnX 1.0*.
+Here is the list of *new* features and changes in *svnX 1.0*.
 
-✪ Repositories & Working Copies windows:
+==== Repositories & Working Copies windows: ====
   * Hide/Show edit fields.  `[`When hidden - editing is disabled. Toggling is via a disclosure button or Cmd-E.  The state is saved/restored to/from the preferences.`]`
   * Pressing return or enter when the list is focused opens the highlighted item.
   * Pressing an alpha-numeric key when the list is focused jumps to the next name beginning with that character.
@@ -23,8 +25,8 @@ Here is a list of *new* features and changes in *svnX 1.0*.
   * Alt-double-click always opens new window. `[`Old double-click behaviour.`]`
   * Optionally abbreviate Working Copy paths.
 
-✪ Working Copy window:
-  * Updated layout, toolbar, Commit Message sheet & Update alert.
+==== Working Copy window: ====
+  * Updated layout, toolbar, Commit Message sheet & Update alert.  `[`Users of older versions may be need to reset the toolbar.`]`
   * Pressing return or enter when the file list is focused & a single file is highlighted opens that file.
   * Pressing an alpha-numeric key when the file list is focused highlights the next name beginning with that character.
   * Added keyboard support for toolbar items: cmd-shift-F ⇒ Reveal in Finder, cmd-R ⇒ Refresh, cmd-alt-R ⇒ Refresh with updates, cmd-U ⇒ Update, cmd-D ⇒ Diff, cmd-shift-D ⇒ Diff with sheet, cmd-S ⇒ Repository.
@@ -34,14 +36,14 @@ Here is a list of *new* features and changes in *svnX 1.0*.
   * Save & restore each window's frame, view & filter modes.
   * Improvements, corrections & optimisations to file list's help tags.
   * Refresh is up to 5-10 times as fast.  Uses less memory.
-  * Fixed commit failure due to mixed end-of-line characters in commit message. `[`Maps all EoLs to \n.`]`
+  * Fixed commit failure due to mixed end-of-line characters in commit message. `[`Maps all `EoLs` to \n.`]`
   * Fixed dragging of non-selected items in Flat & Smart modes.
   * Maintain file selection after refresh or view mode change.  Also maintain tree state.
   * New recent items menu in search field.
   * Added auto-refresh option (with preference checkbox).  Refreshes Working Copy window each time it’s focused.
   * Added new svn update options sheet.  `[`Alt-click Update action button or toolbar icon to see options for updating selection or entire WC.  Supports updating to any file to any revision & most svn update options.`]`
 
-✪ Repository window:
+==== Repository window: ====
   * Updated layout & toolbar.
   * Added new Report toolbar item.  Displays an HTML formatted, printable, log report of any item in the browser.  `[`Alt-click excludes path lists from report. Report window has toolbar with buttons for smaller/bigger text & printing.  Long reports span multiple HTML pages.`]`
   * For all commands normalise end-of-line characters & strip control-characters in commit messages.
@@ -71,7 +73,7 @@ Here is a list of *new* features and changes in *svnX 1.0*.
 
 ✪ Updated for compatibility with Subversion 1.5/1.6.
 
-✪ Added new Review and Commit window.
+==== New Review and Commit window: ====
   * Opened by clicking ‘Review…’ button in a Working Copy window.
   * Initially adds all commitable items to the Avalable Items list and marks them as ‘will commit’ (checked).
   * Refreshing the Avalable Items list adds new items as ‘don’t commit’ (unchecked).
@@ -88,6 +90,10 @@ Here is a list of *new* features and changes in *svnX 1.0*.
 ✪ Updated help documentation & added commit message template examples.
 
 ✪ Prompt the user to accept or reject un-trusted SSL server certificates.  `[`Requires ‘Use old parsing method’ preference to be off.`]`
+
+✪ Faster caching (no PHP script & only 1 folder) and cache files are ~50% smaller.  `[`User may safely delete any folders in ~/Library/Caches/com.lachoseinteractive.svnX/.`]`
+
+✪ Source & project now builds in Xcode 2.3 through 3.1, contains Debug & Release targets, and builds with NO warnings.  `[`It also automatically downloads necessary SVN & APR headers & builds stub libraries.`]`
 
 
 = Screen Shots =
