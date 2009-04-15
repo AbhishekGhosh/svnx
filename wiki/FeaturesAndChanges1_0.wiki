@@ -3,10 +3,17 @@
 
 = Introduction =
 
-Here is a list of *new* features and changes in *svnX 1.0*.
+==== _SvnX_ is a _Free_, open source, _Subversion_ client for _Mac OS X_. ====
+SvnX 1.0 runs on Mac OS X 10.4.x & 10.5.x.<br/>
+SvnX 1.0 is compatible with Subversion 1.4.6, 1.5.6 & 1.6.1.<br/>
+SvnX 1.0 is provided as a universal binary packaged in a disc image.
+
+*[http://svnx.googlecode.com/files/svnX%201.0.dmg Download svnX 1.0 here.]*
 
 
 = Details =
+
+Here is a list of *new* features and changes in *svnX 1.0*.
 
 ✪ Repositories & Working Copies windows:
   * Hide/Show edit fields.  `[`When hidden - editing is disabled. Toggling is via a disclosure button or Cmd-E.  The state is saved/restored to/from the preferences.`]`
@@ -81,3 +88,18 @@ Here is a list of *new* features and changes in *svnX 1.0*.
 ✪ Updated help documentation & added commit message template examples.
 
 ✪ Prompt the user to accept or reject un-trusted SSL server certificates.  `[`Requires ‘Use old parsing method’ preference to be off.`]`
+
+
+= Screen Shots =
+
+=== Repository Window: ===
+http://svnx.googlecode.com/svn/wiki/NewRepository.png
+
+=== Working Copy Window: ===
+http://svnx.googlecode.com/svn/wiki/NewWorkingCopy.png
+
+=== Update Working Copy Sheet: ===
+http://svnx.googlecode.com/svn/wiki/NewUpdate.png
+
+=== Review and Commit Window: ===
+http://svnx.googlecode.com/svn/wiki/ReviewAndCommit.png
