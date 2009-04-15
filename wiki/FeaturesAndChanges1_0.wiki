@@ -5,7 +5,7 @@
 
 http://svnx.googlecode.com/svn/wiki/svnX-1.0-tiny.png
 
-==== http://svnx.googlecode.com/svn/wiki/svnX-1.0-icon.png _SvnX_ is a _Free_, open source, _Subversion_ client for _Mac OS X_. ====
+==== http://svnx.googlecode.com/svn/wiki/svnX-icon.png _SvnX_ is a _Free_, open source, _Subversion_ client for _Mac OS X_. ====
 SvnX 1.0 runs on Mac OS X 10.4.x & 10.5.x.<br/>
 SvnX 1.0 is compatible with Subversion 1.4.6, 1.5.6 & 1.6.1.<br/>
 SvnX 1.0 is provided as a universal binary packaged in a disc image.
