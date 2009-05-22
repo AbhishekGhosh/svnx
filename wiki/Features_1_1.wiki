@@ -1,0 +1,88 @@
+#summary svnX 1.1 new features & changes.
+#labels Featured
+
+= Introduction — <font color="#D00">BETA</font> =
+
+=== _SvnX_ is a _Free_, open source, _Subversion_ client for _Mac OS X_. ===
+
+<table border="none"><tr>
+<td>http://svnx.googlecode.com/svn/wiki/svnX-icon.png</td>
+<td>SvnX 1.1 runs on Mac OS X 10.4.11 & 10.5.x.<br/>
+SvnX 1.1 is compatible with Subversion 1.4.6, 1.5.6 & 1.6.2.<br/>
+SvnX 1.1 is provided as a universal binary packaged in a disc image.</td>
+</tr></table>
+
+=== <font color='red'>[http://svnx.googlecode.com/files/svnX%201.1b1.dmg ►►►  BETA ► Download svnX 1.1b1 ◀ BETA  ◀◀◀]</font> ===
+
+[http://svnx.googlecode.com/svn/wiki/svnX-1.0-big.png http://svnx.googlecode.com/svn/wiki/svnX-1.0-tiny.png]
+ 
+
+= Details =
+
+Here is the list of *new* features and changes in *svnX 1.1*.
+
+==== Repository windows ====
+  * The selected repository items may now be opened directly (in an appropriate application).  <font color="#F70">*NEW*</font> <br/>`[`Click the Open toolbar icon or type cmd-O or enter.`]`
+  * Drag one or more items onto a Docked application’s icon to open them with that app.
+  * Drag them into an application’s document window to insert them.
+  * The ‘Name opened repository items with rev’ preference allows the adding of the revision number to an opened item’s name.
+  * Exporting/extracting a directory item by dragging it to the Finder now presents an alert with a Cancel button.
+  * Import a file or folder by clicking the Import toolbar icon and choosing the file or folder.  With improved import sheet.
+  * Double clicking a path of a log item will display the log of that path.
+  * Repository directory lists are sorted alpha-numerically & case-insensitively.
+  * Repository directory lists are faster.
+  * Copy, Move, Make Dir, Delete & Import now, on completion, update the log & switch the browser to the latest revision.
+  * Improved user interface when the log is that of a file.
+  * Dragging an item into a Working Copy window now opens an svn Merge sheet.  `[`The old svn Switch support is still also available.`]`
+  * Clicking the Report toolbar icon now opens an options sheet.  <font color="#F70">*NEW*</font> <br/>`[`Report on the selected repository item or the currently displayed log items, include changed paths, continue past copies, revision dates or relative ages, reverse order & limit length.`]`
+  * Action codes in log paths tables & reports are colorised.
+  * Added alpha-numeric & case-insensitive sorting to log paths tables.
+
+==== Working Copy windows ====
+  * Subversion merge support is now available via dragging a file or folder from a Repository window into a Working Copy window.  <font color="#F70">*NEW*</font> <br/>`[`Merge a single change, a range of revisions, the difference between 2 URLs, reverse changes and recursively merge a directory.`]`
+  * Files are now sorted alpha-numerically & case-insensitively.
+  * Current & Last changed columns are now sorted numerically.
+  * Allows opening of multiple-file selections.
+  * A Recursive option (checkbox) has been added (& given an appropriate default value) for add, remove, update, revert & resolved commands.
+  * Re-enabled the ability to remove un-versioned items and extended this to added & replaced items.  Allow obstructed items to be reverted.  Improved the text of the alert sheet & added a warning when removing (deleting) un-versioned or modified items.
+  * Svn switch now correctly uses the prevailing revision number & not that of the last change.
+
+==== Preferences window ====
+  * Gets & displays the version number from the svn tool and validates the binaries folder path.  <font color="#F70">*NEW*</font>
+  * Prevents use of svnX until the svn tool’s path is valid.
+  * Improved error messages if svn tool not found.
+  * Disables the ‘Call Subversion libraries directly’ option if the specified svn tool’s version is not compatible with the libraries.
+  * Added support for DiffMerge as a diff application.
+  * Added support for Changes as a diff application.
+  * Added colour swatch for Conflicted files in working copies.  <font color="#F70">*NEW*</font>
+
+==== Other changes ====
+  * New `svnx` shell-script/tool that allows access to svnX features from a terminal window (a link is installed at `~/bin/svnx`).  <font color="#F70">*NEW*</font> <br/>Available commands are: <br/>`    log <file-path>        `- open a log sheet. <br/>`    wc [working-copy-path] `- open a working copy window. <br/>`    rep [wc-path-or-URL]   `- open a repository window. <br/>`    diff <file-path…>      `- compare files with their base revisions. <br/>`    open <file-path…>      `- open files in appropriate applications. <br/>`    help                   `- display some help text.
+  * The opening of files (in appropriate applications) from working copy windows, review & commit windows, repository browser windows (directly or via Blame) and via AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
+  * Improved drag & drop support in Working Copies & Repositories windows. <br/>Allows copying of Working Copy items, dropping of URLs, `*.webloc` files & folders in Repositories window.
+  * Various small improvements to Review & Commit windows.
+  * Fixed a crash when updating the Repository URL (with old parsing).
+  * Some improvements to management of sub-tasks.
+  * Some memory leaks have been fixed.
+
+
+
+==== [http://svnx.googlecode.com/svn/wiki/Features_1_0 See what was new in svnX 1.0] ====
+
+
+= Screen Shots =
+
+=== Repository Window: ===
+http://svnx.googlecode.com/svn/wiki/NewRepository.png
+
+=== Working Copy Window: ===
+http://svnx.googlecode.com/svn/wiki/NewWorkingCopy.png
+
+=== Update Working Copy Sheet: ===
+http://svnx.googlecode.com/svn/wiki/NewUpdate.png
+
+=== Merge into Working Copy Sheet: ===
+http://svnx.googlecode.com/svn/wiki/NewMergeSheet-1.1.png
+
+=== Review and Commit Window: ===
+http://svnx.googlecode.com/svn/wiki/ReviewAndCommit.png

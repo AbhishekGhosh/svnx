@@ -1,0 +1,266 @@
+#summary svnX changes.
+#labels Changes
+
+<wiki:comment>....................  1.1b1  ....................</wiki:comment>
+= 1.1b1 — <font color="#D00">BETA</font>    <font size="3">2009–05–22    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
+
+==== Repository windows ====
+  * The selected repository items may now be opened directly (in an appropriate application).  <font color="#F70">*NEW*</font>
+  * Drag one or more items onto a Docked application’s icon to open them with that app.
+  * Drag them into an application’s document window to insert them.
+  * The ‘Name opened repository items with rev’ preference allows the adding of the revision number to an opened item’s name.
+  * Exporting/extracting a directory item by dragging it to the Finder now presents an alert with a Cancel button.
+  * Import a file or folder by clicking the Import toolbar icon and choosing the file or folder.  With improved import sheet.
+  * Double clicking a path of a log item will display the log of that path.
+  * Repository directory lists are sorted alpha-numerically & case-insensitively.
+  * Repository directory lists are faster.
+  * Copy, Move, Make Dir, Delete & Import now, on completion, update the log & switch the browser to the latest revision.
+  * Improved user interface when the log is that of a file.
+  * Dragging an item into a Working Copy window now opens an svn Merge sheet.  `[`The old svn Switch support is still also available.`]`
+  * Clicking the Report toolbar icon now opens an options sheet.  <font color="#F70">*NEW*</font> <br/>`[`Report on the selected repository item or the currently displayed log items, include changed paths, continue past copies, revision dates or relative ages, reverse order & limit length.`]`
+  * Action codes in log paths tables & reports are colorised.
+  * Added alpha-numeric & case-insensitive sorting to log paths tables.
+
+==== Working Copy windows ====
+  * Subversion merge support is now available via dragging a file or folder from a Repository window into a Working Copy window.  <font color="#F70">*NEW*</font> <br/>`[`Merge a single change, a range of revisions, the difference between 2 URLs, reverse changes and recursively merge a directory.`]`
+  * Files are now sorted alpha-numerically & case-insensitively.
+  * Current & Last changed columns are now sorted numerically.
+  * Allows opening of multiple-file selections.
+  * A Recursive option has been added for add, remove, update, revert & resolved commands along with several other improvements.
+  * Svn switch now correctly uses the prevailing revision number & not that of the last change.
+
+==== Preferences window ====
+  * Gets & displays the version number from the svn tool and validates the binaries folder path.  <font color="#F70">*NEW*</font>
+  * Prevents use of svnX until the svn tool’s path is valid.
+  * Improved error messages if svn tool not found.
+  * Disables the ‘Call Subversion libraries directly’ option if the specified svn tool’s version is not compatible with the libraries.
+  * Added support for DiffMerge as a diff application.
+  * Added support for Changes as a diff application.
+  * Added colour swatch for Conflicted files in working copies.  <font color="#F70">*NEW*</font>
+
+==== Other changes ====
+  * New `svnx` shell-script/tool that allows access to svnX features from a terminal window (a link is installed at `~/bin/svnx`).  <font color="#F70">*NEW*</font> <br/>Available commands are: <br/>`    log <file-path>        `- open a log sheet. <br/>`    wc [working-copy-path] `- open a working copy window. <br/>`    rep [wc-path-or-URL]   `- open a repository window. <br/>`    diff <file-path…>      `- compare files with their base revisions. <br/>`    open <file-path…>      `- open files in appropriate applications. <br/>`    help                   `- display some help text.
+  * The opening of files (in appropriate applications) from working copy windows, review & commit windows, repository browser windows (directly or via Blame) and via AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
+  * Improved drag & drop support in Working Copies & Repositories windows. <br/>Allows copying of Working Copy items, dropping of URLs, `*.webloc` files & folders in Repositories window.
+  * Various small improvements to Review & Commit windows.
+  * Fixed a crash when updating the Repository URL (with old parsing).
+  * Some improvements to management of sub-tasks.
+  * Some memory leaks have been fixed.
+<br/>
+
+
+----
+<wiki:comment>....................  1.0  ....................</wiki:comment>
+= 1.0 — <font color="#0B0">RELEASE</font>    <font size="3">2009–04–14    [http://code.google.com/p/svnx/wiki/FeaturesAndChanges1_0 View Detailed Features and Changes]</font> =
+
+==== Repositories & Working Copies windows: ====
+  * Hide/Show edit fields.  `[`When hidden - editing is disabled. Toggling is via a disclosure button or cmd–E.  The state is saved/restored to/from the preferences.`]`
+  * Pressing return or enter when the list is focused opens the highlighted item.
+  * Pressing an alpha-numeric key when the list is focused jumps to the next name beginning with that character.
+  * Double-click in list activates existing window if possible.
+  * Alt-double-click always opens new window. `[`Old double-click behaviour.`]`
+  * Optionally abbreviate Working Copy paths.
+
+==== Working Copy window ====
+  * Updated layout, toolbar, Commit Message sheet & Update alert.  `[`Users of older versions may be need to reset the toolbar.`]`
+  * Pressing return or enter when the file list is focused & a single file is highlighted opens that file.
+  * Pressing an alpha-numeric key when the file list is focused highlights the next name beginning with that character.
+  * Added keyboard support for toolbar items: cmd–shift–F ⇨ Reveal in Finder, cmd–R ⇨ Refresh, cmd–alt–R ⇨ Refresh with updates, cmd–U ⇨ Update, cmd–D ⇨ Diff, cmd–shift–D ⇨ Diff with sheet, cmd–S ⇨ Repository.
+  * Extended the Filter pop-up with Conflict & Changed (modified, added, deleted, replaced, conflict, missing or wrong kind) items & added command keys.
+  * Replaced Flat Mode & Smart Mode toolbar check-boxes with new View segmented toolbar control.  Maps cmd–ctrl–T ⇨ Tree View, cmd–ctrl–F ⇨ Flat View & cmd–ctrl–S ⇨ Smart View.
+  * Improved the look of the tree list and fixed the keyboard focus when it's hidden (also hides the splitter bar).
+  * Save & restore each window's frame, view & filter modes.
+  * Improvements, corrections & optimisations to file list's help tags.
+  * Refresh is up to 5-10 times as fast.  Uses less memory.
+  * Fixed commit failure due to mixed end-of-line characters in commit message. `[`Maps all `EoLs` to \n.`]`
+  * Fixed dragging of non-selected items in Flat & Smart modes.
+  * Maintain file selection after refresh or view mode change.  Also maintain tree state.
+  * New recent items menu in search field.
+  * Added auto-refresh option (with preference checkbox).  Refreshes Working Copy window each time it’s focused.
+  * Added new svn update options sheet.  `[`Alt-click Update action button or toolbar icon to see options for updating selection or entire WC.  Supports updating to any file to any revision & most svn update options.`]`
+
+==== Repository window ====
+  * Updated layout & toolbar.
+  * Added new Report toolbar item.  Displays an HTML formatted, printable, log report of any item in the browser.  `[`Alt-click excludes path lists from report. Report window has toolbar with buttons for smaller/bigger text & printing.  Long reports span multiple HTML pages.`]`
+  * For all commands normalise end-of-line characters & strip control-characters in commit messages.
+  * Faster & better caching of log & repository browser lists.
+  * Improved drag feedback (transparent icons).
+  * Improved help tags (folders don't have size info).
+  * New recent items menu in search field.
+  * Correctly browse files with names that start or end with white-space.
+  * Replace Advanced/Simple tabbed view with an ‘Advanced’ toggle button.
+  * Added new Blame toolbar item.  `[`Supports multiple files & alt–click ⇨ verbose.`]`
+  * Search messages and/or paths in Advanced mode.
+  * Added initial support for peg revisions (currently Diff & Blame only).  Allows use of commands on deleted files.
+  * Replaced 'Browse as a sub-repository' directory items' contextual pop-up menu with double-clicking any item in the browser switches to its log view.
+  * Added key equivalents for toolbar items: cmd–D ⇨ Diff, cmd–B & cmd–alt–B ⇨ Blame, cmd–R & cmd–alt–R ⇨ Report, cmd–K ⇨ Checkout, cmd–S ⇨ Export & cmd–O ⇨ Output.
+
+==== Review and Commit window  <font color="#F70">*NEW*</font> ====
+  * Opened by clicking ‘Review…’ button in a Working Copy window.
+  * Initially adds all committable items to the Available Items list and marks them as ‘will commit’ (checked).
+  * Refreshing the Available Items list adds new items as ‘don’t commit’ (unchecked).
+  * The Available Items list responds to cmd–shift–A ⇨ check all, cmd–shift–N ⇨ check none, cmd–R ⇨ refresh.
+  * The selected item responds to cmd–D ⇨ Diff, cmd–O or double click ⇨ Open, cmd–T ⇨ toggle commit status & cmd–shift–F ⇨ reveal file in Finder.
+  * Drag items to Finder to copy them or to an application’s icon to open them.
+  * Items display same help tags as in WC.
+  * Displays formatted or raw diff of selected file.  User switchable by clicking ‘Tabular’ or ‘Unified’.
+  * Saves & restores window size & splits.
+  * Lists, and allows reuse of, the 50 most recent commit messages.
+  * Custom commit message templates with keyword substitution & embeddable shell scripts. <br/>Keywords are: `<MACHINE>`, `<USER>`, `<DATE>`, `<FILES>`…`</FILES>`, `<FILES>` & `<SCRIPT>`…`</SCRIPT>`.
+
+==== Other changes ====
+  * Replace Advanced/Simple tabbed view in Diff sheets with an ‘Advanced’ toggle button.
+  * Added support for finding in messages & paths in log views.
+  * New look Preferences dialog with new 'Abbreviate Working Copy path' option.
+  * Improved diff feedback by better preserving file extensions & including revision numbers in temporary file names.
+  * Leopard compatible icons.
+  * Many bug fixes & optimisations.
+  * Updated for compatibility with Subversion 1.5/1.6.
+  * Updated help documentation & added commit message template examples.
+  * Prompt the user to accept or reject un-trusted SSL server certificates.  `[`Requires ‘Use old parsing method’ preference to be off.`]`
+  * Faster caching (no PHP script & only 1 folder) and cache files are ~50% smaller.  `[`User may safely delete any folders in ~/Library/Caches/com.lachoseinteractive.svnX/.`]`
+  * Source & project now builds in Xcode 2.3 through 3.1, contains Debug & Release targets, and builds with NO warnings. <br/>`[`It also automatically downloads necessary SVN & APR headers & builds stub libraries.`]`
+<br/>
+
+
+----
+<wiki:comment>....................  0.9.x  ....................</wiki:comment>
+==== 0.9.13 ====
+  * Improves stability on Leopard.
+
+==== 0.9.12 ====
+  * Fixed wrong status bug for conflicted items.
+
+==== 0.9.11 ====
+  * Added Araxis Merge support (Thanks Doug Anderson & Tommy Krul). It expects araxissvndiff to be in /usr/local/bin.
+  * Updated Sparkle Plus to version 96.
+  * Fixed : reverted the ability to rename (renamable!) files in hierarchical mode.
+
+==== 0.9.10 ====
+  * New bullet-proof parsing method for svn status that uses --xml output. Requires a subversion 1.4 client. Can be disabled in the preferences.
+  * Added a tooltip that explains the meaning of the columns’ characters.
+  * Added a thin vertical separator in working copy browser.
+  * Added a basic warning if svn is not found in the path that it set in preferences. (Thanks vskbros).
+  * Applied <a href="http://svnx.lachoseinteractive.net/ticket/84">patch</a> by robbie from prelab.net to fix diff issue.
+
+==== 0.9.8 ====
+  * Rewrote the broken file history panel AppleScript invocation from scratch. It now tries to find a known working copy the file belongs to, then opens this working copy window and displays the sheet for the file. <br/>See “Invoking svnX’s file history panel from AppleScript” from the Help menu for usage.
+  * Support for BBEdit diff.
+  * Implemented auto-update with Sparkle Plus.
+  * “Reveal In Finder” now opens the root directory of the local repository if no file/folder is selected in the Working copy list.
+
+==== 0.9.7 ====
+  * Now compiled as Universal Binary.
+  * In the repository window, the url is now clickable : you can now click a segment of the url to browse an upper level of the repository.
+  * Also, you can now “browse a folder as a sub-repository” using the contextual menu in the bottom column view.
+  * When the hierarchical list in the working copies inspector is reloaded, the first selected item is now brought into view.
+  * Added a checkbox in preferences to choose whether an item is added to the working copies list when a folder is checked out. When active, after check-out an item is added to list with correct path and the working copies window is brought to front and the Name field is selected.
+  * Added a Reveal In Finder toolbar item.
+  * Fixed : in old revisions, could not browse paths that had been moved or deleted. Now use path@revision syntax in svn list, svn checkout & svn export.
+  * Fixed : svnX now properly closes the pipes it opens.
+
+==== 0.9.6.4 ====
+  * Fixed status bar of the working copy window which displayed the repository UUID instead of the current revision when using subversion 1.3.
+
+==== 0.9.6.3 ====
+  * Subversion 1.3.0 compatibility.
+  * Working Copies and Repositories lists should now properly be saved.
+
+==== 0.9.6.2 ====
+  * Passwords are now hidden in text fields.
+
+==== 0.9.6.1 ====
+  * Fixed issue introduced in 0.9.6 when trying to FileMerge a file with no extension.
+
+==== 0.9.6 ====
+  * Added lock/unlock support for subversion 1.2.
+  * Integrates a patch by Yuichi Fujishige that should provide better support for UTF-16 strings. Should fix the log file stall issue.
+  * Diff comparisons should no longer be messed up when launched several at time (thanks James Dessart).
+  * The temp file diff compares against is now given the same extension, so FileMerge coloring (from XCode 2.1) is right.
+  * Fixed “svn resolved” issue.
+
+==== 0.9.5 ====
+  * Fixed export of a single non-directory item by drag&drop that was broken in 0.9.4.
+
+==== 0.9.4 ====
+  * Preliminary support for diff applications other than FileMerge. Added TextWrangler and CodeWarrior as possible choice in general preferences. <br/>(thanks to <a href="http://www.rogue-research.com" target="_blank">Sean McBride</a> for the modified script!).
+  * Fixed broken nib file that affected svn switch in v.0.9.3.
+
+==== 0.9.3 ====
+  * Fixed issue when cancelling a rename in the working copy window
+  * Fixed several possible crash situations.
+
+==== 0.9.2 ====
+  * Implemented *svn switch* by drag&drop between the repository and the working copy !
+  * Now warns if svn binary is not accessible.
+
+==== 0.9.1 ====
+  * Implemented *svn import by drag&drop* from the Finder to the repository browser !
+  * Fixed : checkout output missing from drawer when triggered by drag&drop.
+  * Fixed issue where empty user/password could be sent instead of none.
+
+==== 0.9 ====
+  * Preliminary svn authentication support.
+  * Task management is now totally revamped
+	  * Each task is now displayed in the activity window.
+	  * Main tasks output (checkout & export in the repository window, update & commits in the working copy window) is also displayed in a drawer.
+	  * Dramatically improved log display performance.
+	
+  * Working copy outline view improvement (“non flat” view):
+	  * Optimized outline view calculation.
+	  * Now keeps the selected folder in the outline view after a copy/move.
+	  * If a single file is copied or moved using the outliner in the working copy window, an intermediate sheet now lets the user rename it.
+
+==== 0.83 ====
+  * Fixed out-of-sync issue between the revision and the browser after a svn copy/move/delete in advanced mode.
+
+==== 0.82 ====
+  * Fixed problem introduced in 0.81 where svn log would be called twice when a new repository window was open in “advanced” log view mode.
+
+==== 0.81 ====
+  * BUG FIX : Fixed problem introduced in v.0.8 that could result in incomplete data in the working copy window.
+  * NEW : The default log view mode for new repository windows (advanced or simple) can now be set in the preferences.
+
+==== 0.8 ====
+  * NEW : you can now search into repository paths.
+  * NEW : implemented drag & drop from the repository file browser (export or checkout). (check this out!!)
+  * NEW : new task management architecture. Most important operations are accessible in the Activity window. <br/>Note : Not all operations have moved to this new system yet.
+  * Added svn export to toolbar.
+  * Bug fixes:
+	  * No longer crashes when a working window is closed during a refresh.
+	  * Fixed a glitch that made the author name sometimes disappear from the log view.
+	  * Many minor fixes
+
+==== 0.7 ====
+  * Bug fix : you should now be able to use any utf8 char in your commit messages, provided you’re using the latest version of subversion binaries.
+  * You can invoke svnX from TextMate (or any AppleScript-capable editor) and be presented with a window with the different revisions of the edited file. (see the help file from the Help menu).
+
+==== 0.6 ====
+  * Added svn move support to the repository inspector
+  * Pressing the Alt key while clicking Refresh in the working copy browser now performs a svn status --show-updates.
+  * Turned “metal” buttons into aqua ones.
+  * The working copy’s root (“.”) is now shown.
+  * Added drag & drop support in favorite working copies and favorite repositories windows.
+  * Fixed crash when working copy is an “aggregate” of externals.
+
+==== 0.5 ====
+  * NEW: Repository inspector.
+  * Working copy:
+	  * Fixed move, copy and rename.
+	  * Fixed inconsistencies between flat mode and smart mode.
+	  * FileMerge integration.
+	  * Many other bug fixes and improvements.
+
+==== 0.12 ====
+  * Changed the behavior of the split view so it can’t no longer be out of sync with toggle view mode.
+  * Double-click in an empty favorite working copies row no longer opens a broken document.
+  * New Transformer to clean-up the path of the favorite working copy (solves the trailing slash bug).
+
+==== 0.11 ====
+  * No longer embeds the svn binary inside the package. Uses a path to the user’s binaries instead.
+  * Slight change in the interface.
+  * Now uses NSAlert to display svn error messages.
+
+==== 0.1 ====
+  * Initial release.
+
