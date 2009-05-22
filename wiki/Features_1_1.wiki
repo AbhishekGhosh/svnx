@@ -67,7 +67,7 @@ Here is the list of *new* features and changes in *svnX 1.1*.
 
 
 
-==== [http://svnx.googlecode.com/svn/wiki/Features_1_0 See what was new in svnX 1.0] ====
+==== [http://code.google.com/p/svnx/wiki/Features_1_0 See what was new in svnX 1.0] ====
 
 
 = Screen Shots =

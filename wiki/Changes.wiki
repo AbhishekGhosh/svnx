@@ -51,7 +51,7 @@
 
 ----
 <wiki:comment>....................  1.0  ....................</wiki:comment>
-= 1.0 — <font color="#0B0">RELEASE</font>    <font size="3">2009–04–14    [http://code.google.com/p/svnx/wiki/FeaturesAndChanges1_0 View Detailed Features and Changes]</font> =
+= 1.0 — <font color="#0B0">RELEASE</font>    <font size="3">2009–04–14    [http://code.google.com/p/svnx/wiki/Features_1_0 View Detailed Features and Changes]</font> =
 
 ==== Repositories & Working Copies windows: ====
   * Hide/Show edit fields.  `[`When hidden - editing is disabled. Toggling is via a disclosure button or cmd–E.  The state is saved/restored to/from the preferences.`]`
