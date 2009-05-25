@@ -40,7 +40,7 @@
 
 ==== Other changes ====
   * New `svnx` shell-script/tool that allows access to svnX features from a terminal window (a link is installed at `~/bin/svnx`).  <font color="#F70">*NEW*</font> <br/>Available commands are: <br/>`    log <file-path>        `- open a log sheet. <br/>`    wc [working-copy-path] `- open a working copy window. <br/>`    rep [wc-path-or-URL]   `- open a repository window. <br/>`    diff <file-path…>      `- compare files with their base revisions. <br/>`    open <file-path…>      `- open files in appropriate applications. <br/>`    help                   `- display some help text.
-  * The opening of files (in appropriate applications) from working copy windows, review & commit windows, repository browser windows (directly or via Blame) and via AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
+  * The opening of files (in appropriate applications) from working copy windows, review & commit windows, repository browser windows (directly or via Blame) and via !AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
   * Improved drag & drop support in Working Copies & Repositories windows. <br/>Allows copying of Working Copy items, dropping of URLs, `*.webloc` files & folders in Repositories window.
   * Various small improvements to Review & Commit windows.
   * Fixed a crash when updating the Repository URL (with old parsing).
@@ -144,7 +144,7 @@
   * Applied <a href="http://svnx.lachoseinteractive.net/ticket/84">patch</a> by robbie from prelab.net to fix diff issue.
 
 ==== 0.9.8 ====
-  * Rewrote the broken file history panel AppleScript invocation from scratch. It now tries to find a known working copy the file belongs to, then opens this working copy window and displays the sheet for the file. <br/>See “Invoking svnX’s file history panel from AppleScript” from the Help menu for usage.
+  * Rewrote the broken file history panel !AppleScript invocation from scratch. It now tries to find a known working copy the file belongs to, then opens this working copy window and displays the sheet for the file. <br/>See “Invoking svnX’s file history panel from !AppleScript” from the Help menu for usage.
   * Support for BBEdit diff.
   * Implemented auto-update with Sparkle Plus.
   * “Reveal In Finder” now opens the root directory of the local repository if no file/folder is selected in the Working copy list.
@@ -170,20 +170,20 @@
   * Passwords are now hidden in text fields.
 
 ==== 0.9.6.1 ====
-  * Fixed issue introduced in 0.9.6 when trying to FileMerge a file with no extension.
+  * Fixed issue introduced in 0.9.6 when trying to !FileMerge a file with no extension.
 
 ==== 0.9.6 ====
   * Added lock/unlock support for subversion 1.2.
   * Integrates a patch by Yuichi Fujishige that should provide better support for UTF-16 strings. Should fix the log file stall issue.
   * Diff comparisons should no longer be messed up when launched several at time (thanks James Dessart).
-  * The temp file diff compares against is now given the same extension, so FileMerge coloring (from XCode 2.1) is right.
+  * The temp file diff compares against is now given the same extension, so !FileMerge coloring (from XCode 2.1) is right.
   * Fixed “svn resolved” issue.
 
 ==== 0.9.5 ====
   * Fixed export of a single non-directory item by drag&drop that was broken in 0.9.4.
 
 ==== 0.9.4 ====
-  * Preliminary support for diff applications other than FileMerge. Added TextWrangler and CodeWarrior as possible choice in general preferences. <br/>(thanks to <a href="http://www.rogue-research.com" target="_blank">Sean McBride</a> for the modified script!).
+  * Preliminary support for diff applications other than !FileMerge. Added !TextWrangler and !CodeWarrior as possible choice in general preferences. <br/>(thanks to <a href="http://www.rogue-research.com" target="_blank">Sean !McBride</a> for the modified script!).
   * Fixed broken nib file that affected svn switch in v.0.9.3.
 
 ==== 0.9.3 ====
@@ -233,7 +233,7 @@
 
 ==== 0.7 ====
   * Bug fix : you should now be able to use any utf8 char in your commit messages, provided you’re using the latest version of subversion binaries.
-  * You can invoke svnX from TextMate (or any AppleScript-capable editor) and be presented with a window with the different revisions of the edited file. (see the help file from the Help menu).
+  * You can invoke svnX from !TextMate (or any !AppleScript-capable editor) and be presented with a window with the different revisions of the edited file. (see the help file from the Help menu).
 
 ==== 0.6 ====
   * Added svn move support to the repository inspector
@@ -248,7 +248,7 @@
   * Working copy:
 	  * Fixed move, copy and rename.
 	  * Fixed inconsistencies between flat mode and smart mode.
-	  * FileMerge integration.
+	  * !FileMerge integration.
 	  * Many other bug fixes and improvements.
 
 ==== 0.12 ====

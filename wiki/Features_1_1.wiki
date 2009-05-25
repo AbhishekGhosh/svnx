@@ -12,10 +12,10 @@ SvnX 1.1 is compatible with Subversion 1.4.6, 1.5.6 & 1.6.2.<br/>
 SvnX 1.1 is provided as a universal binary packaged in a disc image.</td>
 </tr></table>
 
-=== <font color='red'>[http://svnx.googlecode.com/files/svnX%201.1b1.dmg ►►►  BETA ► Download svnX 1.1b1 ◀ BETA  ◀◀◀]</font> ===
+== <a href="http://svnx.googlecode.com/files/svnX%201.1b1.dmg"><font color="red">►►►  BETA ► Download svnX 1.1b1 ◀ BETA  ◀◀◀</font></a> ==
 
 [http://svnx.googlecode.com/svn/wiki/svnX-1.0-big.png http://svnx.googlecode.com/svn/wiki/svnX-1.0-tiny.png]
- 
+
 
 = Details =
 
@@ -52,13 +52,13 @@ Here is the list of *new* features and changes in *svnX 1.1*.
   * Prevents use of svnX until the svn tool’s path is valid.
   * Improved error messages if svn tool not found.
   * Disables the ‘Call Subversion libraries directly’ option if the specified svn tool’s version is not compatible with the libraries.
-  * Added support for DiffMerge as a diff application.
+  * Added support for !DiffMerge as a diff application.
   * Added support for Changes as a diff application.
   * Added colour swatch for Conflicted files in working copies.  <font color="#F70">*NEW*</font>
 
 ==== Other changes ====
   * New `svnx` shell-script/tool that allows access to svnX features from a terminal window (a link is installed at `~/bin/svnx`).  <font color="#F70">*NEW*</font> <br/>Available commands are: <br/>`    log <file-path>        `- open a log sheet. <br/>`    wc [working-copy-path] `- open a working copy window. <br/>`    rep [wc-path-or-URL]   `- open a repository window. <br/>`    diff <file-path…>      `- compare files with their base revisions. <br/>`    open <file-path…>      `- open files in appropriate applications. <br/>`    help                   `- display some help text.
-  * The opening of files (in appropriate applications) from working copy windows, review & commit windows, repository browser windows (directly or via Blame) and via AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
+  * The opening of files (in appropriate applications) from working copy windows, review & commit windows, repository browser windows (directly or via Blame) and via !AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
   * Improved drag & drop support in Working Copies & Repositories windows. <br/>Allows copying of Working Copy items, dropping of URLs, `*.webloc` files & folders in Repositories window.
   * Various small improvements to Review & Commit windows.
   * Fixed a crash when updating the Repository URL (with old parsing).
@@ -66,8 +66,8 @@ Here is the list of *new* features and changes in *svnX 1.1*.
   * Some memory leaks have been fixed.
 
 
-
-==== [http://code.google.com/p/svnx/wiki/Features_1_0 See what was new in svnX 1.0] ====
+=== [http://code.google.com/p/svnx/wiki/Features_1_0 See what was new in svnX 1.0] ===
+<br/>
 
 
 = Screen Shots =
