@@ -12,7 +12,7 @@ SvnX 1.1 is compatible with Subversion 1.4.6, 1.5.6 & 1.6.2.<br/>
 SvnX 1.1 is provided as a universal binary packaged in a disc image.</td>
 </tr></table>
 
-== <a href="http://svnx.googlecode.com/files/svnX%201.1b1.dmg"><font color="red">►►►  BETA ► Download svnX 1.1b1 ◀ BETA  ◀◀◀</font></a> ==
+== <a href="http://svnx.googlecode.com/files/svnX%201.1b2.dmg"><font color="red">►►►  BETA ► Download svnX 1.1b2 ◀ BETA  ◀◀◀</font></a> ==
 
 [http://svnx.googlecode.com/svn/wiki/svnX-1.0-big.png http://svnx.googlecode.com/svn/wiki/svnX-1.0-tiny.png]
 
@@ -72,17 +72,47 @@ Here is the list of *new* features and changes in *svnX 1.1*.
 
 = Screen Shots =
 
-=== Repository Window: ===
-http://svnx.googlecode.com/svn/wiki/NewRepository.png
+<table>
+	<tr>
+		<th>Working Copy</th>
+		<th>Update Working Copy</th>
+		<th>Merge into Working Copy</th>
+	</tr>
+	<tr>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/NewWorkingCopy.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/NewWorkingCopy.png" /></a></td>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/NewUpdate.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/NewUpdate.png" /></a></td>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/NewMergeSheet-1.1.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/NewMergeSheet-1.1.png" /></a></td>
+	</tr>
+	<tr height="12px" />
+	<tr>
+		<th>Repository</th>
+		<th>Review and Commit</th>
+		<th>Log Report Setup</th>
+	</tr>
+	<tr>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/Repository-1.1.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/Repository-1.1.png" /></a></td>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/ReviewAndCommit.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/ReviewAndCommit.png"  /></a></td>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/LogReportSetup-1.1.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/LogReportSetup-1.1.png" /></a></td>
+	</tr>
+	<tr height="12px" />
+	<tr>
+		<th>Preferences</th>
+		<th>Working Copies</th>
+		<th>Repositories</th>
+	</tr>
+	<tr>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/Preferences-1.1.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/Preferences-1.1.png" /></a></td>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/WorkingCopies-1.0.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/WorkingCopies-1.0.png"  /></a></td>
+		<td><a href="http://svnx.googlecode.com/svn/wiki/Repositories-1.0.png">
+			<img width="100%" src="http://svnx.googlecode.com/svn/wiki/Repositories-1.0.png"  /></a></td>
+	</tr>
+</table>
 
-=== Working Copy Window: ===
-http://svnx.googlecode.com/svn/wiki/NewWorkingCopy.png
-
-=== Update Working Copy Sheet: ===
-http://svnx.googlecode.com/svn/wiki/NewUpdate.png
-
-=== Merge into Working Copy Sheet: ===
-http://svnx.googlecode.com/svn/wiki/NewMergeSheet-1.1.png
-
-=== Review and Commit Window: ===
-http://svnx.googlecode.com/svn/wiki/ReviewAndCommit.png

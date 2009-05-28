@@ -1,6 +1,26 @@
 #summary svnX changes.
-#labels Changes
+#labels Changes Featured
 
+<wiki:comment>....................  1.1b2  ....................</wiki:comment>
+= 1.1b2 — <font color="#D00">BETA</font>    <font size="3">2009–05–27    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
+<br/>
+
+==== Repository windows ====
+  * Fixed an irrelevant error message when using Blame.
+
+==== Working Copy windows ====
+  * Prevent launching multiple concurrent `svn info/status` tasks to refresh the list.
+  * Don’t log the standard output of `svn status` tasks in Activity.  `[`Saves memory & is ~30% faster.`]`
+  * Correctly save & restore the selected files when in Tree view mode.
+  * Fixed a crash when changing View mode and ‘Call Subversion libraries directly’ preference is off.
+  * Reduced memory usage & fixed a leak when parsing the output of `svn status`.
+
+==== Preferences window ====
+  * Changed the enabling of the ‘Call Subversion libraries directly’ preference and its affect.<br/>`[`The tool & library versions must now match exactly.`]`
+<br/>
+
+
+----
 <wiki:comment>....................  1.1b1  ....................</wiki:comment>
 = 1.1b1 — <font color="#D00">BETA</font>    <font size="3">2009–05–22    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
 
@@ -34,7 +54,7 @@
   * Prevents use of svnX until the svn tool’s path is valid.
   * Improved error messages if svn tool not found.
   * Disables the ‘Call Subversion libraries directly’ option if the specified svn tool’s version is not compatible with the libraries.
-  * Added support for DiffMerge as a diff application.
+  * Added support for !DiffMerge as a diff application.
   * Added support for Changes as a diff application.
   * Added colour swatch for Conflicted files in working copies.  <font color="#F70">*NEW*</font>
 
