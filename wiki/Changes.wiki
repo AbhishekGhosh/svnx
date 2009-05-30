@@ -1,9 +1,17 @@
 #summary svnX changes.
 #labels Changes Featured
 
+<wiki:comment>....................  1.1b3  ....................</wiki:comment>
+= 1.1b3 — <font color="#D00">BETA</font>    <font size="3">2009–05–30    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
+
+==== General ====
+  * Fixed a crash on launch, on Intel only, if the Subversion libraries aren’t found.  (Ouch!)
+<br/>
+
+
+----
 <wiki:comment>....................  1.1b2  ....................</wiki:comment>
 = 1.1b2 — <font color="#D00">BETA</font>    <font size="3">2009–05–27    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
-<br/>
 
 ==== Repository windows ====
   * Fixed an irrelevant error message when using Blame.

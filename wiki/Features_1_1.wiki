@@ -12,7 +12,7 @@ SvnX 1.1 is compatible with Subversion 1.4.6, 1.5.6 & 1.6.2.<br/>
 SvnX 1.1 is provided as a universal binary packaged in a disc image.</td>
 </tr></table>
 
-== <a href="http://svnx.googlecode.com/files/svnX%201.1b2.dmg"><font color="red">►►►  BETA ► Download svnX 1.1b2 ◀ BETA  ◀◀◀</font></a> ==
+== <a href="http://svnx.googlecode.com/files/svnX%201.1b3.dmg"><font color="red">►►►  BETA ► Download svnX 1.1b3 ◀ BETA  ◀◀◀</font></a> ==
 
 [http://svnx.googlecode.com/svn/wiki/svnX-1.0-big.png http://svnx.googlecode.com/svn/wiki/svnX-1.0-tiny.png]
 
