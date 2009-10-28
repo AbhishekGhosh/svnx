@@ -1,6 +1,30 @@
 #summary svnX changes.
 #labels Changes Featured
 
+<wiki:comment>....................  1.1  ....................</wiki:comment>
+= 1.1 — <font color="#0B0">RELEASE</font>    <font size="3">2009–10–28    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
+
+==== Working Copy windows ====
+  * The ‘Review…’ button now only opens additional Review & Commit windows if _alt_ is pressed.  Otherwise it activates an extant R&C window.
+  * Automatically refresh all related Review & Commit file lists after refreshing the working copy’s file list.
+  * Fixed an occasional crash when refreshing the file list and ‘Call Subversion libraries directly’ preference is on.
+  * Improved diff compatibility with Subversion 1.6.x.
+
+==== Review & Commit windows ====
+  * Always display the working copy relative paths of items - regardless of Working Copy window’s view mode.
+  * Refreshing the list should now always work correctly when the ‘Call Subversion libraries directly’ preference is off.
+
+==== Preferences window ====
+  * Fixed a problem with Sparkle that prevented the ‘Check for updates at startup’ preference from working.
+
+==== General ====
+  * Allow opening of diff sheet for a path that doesn’t exist at HEAD.
+  * Smaller & prettier disc image.
+  * Fixed some memory leaks.
+<br/>
+
+
+----
 <wiki:comment>....................  1.1b3  ....................</wiki:comment>
 = 1.1b3 — <font color="#D00">BETA</font>    <font size="3">2009–05–30    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
 
@@ -36,7 +60,7 @@
   * The selected repository items may now be opened directly (in an appropriate application).  <font color="#F70">*NEW*</font>
   * Drag one or more items onto a Docked application’s icon to open them with that app.
   * Drag them into an application’s document window to insert them.
-  * The ‘Name opened repository items with rev’ preference allows the adding of the revision number to an opened item’s name.
+  * The ‘Name opened repository items with rev’ preference allows the adding of the revision number to an opened item’s file name.
   * Exporting/extracting a directory item by dragging it to the Finder now presents an alert with a Cancel button.
   * Import a file or folder by clicking the Import toolbar icon and choosing the file or folder.  With improved import sheet.
   * Double clicking a path of a log item will display the log of that path.
@@ -68,7 +92,7 @@
 
 ==== Other changes ====
   * New `svnx` shell-script/tool that allows access to svnX features from a terminal window (a link is installed at `~/bin/svnx`).  <font color="#F70">*NEW*</font> <br/>Available commands are: <br/>`    log <file-path>        `- open a log sheet. <br/>`    wc [working-copy-path] `- open a working copy window. <br/>`    rep [wc-path-or-URL]   `- open a repository window. <br/>`    diff <file-path…>      `- compare files with their base revisions. <br/>`    open <file-path…>      `- open files in appropriate applications. <br/>`    help                   `- display some help text.
-  * The opening of files (in appropriate applications) from working copy windows, review & commit windows, repository browser windows (directly or via Blame) and via !AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
+  * The opening of files (in appropriate applications) from Working Copy windows, Review & Commit windows, Repository windows (directly or via Blame) and via !AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
   * Improved drag & drop support in Working Copies & Repositories windows. <br/>Allows copying of Working Copy items, dropping of URLs, `*.webloc` files & folders in Repositories window.
   * Various small improvements to Review & Commit windows.
   * Fixed a crash when updating the Repository URL (with old parsing).

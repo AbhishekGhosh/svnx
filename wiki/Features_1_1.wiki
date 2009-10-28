@@ -1,20 +1,20 @@
 #summary svnX 1.1 new features & changes.
 #labels Featured
 
-= Introduction — <font color="#D00">BETA</font> =
+= Introduction — <font color="#0B0">RELEASE</font> =
 
 === _SvnX_ is a _Free_, open source, _Subversion_ client for _Mac OS X_. ===
 
 <table border="none"><tr>
 <td>http://svnx.googlecode.com/svn/wiki/svnX-icon.png</td>
-<td>SvnX 1.1 runs on Mac OS X 10.4.11 & 10.5.x.<br/>
-SvnX 1.1 is compatible with Subversion 1.4.6, 1.5.6 & 1.6.2.<br/>
+<td>SvnX 1.1 runs on Mac OS X 10.4.11, 10.5 & 10.6.<br/>
+SvnX 1.1 is compatible with Subversion 1.4.6, 1.5.7 & 1.6.6.<br/>
 SvnX 1.1 is provided as a universal binary packaged in a disc image.</td>
 </tr></table>
 
-== <a href="http://svnx.googlecode.com/files/svnX%201.1b3.dmg"><font color="red">►►►  BETA ► Download svnX 1.1b3 ◀ BETA  ◀◀◀</font></a> ==
+== <a href="http://svnx.googlecode.com/files/svnX%201.1.dmg"><font color="green">►►► Download svnX 1.1 ◀◀◀</font></a> ==
 
-[http://svnx.googlecode.com/svn/wiki/svnX-1.0-big.png http://svnx.googlecode.com/svn/wiki/svnX-1.0-tiny.png]
+[http://svnx.googlecode.com/svn/wiki/svnX-1.1-big.png http://svnx.googlecode.com/svn/wiki/svnX-1.1-tiny.png]
 
 
 = Details =
@@ -25,7 +25,7 @@ Here is the list of *new* features and changes in *svnX 1.1*.
   * The selected repository items may now be opened directly (in an appropriate application).  <font color="#F70">*NEW*</font> <br/>`[`Click the Open toolbar icon or type cmd-O or enter.`]`
   * Drag one or more items onto a Docked application’s icon to open them with that app.
   * Drag them into an application’s document window to insert them.
-  * The ‘Name opened repository items with rev’ preference allows the adding of the revision number to an opened item’s name.
+  * The ‘Name opened repository items with rev’ preference allows the adding of the revision number to an opened item’s file name.
   * Exporting/extracting a directory item by dragging it to the Finder now presents an alert with a Cancel button.
   * Import a file or folder by clicking the Import toolbar icon and choosing the file or folder.  With improved import sheet.
   * Double clicking a path of a log item will display the log of that path.
@@ -46,6 +46,12 @@ Here is the list of *new* features and changes in *svnX 1.1*.
   * A Recursive option (checkbox) has been added (& given an appropriate default value) for add, remove, update, revert & resolved commands.
   * Re-enabled the ability to remove un-versioned items and extended this to added & replaced items.  Allow obstructed items to be reverted.  Improved the text of the alert sheet & added a warning when removing (deleting) un-versioned or modified items.
   * Svn switch now correctly uses the prevailing revision number & not that of the last change.
+  * The ‘Review…’ button now only opens additional Review & Commit windows if _alt_ is pressed.  Otherwise it activates an extant R&C window.
+  * Automatically refresh all related Review & Commit file lists after refreshing the working copy’s file list.
+
+==== Review & Commit windows ====
+  * Always display the working copy relative paths of items - regardless of Working Copy window’s view mode.
+  * Refreshing the list should now always work correctly when the ‘Call Subversion libraries directly’ preference is off.
 
 ==== Preferences window ====
   * Gets & displays the version number from the svn tool and validates the binaries folder path.  <font color="#F70">*NEW*</font>
@@ -55,15 +61,17 @@ Here is the list of *new* features and changes in *svnX 1.1*.
   * Added support for !DiffMerge as a diff application.
   * Added support for Changes as a diff application.
   * Added colour swatch for Conflicted files in working copies.  <font color="#F70">*NEW*</font>
+  * Fixed a problem with Sparkle that prevented the ‘Check for updates at startup’ preference from working.
 
 ==== Other changes ====
   * New `svnx` shell-script/tool that allows access to svnX features from a terminal window (a link is installed at `~/bin/svnx`).  <font color="#F70">*NEW*</font> <br/>Available commands are: <br/>`    log <file-path>        `- open a log sheet. <br/>`    wc [working-copy-path] `- open a working copy window. <br/>`    rep [wc-path-or-URL]   `- open a repository window. <br/>`    diff <file-path…>      `- compare files with their base revisions. <br/>`    open <file-path…>      `- open files in appropriate applications. <br/>`    help                   `- display some help text.
-  * The opening of files (in appropriate applications) from working copy windows, review & commit windows, repository browser windows (directly or via Blame) and via !AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
+  * The opening of files (in appropriate applications) from Working Copy windows, Review & Commit windows, Repository windows (directly or via Blame) and via !AppleScript or `svnx open` is determined by a customisable script.  <font color="#F70">*NEW*</font>
   * Improved drag & drop support in Working Copies & Repositories windows. <br/>Allows copying of Working Copy items, dropping of URLs, `*.webloc` files & folders in Repositories window.
   * Various small improvements to Review & Commit windows.
   * Fixed a crash when updating the Repository URL (with old parsing).
   * Some improvements to management of sub-tasks.
   * Some memory leaks have been fixed.
+  * Smaller & prettier disc image.
 
 
 === [http://code.google.com/p/svnx/wiki/Features_1_0 See what was new in svnX 1.0] ===
@@ -96,7 +104,7 @@ Here is the list of *new* features and changes in *svnX 1.1*.
 <td><a href="http://svnx.googlecode.com/svn/wiki/Repository-1.1.png">
 <img width="75%" src="http://svnx.googlecode.com/svn/wiki/Repository-1.1.png" /></a></td>
 <td><a href="http://svnx.googlecode.com/svn/wiki/ReviewAndCommit.png">
-<img width="75%" src="http://svnx.googlecode.com/svn/wiki/ReviewAndCommit.png"  /></a></td>
+<img width="75%" src="http://svnx.googlecode.com/svn/wiki/ReviewAndCommit.png" /></a></td>
 <td><a href="http://svnx.googlecode.com/svn/wiki/LogReportSetup-1.1.png">
 <img width="75%" src="http://svnx.googlecode.com/svn/wiki/LogReportSetup-1.1.png" /></a></td>
 </tr>
@@ -110,9 +118,9 @@ Here is the list of *new* features and changes in *svnX 1.1*.
 <td><a href="http://svnx.googlecode.com/svn/wiki/Preferences-1.1.png">
 <img width="75%" src="http://svnx.googlecode.com/svn/wiki/Preferences-1.1.png" /></a></td>
 <td><a href="http://svnx.googlecode.com/svn/wiki/WorkingCopies-1.0.png">
-<img width="75%" src="http://svnx.googlecode.com/svn/wiki/WorkingCopies-1.0.png"  /></a></td>
+<img width="75%" src="http://svnx.googlecode.com/svn/wiki/WorkingCopies-1.0.png" /></a></td>
 <td><a href="http://svnx.googlecode.com/svn/wiki/Repositories-1.0.png">
-<img width="75%" src="http://svnx.googlecode.com/svn/wiki/Repositories-1.0.png"  /></a></td>
+<img width="75%" src="http://svnx.googlecode.com/svn/wiki/Repositories-1.0.png" /></a></td>
 </tr>
 </table>
 

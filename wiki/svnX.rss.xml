@@ -6,7 +6,7 @@
 		<description>svnX recent changelog</description>
 		<language>en</language>
 		<item>
-			<title>svnX Version 1.1b3</title>
+			<title>svnX Version 1.1</title>
 			<description><![CDATA[
 <base href="http://code.google.com/p/svnx/"/>
 <style type="text/css">
@@ -32,6 +32,32 @@
 	dt			{left: 50pt; font-family: monospace}
 	dd			{left: 18em}
 </style>
+
+
+<!--..............................  1.1  ..............................-->
+<h3><vers>1.1</vers> — <release>release</release><date>2009–10–10</date>
+<a class="wik" href="wiki/Features_1_1">View Detailed Features and Changes</a></h3>
+
+  <ul class="normal">
+	<h4>Working Copy windows</h4>
+	<li>The ‘Review…’ button now only opens additional Review &amp; Commit windows if _alt_ is pressed.  Otherwise it activates an extant R&amp;C window.</li>
+	<li>Automatically refresh all related Review &amp; Commit file lists after refreshing the working copy’s file list.</li>
+	<li>Fixed an occasional crash when refreshing the file list and ‘Call Subversion libraries directly’ preference is on.</li>
+	<li>Improved diff compatibility with Subversion 1.6.x.</li>
+
+	<h4>Review &amp; Commit window</h4>
+	<li>Always display the working copy relative paths of items - regardless of Working Copy window’s view mode.</li>
+	<li>Refreshing the list should now always work correctly when the ‘Call Subversion libraries directly’ preference is off.</li>
+
+	<h4>Preferences window</h4>
+	<li>Fixed a problem with Sparkle that prevented the ‘Check for updates at startup’ preference from working.</li>
+
+	<h4>General</h4>
+	<li>Allow opening of diff sheet for a path that doesn’t exist at HEAD.</li>
+	<li>Smaller &amp; prettier disc image.</li>
+	<li>Fixed some memory leaks.</li>
+  </ul>
+<br/><hr/>
 
 
 <!--..............................  1.1b3  ..............................-->
@@ -418,9 +444,9 @@
 	<li>Initial release.</li>
   </ul>
 				]]></description>
-			<pubDate>Sat, 30 May 2009 19:00:00 +0000</pubDate>
-			<enclosure url="http://svnx.googlecode.com/files/svnX%201.1b3.dmg"
-					   length="1122086" sparkle:version="1.1b3" type="application/octet-stream"/>
+			<pubDate>Wed, 28 October 2009 21:00:00 +0000</pubDate>
+			<enclosure url="http://svnx.googlecode.com/files/svnX%201.1.dmg"
+					   length="1054349" sparkle:version="1.1" type="application/octet-stream"/>
 		</item>
 	</channel>
 </rss>
