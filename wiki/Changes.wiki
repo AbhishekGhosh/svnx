@@ -1,6 +1,49 @@
 #summary svnX changes.
 #labels Changes Featured
 
+<wiki:comment>....................  1.2b1  ....................</wiki:comment>
+= 1.2b1 — <font color="#D00">BETA</font>    <font size="3">2010–04–23    [http://code.google.com/p/svnx/wiki/Features_1_2 View Detailed Features and Changes]</font> =
+
+==== Working Copy windows ====
+  * Subversion properties browser & editor panel.  <font color="#F70">*NEW*</font><br/>`[`View, add, edit & delete multiple text & binary properties on multiple items.`]`
+  * Interactively resolve file conflicts.  <font color="#F70">*NEW*</font>
+  * Merge sheet now provides dry-run & Subversion 1.6 feature support including reintegrate, depth control, automatic conflict resolution & record only.
+  * Support for Subversion 1.6 features has also been added to the Update sheet including force operation, depth control & automatic conflict resolution.
+  * Diff any items against their PREV revisions with a single click or key press.  <font color="#F70">*NEW*</font>
+  * New item list contextual menu provides access to several commands including new ‘svn info’ commands.  <font color="#F70">*NEW*</font>
+  * Rename or copy items in flat-view & smart-view modes.
+  * Support for ‘svn cleanup’ command.  <font color="#F70">*NEW*</font>
+  * Removed ‘Working Copy Path’ toolbar item.
+  * Improved save & restore of window settings & state.
+
+==== Review & Commit windows ====
+  * Display side-by-side diffs.  <font color="#F70">*NEW*</font>
+  * Diff pane settings pop-up menu to customise & control many aspects of the diff display.  <font color="#F70">*NEW*</font>
+  * Protect user from accidental closure/loss of un-commited message.
+
+==== Repository windows ====
+  * Drag & drop a repository log entry to a working copy window to request a reverse merge of that change.  <font color="#F70">*NEW*</font>
+  * Drag & drop a repository log entry’s path item to a working copy window to request a reverse merge of that change of that file/directory.  <font color="#F70">*NEW*</font><br/>`[`Also drag either of the above to a text editor or the Finder.`]`
+  * Diff repository items, log entries (changes) & log entry paths against their PREV revisions with a single click or key press.  <font color="#F70">*NEW*</font>
+  * Blame & its verbose option now also supports log entry path items.
+  * Directly open files & directories from there log entry path items.
+  * Browse the log of any repository log entry paths (like you can for repository items).
+  * Added support to Import sheet for enable/disable automatic properties, disregard ignore settings, force operation & depth control (last 2 require svn 1.6+).
+  * Improved import, export & checkout file selection sheets with better prompts & custom button titles.
+  * Improved save & restore of window settings & state.
+
+==== General ====
+  * New global icon cache for improved display, performance & resource usage.
+  * Various bug fixes & code improvements.
+  * Added several new & updated other keyboard short-cuts.
+  * Added support for Guiffy & KDiff3 diff applications.
+  * Improved naming of temporary diff files, repository files & blame files.
+  * Added ‘resolve’ command to `svnx` shell-script/tool.
+  * Updated & extended documentation.
+<br/>
+
+
+----
 <wiki:comment>....................  1.1  ....................</wiki:comment>
 = 1.1 — <font color="#0B0">RELEASE</font>    <font size="3">2009–10–28    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
 
