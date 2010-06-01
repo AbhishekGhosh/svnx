@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title></title>
+<style type="text/css">
+/* Styles for Tabular + Unified diffs */
+.D ul { clear: both; margin: 0; padding: 0 }
+.D li { background: #f7f7f7; position: relative; width: 100%; }
+.D h2 { border: 1px solid #ddd; font-size: 13px; letter-spacing: normal;
+		margin: 0 auto; padding: 1px 0 3px 7px; }
+.D h2 .switch { float: right; font-size: 11px; line-height: 1.6; }
+.D h2 .switch span { border-left: 1px solid #ccc; cursor: pointer; padding: 3px 9px 5px; }
+.D h2 .switch span:hover { background: #77F; }
+.D h2 .switch span.active { background: #BBF; cursor: default; }
+.D h2 .switch span.active:hover { background: #BBF; }
+
+/* Tabular/Inline diff view */
+.D table { border: 1px solid #ddd; border-spacing: 0; border-top: 0; border-collapse: collapse;
+		   font-size: 12px; line-height: 130%; padding: 0; margin: 0 auto; width: 100%; empty-cells: show; }
+.D table col.N { width: 4em }
+.D table th { border-right: 1px solid #ddd; border-bottom: 1px solid #998; font-size: 11px; }
+.D table tr.rev th { background: #eee; color: #a00; text-align: center; }
+.D table tbody th { background: #eed; color: #443; font-weight: normal; padding: 0 .5em;
+					text-align: right; vertical-align: top; }
+.D table tbody td { background: #fff; font: normal 11px monospace; overflow: visible;
+					padding: 1px 2px; vertical-align: top; }
+.D td ins, .D td del { text-decoration: none; }
+
+.D td.F { background: #ffd; border-color: #cc0; border-style: solid; border-width: 2px 0 0 0; }
+.D td.L { background: #fdd; border-color: #c00; border-style: solid; border-width: 0 1px 0 1px; }
+.D td.R { background: #dfd; border-color: #0a0; border-style: solid; border-width: 0 1px 0 1px; }
+.D td.N { background: #eee; border-color: #888; border-style: solid; border-width: 0 1px 0 1px; }
+.D td del { background: #e99; color: #000; }
+.D td ins { background: #9e9; color: #000; }
+
+/* Side by size diff view */
+.D td.A { border-top-width: 1px; }
+.D td.B { border-bottom-width: 1px; }
+
+/* Inline diff view */
+.D tr.A td.L, .D tr.A td.R { border-top-width: 1px; }
+.D tr.B td.L, .D tr.B td.R { border-bottom-width: 1px; }
+
+/* Unified diff view */
+.D pre { background: #ffe; border: 1px solid #ddd; border-top-width: 0; font-size: 11px;
+		 margin: 0; white-space: pre-wrap; }
+</style></head>
+
+<body><script type="text/javascript">//<![CDATA[
+
+String.prototype.beginswith = function(str) { return this.indexOf(str) == 0; }
+
+function esc(text)
+{
+	return text.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+			   .replace(/\t/g, "    ").replace(/\r/g, "<br/>");
+}
+
+function esc1(text)
+{
+	return esc(text.substring(1));
+}
+
+function rev(s)
+{
+	var tmp = s.match(/([0-9]+)\)$|(copy)\)$/);
+	if (tmp)
+	{
+		if (tmp[2])
+			return "Work";
+		else if (tmp[1])
+			return "r" + tmp[1];
+	}
+	return "";
+}
+
+function diffHead(lines)
+{
+	var i = 0, S = "", title = "", tA = "", tB = "", m = "", ip = false, lN = lines.length;
+
+	if (lines[i].beginswith("Index: "))
+		title = esc(lines[i++].substring(7));
+	else if (lines[i].beginswith("Property changes on: "))
+	{
+		ip = true;
+		title = esc(lines[i++].substring(21));
+		if (lines[i].beginswith("____"))
+			++i;
+	}
+
+	if (!ip)
+	{
+		if (lines[i].beginswith("===="))
+			++i;
+
+		if (lines[i].beginswith("--- "))
+			tA = rev(lines[i++]);
+		else if (lines[i].beginswith("Cannot display:"))	// file marked as a binary type.
+			m = esc(lines[i++]).concat('<br/>', esc(lines[i++]));
+
+		if (lN > i && lines[i].beginswith("+++ "))
+			tB = rev(lines[i++]);
+	}
+
+	S = S.concat("<h2><span class='switch'>",
+				 "<span onclick='tab(this,0)'>Side by Side</span>",
+				 "<span onclick='tab(this,1)'>Inline</span>",
+				 "<span onclick='tab(this,2)'>Unified</span></span>", title,
+				 "</h2><pre><table summary='side' cellspacing='0'>",
+				 "<colgroup><col class='N'/><col class='L'/><col class='N'/><col class='R'/></colgroup>\n");
+	var T = "</table></pre><pre><table summary='inline' cellspacing='0'>" +
+			"<colgroup><col class='N'/><col class='N'/><col/></colgroup>\n";
+	if (!ip)
+	{
+		S = S.concat("<tr class='rev'><th>", tA, "</th><td>", m, "</td><th>", tB, "</th><td></td></tr>\n");
+		T = T.concat("<tr class='rev'><th>", tA, "</th><th>", tB, "</th><td>", m, "</td></tr>\n");
+	}
+	return {S:S, T:T, i:i, p:ip};
+}
+
+function diffLine(tA, tB)
+{
+	return (tA + tB).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+					.replace(/\t/g, '    ').replace(/\r/g, '<br/>').split('\n');
+}
+
+function diff(lines)
+{
+	var t, h = diffHead(lines), j, i = h.i, S = h.S,
+		numA = 0, numB = 0, line, linCount = lines.length,
+		prevTyp, typ = 3, nextTyp, LINES = [{t:10, a:0, b:0, txt:""}], n = 0;
+	var cFirst = "<tr class='A'>",
+		cLast  = "<tr class='B'>",
+		cOnly  = "<tr class='A B'>",
+		cFun   = "<tr><td class='F' colspan='4'>",
+		lnumRE = /^@@ -([0-9]+),?[0-9]* \+([0-9]+),?[0-9]* @@ *(.*)/;
+
+	if (h.p)
+	  while (i < linCount)
+	  {
+		line = lines[i++];
+		if (typ == 2) ++numA; else ++numB;
+		if (line.beginswith("Name: "))
+			LINES.push({t:8, a:numA=0, b:numB=0, txt:line.substring(6)});
+		else if (line.beginswith("   + "))
+			LINES.push({t:typ=1, a:0, b:numB, txt:line.substring(5)});
+		else if (line.beginswith("   - "))
+			LINES.push({t:typ=2, a:numA, b:0, txt:line.substring(5), ins:0});
+		else if (line.length)
+			LINES.push({t:typ, a:numA, b:numB, txt:line});
+	  }
+	else
+	  while (i < linCount)
+	  {
+		line = lines[i++];
+		typ = line.charCodeAt(0);
+		t = line.substring(1);
+		switch (typ)
+		{
+		case 64:	// '@'
+			n = 0;
+			t = line.match(lnumRE);
+			numA = parseInt(t[1]);
+			numB = parseInt(t[2]);
+			if (t[3].length > 0)
+				LINES.push({t:9, a:0, b:0, txt:t[3]});
+			break;
+		case 43:	// '+'
+			if (n != 0) LINES[n].ins = LINES.length; else n = 0;
+			LINES.push({t:1, a:0, b:numB++, txt:t});
+			break;
+		case 45:	// '-'
+			if (n == 0) n = LINES.length;
+			LINES.push({t:2, a:numA++, b:0, txt:t, ins:0});
+			break;
+		case 32:	// ' '
+			n = 0;
+			LINES.push({t:3, a:numA++, b:numB++, txt:t});
+			break;
+		case 92:	// '\\'
+			LINES.push({t:3, a:'', b:'', txt:t});
+			break;
+		}
+		prevTyp = typ;
+	  }
+
+	LINES.push(LINES[0]);
+	linCount = LINES.length - 1;
+	var tA = "", tB = "", m = "";
+	for (i = 1; i <= linCount; ++i)
+	{
+		line = LINES[i];
+		typ = line.t;
+		t = line.txt;
+		if (typ == 2 && line.ins)
+		{
+			n = i;
+			tA = t + '\n';
+		}
+		else if (tA.length)
+		{
+			if (typ == 2)
+				tA = tA.concat(t, '\n');
+			else if (typ == 1)
+				tB = tB.concat(t, '\n');
+			else
+			{
+				m = diffLine(tA, tB);
+				for (j = 0; n < i; ++j)
+					LINES[n++].txt = m[j];
+				line.txt = esc(t);
+				tA = tB = "";
+			}
+		}
+		else
+			line.txt = esc(t);
+	}
+
+	LINES.push(LINES[0]);
+	typ = 9;
+	nextTyp = LINES[1].t;
+	var isFirst, isLast, tr, l1, l2, b1 = [], b2 = [], c;
+	for (i = 1; i <= linCount; )
+	{
+		line = LINES[i];
+		prevTyp = typ;
+		typ = nextTyp;
+		nextTyp = LINES[++i].t;
+		t = line.txt;
+		if (typ > 2)
+		{
+			n = Math.max(b1.length, b2.length);
+			if (n--)
+			{
+				S += "<tbody class='A'>";
+				for (j = 0; j <= n; ++j)
+				{
+					l1 = b1[j];
+					l2 = b2[j];
+					c = (j == 0) ? " A" : "";
+					if (j == n) c += " B";
+					if (l1 == null)			// +
+						S = S.concat("<tr><th></th><td class='N", c, "'></td><th>", l2.n,
+									 "</th><td class='R", c, "'>", l2.t, "</td></tr>\n");
+					else if (l2 == null)	// -
+						S = S.concat("<tr><th>", l1.n, "</th><td class='L", c, "'>", l1.t,
+									 "</td><th></th><td class='N", c, "'></td></tr>\n");
+					else					// -+
+						S = S.concat("<tr><th>", l1.n, "</th><td class='L", c, "'>", l1.t, "</td><th>",
+									 l2.n, "</th><td class='R", c, "'>", l2.t, "</td></tr>\n");
+				}
+				S += "</tbody>\n";
+				b1.length = b2.length = 0;
+			}
+		}
+		switch (typ)
+		{
+		case 1:		// '+'
+			b2.push({ n: line.b, t: t });
+			break;
+		case 2:		// '-'
+			b1.push({ n: line.a, t: t });
+			break;
+		case 3:		// ' '
+			S = S.concat((typ != prevTyp) ? "<tbody><tr><th>" : "<tr><th>",
+						 line.a, "</th><td>", t, "</td><th>", line.b, "</th><td>", t,
+						 (typ != nextTyp) ? "</td></tr></tbody>\n" : "</td></tr>\n");
+			break;
+		case 8:
+			S = S.concat(cFun, "Property: ", t, "</td></tr>");
+			break;
+		case 9:		// '@'
+			if (t.length)
+				S = S.concat(cFun, "Function: ", t, "</td></tr>");
+			else if (i > 2)
+				S = S.concat(cFun, "…</td></tr>");
+			break;
+		}
+	}
+
+	cFun = "<tr><td class='F' colspan='3'>";
+	S += h.T;
+	typ = 9;
+	nextTyp = LINES[1].t;
+	for (i = 1; i < linCount; )
+	{
+		line = LINES[i];
+		prevTyp = typ;
+		typ = nextTyp;
+		nextTyp = LINES[++i].t;
+		t = line.txt;
+		isFirst = (typ != prevTyp);
+		isLast  = (typ != nextTyp);
+		tr = isLast ? "</td></tr></tbody>\n" : "</td></tr>\n";
+		switch (typ)
+		{
+		case 1:		// '+'
+			S = S.concat(isFirst ? "<tbody>" : "",
+						 (isFirst && prevTyp != 2) ? (isLast ? cOnly : cFirst) : (isLast ? cLast : "<tr>"),
+						 "<th></th><th>", line.b, "</th><td class='R'>", t, tr);
+			break;
+		case 2:		// '-'
+			S = S.concat(isFirst ? "<tbody>" : "",
+						 (isLast && nextTyp != 1) ? (isFirst ? cOnly : cLast) : (isFirst ? cFirst : "<tr>"),
+						 "<th>", line.a, "</th><th></th><td class='L'>", t, tr);
+			break;
+		case 3:		// ' '
+			S = S.concat(isFirst ? "<tbody><tr><th>" : "<tr><th>",
+						 line.a, "</th><th>", line.b, "</th><td>", t, tr);
+			break;
+		case 8:
+			S = S.concat(cFun, "Property: ", t, "</td></tr>");
+			break;
+		case 9:		// '@'
+			if (t.length)
+				S = S.concat(cFun, "Function: ", t, "</td></tr>");
+			else if (i > 2)
+				S = S.concat(cFun, "…</td></tr>");
+			break;
+		}
+	}
+
+	return S.concat("</table></pre><pre style='display:none'>",
+					lines.join('\n').replace(/&/g, '&amp;').replace(/</g, '&lt;'), "</pre>\n");
+}
+
+function tab(me, i)
+{
+	var sw = me.parentNode;
+	sw.firstChild.className = "";
+	sw.firstChild.nextSibling.className = "";
+	sw.firstChild.nextSibling.nextSibling.className = "";
+	me.className = "active";
+
+	var t = sw.parentNode.nextSibling;
+	t.style.display = (i == 0) ? "" : "none"; t = t.nextSibling;
+	t.style.display = (i == 1) ? "" : "none"; t = t.nextSibling;
+	t.style.display = (i == 2) ? "" : "none";
+}
+
+function diff1(i, lines)
+{
+	var node = document.createElement("div");
+	node.setAttribute("class", "D");
+	node.innerHTML = diff(lines);
+	document.body.appendChild(node);
+	node = node.firstChild.firstChild.firstChild;
+	if (i) node = node.nextSibling;
+	if (i == 2) node = node.nextSibling;
+	tab(node, i);
+}
+
