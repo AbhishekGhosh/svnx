@@ -1,6 +1,33 @@
 #summary svnX changes.
 #labels Changes Featured
 
+<wiki:comment>....................  1.2  ....................</wiki:comment>
+= 1.2 — <font color="#0B0">RELEASE</font>    <font size="3">2010–06–01    [http://code.google.com/p/svnx/wiki/Features_1_2 View Detailed Features and Changes]</font> =
+
+*NOTE:* Also includes all changes listed under 1.2b1.
+
+==== Working Copy windows ====
+  * Support property values starting with ‘-’ when not using direct library calls.
+  * Added support for DiffMerge diff application to Resolve command.
+  * Truncate Name column in middle when necessary.
+  * Fixed problem with ‘Cleanup entire working copy’ command.
+  * Fixed crash with ‘`svnx resolve …`’ if window was not open.
+
+==== Repository windows ====
+  * Improved support for empty/new repositories.
+  * Copy username & password when creating a working copy entry from a repository checkout.
+  * Fixed crash if user closed a repository window immediately after initiating a log refresh.
+
+==== Review & Commit window ====
+  * Allow long lines to wrap in diff panel.
+
+==== General ====
+  * Improved support for KDiff3 diff application.
+  * Fixed some compatibility issues with Mac OS X 10.4.
+<br/>
+
+
+----
 <wiki:comment>....................  1.2b1  ....................</wiki:comment>
 = 1.2b1 — <font color="#D00">BETA</font>    <font size="3">2010–04–23    [http://code.google.com/p/svnx/wiki/Features_1_2 View Detailed Features and Changes]</font> =
 
@@ -12,7 +39,7 @@
   * Diff any items against their PREV revisions with a single click or key press.  <font color="#F70">*NEW*</font>
   * New item list contextual menu provides access to several commands including new ‘svn info’ commands.  <font color="#F70">*NEW*</font>
   * Rename or copy items in flat-view & smart-view modes.
-  * Support for ‘svn cleanup’ command.  <font color="#F70">*NEW*</font>
+  * Support for ‘`svn cleanup`’ command.  <font color="#F70">*NEW*</font>
   * Removed ‘Working Copy Path’ toolbar item.
   * Improved save & restore of window settings & state.
 
@@ -46,6 +73,8 @@
 ----
 <wiki:comment>....................  1.1  ....................</wiki:comment>
 = 1.1 — <font color="#0B0">RELEASE</font>    <font size="3">2009–10–28    [http://code.google.com/p/svnx/wiki/Features_1_1 View Detailed Features and Changes]</font> =
+
+*NOTE:* Also includes all changes listed under 1.1b1, 1.1b2 & 1.1b3.
 
 ==== Working Copy windows ====
   * The ‘Review…’ button now only opens additional Review & Commit windows if _alt_ is pressed.  Otherwise it activates an extant R&C window.

@@ -12,7 +12,7 @@ SvnX 1.2 is compatible with Subversion 1.4.6, 1.5.7 & 1.6.11.<br/>
 SvnX 1.2 is provided as a universal binary packaged in a disc image.</td>
 </tr></table>
 
-== <a href="http://svnx.googlecode.com/files/svnX%201.2b1.dmg"><font color="red">►►►  BETA ► Download svnX 1.2b1 ◀ BETA  ◀◀◀</font></a> ==
+== <a href="http://svnx.googlecode.com/files/svnX%201.2.dmg"><font color="green">►►► Download svnX 1.2 ◀◀◀</font></a> ==
 
 [http://svnx.googlecode.com/svn/wiki/svnX-1.2-big.png http://svnx.googlecode.com/svn/wiki/svnX-1.2-tiny.png]
 
@@ -28,7 +28,7 @@ Here is the list of *new* features and changes in *svnX 1.2*.
     * Both standard (svn:`*`) & custom properties are supported.
     * Provides custom editors for different value types.
     * Understands implicit valued properties & enforces file only & directory only properties.
-  * Interactively resolve file conflicts using FileMerge, Araxis Merge, Guiffy or KDiff3.  <font color="#F70">*NEW*</font>
+  * Interactively resolve file conflicts using FileMerge, Araxis Merge, DiffMerge, Guiffy or KDiff3.  <font color="#F70">*NEW*</font>
   * An improved Merge sheet now provides the following new features:
     * The ability to perform a dry-run of a merge.
     * Reintegrate merges.  `[`svn 1.6+`]`
@@ -43,7 +43,7 @@ Here is the list of *new* features and changes in *svnX 1.2*.
   * Diff any items against their PREV revisions with a single click or key press.  <font color="#F70">*NEW*</font><br/>`[`Shift-click the Diff tool or type cmd–shift–D.`]`
   * New item list contextual menu provides access to several commands including new ‘svn info’ commands.  <font color="#F70">*NEW*</font><br/>`[`Commands also include Cleanup, Rename…, Copy…, Lock & Unlock.`]`
   * Rename or copy items in flat-view & smart-view modes.
-  * Support for ‘svn cleanup’ command.  <font color="#F70">*NEW*</font><br/>`[`Cleanup the selected folders, the current folder or the entire working copy.`]`
+  * Support for ‘`svn cleanup`’ command.  <font color="#F70">*NEW*</font><br/>`[`Cleanup the selected folders, the current folder or the entire working copy.`]`
   * The ‘Working Copy Path’ toolbar item has been removed.
   * Improved save & restore of window settings & state.
   * Working copy toolbars will be reset to their defaults the first time svnX 1.2 is used.
