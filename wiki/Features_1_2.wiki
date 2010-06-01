@@ -1,7 +1,7 @@
 #summary svnX 1.2 new features & changes.
 #labels Featured
 
-= Introduction — <font color="#D00">BETA</font> =
+= Introduction — <font color="#0B0">RELEASE</font> =
 
 === _SvnX_ is a _Free_ graphical user interface (GUI) _Subversion_ client for _Mac OS X_. ===
 
