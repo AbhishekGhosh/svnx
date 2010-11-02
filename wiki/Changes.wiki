@@ -1,6 +1,58 @@
 #summary svnX changes.
 #labels Changes Featured
 
+<wiki:comment>..............................  1.3  ..............................</wiki:comment>
+= 1.3 — <font color="#0B0">RELEASE</font>    <font size="3">2010–11–02    [http://code.google.com/p/svnx/wiki/Features_1_3 View Detailed Features and Changes]</font> =
+
+*NOTE:* Also includes all changes listed under 1.3b1.
+
+==== General ====
+  * Some minor changes to support for ‘@’ in file names.
+
+==== Working Copies & Repositories windows ====
+  * Some small improvements to the list views.
+
+==== Working Copy windows ====
+  * Further improved the ‘Repository’ toolbar item’s Repository matching.
+  * Fixed a problem where minimising a window while a Refresh was underway would abnormally terminate the refresh.
+<br/>
+
+
+----
+<wiki:comment>..............................  1.3b1  ..............................</wiki:comment>
+= 1.3b1 — <font color="#D00">BETA</font>    <font size="3">2010–09–15    [http://code.google.com/p/svnx/wiki/Features_1_3 View Detailed Features and Changes]</font> =
+
+==== General ====
+  * Added support for ‘@’ in file names.  <font color="#F70">*NEW*</font>
+  * If app had to fix-up ‘`/opt/subversion/lib`’ then report success to user with option to re-launch.
+  * New Apple Help help document.  <font color="#F70">*NEW*</font><br/>`[`Includes Change Log & license.`]`
+  * On first launch of new version of app the Change Log is displayed.
+
+==== Working Copy windows ====
+  * Added new WC ‘Blame’ & ‘Blame Verbose’ contextual menu commands.  <font color="#F70">*NEW*</font>
+  * Added new WC ‘Ignore’ contextual menu command.  <font color="#F70">*NEW*</font>
+  * When opening WC window (that uses https) ask user to interactively validate any invalid/unknown SSL cert.  <font color="#F70">*NEW*</font><br/>`[`Accepting the cert ensures that any subsequent commit etc. will not fail due to auth status.`]`
+  * Fixed ‘`svn cleanup`’ for selected folders when in flat-view mode & not using svn libs.
+  * Merged WC column 8 into column 2.
+  * Added tool-tips for for first 7 column titles (OSX 10.5+).
+  * Don’t show expansion tool-tip for first 7 columns.
+  * Block contextual menu if window has an open sheet.
+  * Fixed problem with window not opening at previous position.
+  * The ‘Repository’ toolbar item is now better at choosing a Repository window.
+
+==== Review & Commit window ====
+  * The diff pane settings pop-up menu’s ‘Highlight Characters’ (on/off) option has been replaced with a new ‘Character Diffs:’ group with 5 levels (‘Best’, ‘Medium’, ‘Fast’, ‘Fastest’ & ‘Off’).
+  * Display some informative & friendly feedback, in the diffs pane, following a successful or failed commit.  <font color="#F70">*NEW*</font>
+
+==== Repository windows ====
+  * When opening Repo window (that uses https) ask user to interactively validate any invalid/unknown SSL cert.  <font color="#F70">*NEW*</font>
+  * Disable Checkout & Import toolbar items when a file is selected.
+  * For Report, Checkout, Export & Import commands: display consistent repo paths.
+  * Allow ‘[’, ‘:’ & ‘]’ characters in new names for Copy, Move & Make Dir commands.
+<br/>
+
+
+----
 <wiki:comment>....................  1.2  ....................</wiki:comment>
 = 1.2 — <font color="#0B0">RELEASE</font>    <font size="3">2010–06–01    [http://code.google.com/p/svnx/wiki/Features_1_2 View Detailed Features and Changes]</font> =
 

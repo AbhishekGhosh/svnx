@@ -6,7 +6,11 @@
 		<description>svnX recent changelog</description>
 		<language>en</language>
 		<item>
-			<title>svnX Version 1.3b1</title>
+			<title>svnX Version 1.3</title>
+			<pubDate>Tue, 2 November 2010 02:57:08 +0000</pubDate>
+			<enclosure url="http://svnx.googlecode.com/files/svnX 1.3.dmg"
+					   length="1214463" type="application/octet-stream"
+					   sparkle:version="1.3" sparkle:md5Sum="5f0dbca1ea1a2afaad237d58ccd503e9"/>
 			<description><![CDATA[
 <base href="http://code.google.com/p/svnx/"/>
 <style type="text/css">
@@ -32,13 +36,27 @@
 	dt,dd		{display: inline; position: absolute}
 	dt			{left: 50pt; font-family: monospace}
 	dd			{left: 18em}
-	code		{font-size: 100%}
+	code		{font-size: 120%}
 </style>
 
 <h3><span style="color: #080">Visit the svnX discussion group at </span> <a class="wik" href="http://groups.google.com/group/svnx">groups.google.com/group/svnx </a></h3>
 <h3><span style="color: #900">Check &amp; report svnX issues at </span> <a class="wik" href="http://code.google.com/p/svnx/issues/list">code.google.com/p/svnx/issues </a></h3>
 <h3><span style="color: #009">Visit the svnX downloads page at </span> <a class="wik" href="http://code.google.com/p/svnx/downloads/list">code.google.com/p/svnx/downloads </a></h3>
 <hr class="light" />
+<h3><vers>1.3</vers> — <release>release</release><date>2010–11–02</date> <a class="wik" href="http://code.google.com/p/svnx/wiki/Features_1_3">View Detailed Features and Changes</a></h3>
+<p class="note"><b>NOTE: </b>Also includes all changes listed under 1.3b1.</p>
+<ul>
+<h4>General</h4>
+<li>Some minor changes to support for ‘@’ in file names.
+</li>
+<h4>Working Copies &amp; Repositories windows</h4>
+<li>Some small improvements to the list views.
+</li>
+<h4>Working Copy windows</h4>
+<li>Further improved the ‘Repository’ toolbar item’s Repository matching.</li>
+<li>Fixed a problem where minimising a window while a Refresh was underway would abnormally terminate the refresh.</li>
+</ul>
+<br/><hr/>
 <h3><vers>1.3b1</vers> — <beta>beta</beta><date>2010–09–16</date> <a class="wik" href="http://code.google.com/p/svnx/wiki/Features_1_3">View Detailed Features and Changes</a></h3>
 <ul>
 <h4>General</h4>
@@ -56,13 +74,13 @@
 <li>Added new WC ‘Ignore’ contextual menu command.  <new>NEW</new><br/>
 
   [Ignore multiple items in multiple folders.  Recognises &amp; offers to use suffix patterns.]</li>
-<li>When opening WC window (that uses https) ask user to interactively validate any invalid/unknown SSL certificate.<br/>
+<li>When opening WC window (that uses https) ask user to interactively validate any invalid/unknown SSL certificate.  <new>NEW</new><br/>
 
   [Accepting the cert ensures that any subsequent commit etc. will not fail due to auth status.]</li>
 <li>Fixed <code>svn cleanup</code> for selected folders when in flat-view mode &amp; not using svn libs.</li>
 <li>Merged WC column 8 into column 2.</li>
 <li>Added tool-tips for for first 7 column titles (OSX 10.5+).</li>
-<li>Don’t show expansion tool-tip for first 7 columns.  [Issue 109]</li>
+<li>Don’t show expansion tool-tip for first 7 columns.</li>
 <li>Block contextual menu if window has an open sheet.</li>
 <li>Fixed problem with window not opening at previous position.</li>
 <li>The ‘Repository’ toolbar item is now better at choosing a Repository window.
@@ -77,8 +95,9 @@
 <li>When opening Repo window (that uses https) ask user to interactively validate any invalid/unknown SSL certificate.  <new>NEW</new><br/>
 
   [New when using svn tool.  Already exists if ‘Call Subversion libraries directly’ was active.]</li>
-<li>Disable Checkout &amp; Import toolbar items when file is selected.</li>
+<li>Disable Checkout &amp; Import toolbar items when a file is selected.</li>
 <li>For Report, Checkout, Export &amp; Import commands: display consistent repo paths.</li>
+<li>Allow ‘[’, ‘:’ &amp; ‘]’ characters in new names for Copy, Move &amp; Make Dir commands.</li>
 </ul>
 <br/><hr/>
 <h3><vers>1.2</vers> — <release>release</release><date>2010–06–01</date> <a class="wik" href="http://code.google.com/p/svnx/wiki/Features_1_2">View Detailed Features and Changes</a></h3>
@@ -206,7 +225,8 @@
 <li>Repository directory lists are faster.</li>
 <li>Copy, Move, Make Dir, Delete &amp; Import now, on completion, update the log &amp; switch the browser to the latest revision.</li>
 <li>Improved user interface when the log is that of a file.</li>
-<li>Dragging an item into a Working Copy window now opens an svn Merge sheet.  
+<li>Dragging an item into a Working Copy window now opens an svn Merge sheet.<br/>
+
   [The old svn Switch support is still also available.]</li>
 <li>Clicking the Report toolbar icon now opens an options sheet.  <new>NEW</new><br/>
 
@@ -519,9 +539,6 @@
 </ul>
 
 			]]></description>
-			<pubDate>Thu, 16 September 2010 00:00:00 +0000</pubDate>
-			<enclosure url="http://svnx.googlecode.com/files/svnX 1.3b1.dmg"
-					   length="1214421" sparkle:version="1.3b1" type="application/octet-stream"/>
 		</item>
 	</channel>
 </rss>
