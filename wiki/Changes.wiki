@@ -1,6 +1,24 @@
 #summary svnX changes.
 #labels Changes Featured
 
+<wiki:comment>..............................  1.3.1  ..............................</wiki:comment>
+= 1.3.1 — <font color="#0B0">RELEASE</font>    <font size="3">2011–08–01    [http://code.google.com/p/svnx/wiki/Features_1_3 View Detailed Features and Changes]</font> =
+
+*NOTE:* This will probably be the last verison of svnX to support Mac OS X 10.4.x & Subverison 1.4.x.<br/>(If this is an issue for you then please bring it up on the svnX discussion group.)
+
+==== General ====
+  * Fixed a problem with the Diff command and Subversion 1.6.17 using a temporary file.<br/>`[`Only affects files that have Subversion property `svn:eol-style=…` or similar.`]`
+  * Some small improvements to the `svnx` CLI tool.<br/>`[`Including better relative-path support.`]`
+
+==== Repository windows ====
+  * Fixed a problem with highlighting/selecting items in the repository browser.
+
+==== Working Copy windows ====
+  * Display tree conflicts as a ‘C’ in the 4th column (requires Subversion 1.6.x).<br/>`[`Tree conflict items will now be included in the Conflict filter & may be reverted or marked as resolved.`]`
+<br/>
+
+
+----
 <wiki:comment>..............................  1.3  ..............................</wiki:comment>
 = 1.3 — <font color="#0B0">RELEASE</font>    <font size="3">2010–11–02    [http://code.google.com/p/svnx/wiki/Features_1_3 View Detailed Features and Changes]</font> =
 

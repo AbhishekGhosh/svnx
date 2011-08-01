@@ -1,4 +1,4 @@
-#summary svnX 1.3 new features & changes.
+#summary svnX 1.3.1 new features & changes.
 #labels Featured
 
 = Introduction — <font color="#0B0">RELEASE</font> =
@@ -7,12 +7,12 @@
 
 <table border="none"><tr>
 <td>http://svnx.googlecode.com/svn/wiki/svnX-icon.png</td>
-<td>SvnX 1.3 runs on Mac OS X 10.4.11, 10.5.8 & 10.6.<br/>
-SvnX 1.3 is compatible with Subversion 1.4.6, 1.5.7 & 1.6.13.<br/>
-SvnX 1.3 is provided as a universal binary packaged in a disc image.</td>
+<td>SvnX 1.3.1 runs on Mac OS X 10.4.11, 10.5.8, 10.6.8 & 10.7.<br/>
+SvnX 1.3.1 is compatible with Subversion 1.4.6, 1.5.8 & 1.6.17.<br/>
+SvnX 1.3.1 is provided as a universal binary packaged in a disc image.</td>
 </tr></table>
 
-== <a href="http://svnx.googlecode.com/files/svnX%201.3.dmg"><font color="green">►►► Download svnX 1.3 ◀◀◀</font></a> ==
+== <a href="http://svnx.googlecode.com/files/svnX%201.3.1.dmg"><font color="green">►►► Download svnX 1.3.1 ◀◀◀</font></a> ==
 
 [http://svnx.googlecode.com/svn/wiki/svnX-1.3-big.png http://svnx.googlecode.com/svn/wiki/svnX-1.3-tiny.png]
 
