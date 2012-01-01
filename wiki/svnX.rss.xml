@@ -6,11 +6,11 @@
 		<description>svnX recent changelog</description>
 		<language>en</language>
 		<item>
-			<title>svnX Version 1.3.1</title>
-			<pubDate>Mon, 1 August 2011 00:00:00 +0000</pubDate>
-			<enclosure url="http://svnx.googlecode.com/files/svnX%201.3.1.dmg"
-					   length="1208051" type="application/octet-stream"
-					   sparkle:version="1.3.1" sparkle:md5Sum="c5917a2f82e7620ab6a33ca4a04702f3"/>
+			<title>svnX Version 1.3.2</title>
+			<pubDate>Sun, 1 January 2012 13:40:37 +0000</pubDate>
+			<enclosure url="http://svnx.googlecode.com/files/svnX%201.3.2.dmg"
+					   length="1118894" type="application/octet-stream"
+					   sparkle:version="1.3.2" sparkle:md5Sum="fb1a8317f581c885403d0de98e68bd18"/>
 			<description><![CDATA[
 <base href="http://code.google.com/p/svnx/"/>
 <style type="text/css">
@@ -44,8 +44,32 @@
 <h3><span style="color: #900">Check &amp; report svnX issues at </span> <a class="wik" href="http://code.google.com/p/svnx/issues/list">code.google.com/p/svnx/issues </a></h3>
 <h3><span style="color: #009">Visit the svnX downloads page at </span> <a class="wik" href="http://code.google.com/p/svnx/downloads/list">code.google.com/p/svnx/downloads </a></h3>
 <hr class="light" />
+<h3><vers>1.3.2</vers> — <release>release</release><date>2012–01–01</date> <a class="wik" href="http://code.google.com/p/svnx/wiki/Features_1_3">View Detailed Features and Changes</a></h3>
+<ul>
+<h4>General</h4>
+<li>SvnX may now request authorisation to write to /opt/subversion/lib if it needs to add some missing symbolic links there.<br/>
+
+  [Once done you should not be bothered again until you upgrade your Subversion installation.]</li>
+<li>Overly long error messages are now truncated to prevent Cocoa from creating alerts taller than your screen.</li>
+<li>Added support for ECMerge as a Diff and Resolve application.
+</li>
+<h4>Working Copy windows</h4>
+<li>Opening a Working Copy window that is using Subversion 1.6 format (or earlier) when you are using Subversion 1.7 will allow you to upgrade it to Subversion 1.7 format.</li>
+<li>Fixed the Working Copy’s interactive Resolve command when using Subversion 1.7.</li>
+<li>If setting or deleting Subversion properties via the Properties panel fails then an alert is displayed.<br/>
+
+  [Deleting a property that does not exist on all selected files may fail with Subversion 1.6.  This appears to be fixed in Subversion 1.7.]
+</li>
+<h4>Review &amp; Commit windows</h4>
+<li>Correctly displays diffs for file paths that contain ‘'’, ‘"’ &amp; ‘$’.</li>
+<li>Improved display of Subversion properties, especially multiple properties.</li>
+<li>Now parses &amp; displays Subversion property diffs from Subversion 1.7.<br/>
+
+  [Also works around Subversion 1.7 inserting empty diff blocks.]</li>
+</ul>
+<br/><hr/>
 <h3><vers>1.3.1</vers> — <release>release</release><date>2011–08–01</date> <a class="wik" href="http://code.google.com/p/svnx/wiki/Features_1_3">View Detailed Features and Changes</a></h3>
-<p class="note">This will probably be the last verison of svnX to support Mac OS X 10.4.x &amp; Subverison 1.4.x.<br/>
+<p class="note">SvnX 1.3.x will probably be the last verison to support Mac OS X 10.4.x &amp; Subverison 1.4.x.<br/>
 
 (If this is an issue for you then please bring it up on the svnX discussion group.)</p>
 <ul>
