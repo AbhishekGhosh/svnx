@@ -6,11 +6,11 @@
 		<description>svnX recent changelog</description>
 		<language>en</language>
 		<item>
-			<title>svnX Version 1.3.3</title>
-			<pubDate>Mon, 9 April 2012 19:06:26 +0000</pubDate>
-			<enclosure url="http://svnx.googlecode.com/files/svnX%201.3.3.dmg"
-					   length="1127423" type="application/octet-stream"
-					   sparkle:version="1.3.3" sparkle:md5Sum="00a5d4154710bd71cb1eba06d214d00b"/>
+			<title>svnX Version 1.3.4</title>
+			<pubDate>Tue, 4 September 2012 12:28:34 +0000</pubDate>
+			<enclosure url="http://svnx.googlecode.com/files/svnX%201.3.4.dmg"
+					   length="1130393" type="application/octet-stream"
+					   sparkle:version="1.3.4" sparkle:md5Sum="7ba05653c40fa2c51a021228eb386b89"/>
 			<description><![CDATA[
 <base href="http://code.google.com/p/svnx/"/>
 <style type="text/css">
@@ -44,6 +44,29 @@
 <h3><span style="color: #900">Check &amp; report svnX issues at </span> <a class="wik" href="http://code.google.com/p/svnx/issues/list">code.google.com/p/svnx/issues </a></h3>
 <h3><span style="color: #009">Visit the svnX downloads page at </span> <a class="wik" href="http://code.google.com/p/svnx/downloads/list">code.google.com/p/svnx/downloads </a></h3>
 <hr class="light" />
+<h3><vers>1.3.4</vers> — <release>release</release><date>2012–09–04</date> <a class="wik" href="http://code.google.com/p/svnx/wiki/Features_1_3">View Detailed Features and Changes</a></h3>
+<p class="note">SvnX 1.3.3 users should manually download and install svnX 1.3.4 from <a href="http://code.google.com/p/svnx/downloads/list">the downloads page</a> due to a bug in svnX 1.3.3.</p>
+<ul>
+<h4>General</h4>
+<li>Improved compatibility with OSX 10.8 (Mountain Lion) &amp; Xcode 4.4.</li>
+<li>Fixed a problem where a stopped task could truncate its output.</li>
+<li>Clearing the field ‘Path to svn binaries folder’ in Preferences causes svnX to re-check the default paths &amp; reset the field to a suitable default.</li>
+<li>Some small updates to content of the Help book.
+</li>
+<h4>Working Copy windows</h4>
+<li>Fixed a refresh problem resulting from Subversion providing incorrectly escaped URLs.
+</li>
+<h4>Repository windows</h4>
+<li>Improved inter-view tabbing.</li>
+<li>Trim leading new-lines from Message column.</li>
+<li>Enabled Find panel for current message text view.</li>
+<li>Fixed a problem where browsing a repository would sometimes fail.</li>
+<li>Correctly calculate the the real column widths in the repository browser.</li>
+<li>When a checkout is automatically added to the Working Copies window it is now named by combining the working copy folder name &amp; the repository name.<br/>
+ </li>
+</ul>
+<p class="note">Users who experienced svnX crashing on launch when using Subversion binaries from WANdisco on OSX 10.8 should download &amp; install new binaries from them, as they have fixed the problem.</p>
+<br/><hr/>
 <h3><vers>1.3.3</vers> — <release>release</release><date>2012–04–09</date> <a class="wik" href="http://code.google.com/p/svnx/wiki/Features_1_3">View Detailed Features and Changes</a></h3>
 <ul>
 <h4>General</h4>

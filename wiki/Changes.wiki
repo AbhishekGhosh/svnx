@@ -1,6 +1,31 @@
 #summary svnX changes.
 #labels Changes Featured
 
+<wiki:comment>..............................  1.3.4  ..............................</wiki:comment>
+= 1.3.4 — <font color="#0B0">RELEASE</font>    <font size="3">2012–09–04    [http://code.google.com/p/svnx/wiki/Features_1_3 View Detailed Features and Changes]</font> =
+
+==== General ====
+  * Improved compatibility with OSX 10.8 (Mountain Lion) & Xcode 4.4.
+  * Fixed a problem where a stopped task could truncate its output.
+  * Clearing the field ‘Path to svn binaries folder’ in Preferences causes svnX to re-check the default paths & reset the field to a suitable default.
+  * Some small updates to content of the Help book.
+
+==== Working Copy windows ====
+  * Fixed a refresh problem resulting from Subversion providing incorrectly escaped URLs.
+
+==== Repository windows ====
+  * Improved inter-view tabbing.
+  * Trim leading new-lines from Message column.
+  * Enabled Find panel for current message text view.
+  * Fixed a problem where browsing a repository would sometimes fail.
+  * Correctly calculate the the real column widths in the repository browser.
+  * When a checkout is automatically added to the Working Copies window it is now named by combining the working copy folder name & the repository name.
+
+*NOTE:* Users who experienced svnX crashing on launch when using Subversion binaries from WANdisco on OSX 10.8 should download & install new binaries from them, as they have fixed the problem.
+<p/><br/>
+
+
+----
 <wiki:comment>..............................  1.3.3  ..............................</wiki:comment>
 = 1.3.3 — <font color="#0B0">RELEASE</font>    <font size="3">2012–04–09    [http://code.google.com/p/svnx/wiki/Features_1_3 View Detailed Features and Changes]</font> =
 
@@ -25,6 +50,7 @@
 ==== Activity window ====
   * The Stop button now only tries to stop the selected tasks.
   * Fixed problem where last output/error line in log was sometimes duplicated.
+<br/>
 
 
 ----
@@ -367,6 +393,7 @@
 
 ----
 <wiki:comment>....................  0.9.x  ....................</wiki:comment>
+<wiki:comment>2007-10-26</wiki:comment>
 ==== 0.9.13 ====
   * Improves stability on Leopard.
 
@@ -378,6 +405,7 @@
   * Updated Sparkle Plus to version 96.
   * Fixed : reverted the ability to rename (renamable!) files in hierarchical mode.
 
+<wiki:comment>2007-08-05</wiki:comment>
 ==== 0.9.10 ====
   * New bullet-proof parsing method for svn status that uses --xml output. Requires a subversion 1.4 client. Can be disabled in the preferences.
   * Added a tooltip that explains the meaning of the columns’ characters.
@@ -385,12 +413,16 @@
   * Added a basic warning if svn is not found in the path that it set in preferences. (Thanks vskbros).
   * Applied <a href="http://svnx.lachoseinteractive.net/ticket/84">patch</a> by robbie from prelab.net to fix diff issue.
 
+<wiki:comment>v0.9.9 - 2006-11-11</wiki:comment>
+
+<wiki:comment>2006-07-29</wiki:comment>
 ==== 0.9.8 ====
   * Rewrote the broken file history panel !AppleScript invocation from scratch. It now tries to find a known working copy the file belongs to, then opens this working copy window and displays the sheet for the file. <br/>See “Invoking svnX’s file history panel from !AppleScript” from the Help menu for usage.
   * Support for BBEdit diff.
   * Implemented auto-update with Sparkle Plus.
   * “Reveal In Finder” now opens the root directory of the local repository if no file/folder is selected in the Working copy list.
 
+<wiki:comment>2006-04-23</wiki:comment>
 ==== 0.9.7 ====
   * Now compiled as Universal Binary.
   * In the repository window, the url is now clickable : you can now click a segment of the url to browse an upper level of the repository.
@@ -401,16 +433,20 @@
   * Fixed : in old revisions, could not browse paths that had been moved or deleted. Now use path@revision syntax in svn list, svn checkout & svn export.
   * Fixed : svnX now properly closes the pipes it opens.
 
+<wiki:comment>2006-01-07</wiki:comment>
 ==== 0.9.6.4 ====
   * Fixed status bar of the working copy window which displayed the repository UUID instead of the current revision when using subversion 1.3.
 
+<wiki:comment>2006-01-05</wiki:comment>
 ==== 0.9.6.3 ====
   * Subversion 1.3.0 compatibility.
   * Working Copies and Repositories lists should now properly be saved.
 
+<wiki:comment>2005-12-01</wiki:comment>
 ==== 0.9.6.2 ====
   * Passwords are now hidden in text fields.
 
+<wiki:comment>2005-07-19</wiki:comment>
 ==== 0.9.6.1 ====
   * Fixed issue introduced in 0.9.6 when trying to !FileMerge a file with no extension.
 
@@ -421,6 +457,7 @@
   * The temp file diff compares against is now given the same extension, so !FileMerge coloring (from XCode 2.1) is right.
   * Fixed “svn resolved” issue.
 
+<wiki:comment>2005-05-22</wiki:comment>
 ==== 0.9.5 ====
   * Fixed export of a single non-directory item by drag&drop that was broken in 0.9.4.
 
@@ -453,6 +490,7 @@
 	  * Now keeps the selected folder in the outline view after a copy/move.
 	  * If a single file is copied or moved using the outliner in the working copy window, an intermediate sheet now lets the user rename it.
 
+<wiki:comment>2005-04-16</wiki:comment>
 ==== 0.83 ====
   * Fixed out-of-sync issue between the revision and the browser after a svn copy/move/delete in advanced mode.
 
